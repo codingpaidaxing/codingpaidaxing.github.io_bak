@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Posts on 码上遇见你</title>
+    <link>https://codingpaidaxing.github.io/posts/</link>
+    <description>Recent content in Posts on 码上遇见你</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Fri, 13 Jan 2023 23:05:22 +0800</lastBuildDate><atom:link href="https://codingpaidaxing.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Helloworld</title>
+      <link>https://codingpaidaxing.github.io/2023/helloworld/</link>
+      <pubDate>Fri, 13 Jan 2023 23:05:22 +0800</pubDate>
+      
+      <guid>https://codingpaidaxing.github.io/2023/helloworld/</guid>
+      <description>This is My First Blog adsfasdfs</description>
+    </item>
+    
+  </channel>
+</rss>

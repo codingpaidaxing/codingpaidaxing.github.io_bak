@@ -2,6 +2,48 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
     <url>
+      <loc>https://codingpaidaxing.github.io/2023/helloworld/</loc>
+      
+      <lastmod>2023-01-13T23:05:22+08:00</lastmod>
+      
+      
+      <changefreq>monthly</changefreq>
+      
+      
+      <priority>0.5</priority>
+      
+      
+    </url>
+  
+    <url>
+      <loc>https://codingpaidaxing.github.io/posts/</loc>
+      
+      <lastmod>2023-01-13T23:05:22+08:00</lastmod>
+      
+      
+      <changefreq>monthly</changefreq>
+      
+      
+      <priority>0.5</priority>
+      
+      
+    </url>
+  
+    <url>
+      <loc>https://codingpaidaxing.github.io/</loc>
+      
+      <lastmod>2023-01-13T23:05:22+08:00</lastmod>
+      
+      
+      <changefreq>monthly</changefreq>
+      
+      
+      <priority>0.5</priority>
+      
+      
+    </url>
+  
+    <url>
       <loc>https://codingpaidaxing.github.io/categories/</loc>
       
       
@@ -15,18 +57,6 @@
   
     <url>
       <loc>https://codingpaidaxing.github.io/tags/</loc>
-      
-      
-      <changefreq>monthly</changefreq>
-      
-      
-      <priority>0.5</priority>
-      
-      
-    </url>
-  
-    <url>
-      <loc>https://codingpaidaxing.github.io/</loc>
       
       
       <changefreq>monthly</changefreq>
