@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noodp"/>
+  
+  
+  
+  
+  
+  
+  <link rel="next" href="http://vipbbo.com/2023/helloworld/" />
+  <link rel="canonical" href="http://vipbbo.com/2023/javamap/" />
+  <link rel='shortcut icon' type='image/x-icon' href='/favicon.ico' />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <title>
+       
+       
+           Java-Map | 码上遇见你
+       
+  </title>
+  <meta name="title" content="Java-Map | 码上遇见你">
+    
+  
+  <link rel="stylesheet" href="/font/iconfont.css">
+  <link rel="stylesheet" href="/css/main.min.css">
+
+
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Java-Map"/>
+<meta name="twitter:description" content="Java Map解锁新姿势，相信绝大数人并不知晓；相信我，你懂的。
+简单Map的操作 说到Java Map的操作，其实有很多种，但是归结起来无非就两种，其中一种便是简单Map的操作，
+简单Map 简单Map指的是：value是个atomic value，比如：
+Map&lt;K, Integer&gt;; Map&lt;K, Character&gt;; 上面的K是个generic type(也就是泛型)。
+复杂的Map 所谓的复杂的Map指的就是，value不是一个atomic value，常见的一个情况就是value是一个collection，比如：
+Map&lt;K, Collection&lt;V&gt;&gt; Map&lt;K, List&lt;V&gt;&gt; Map&lt;K, Set&lt;V&gt;&gt; 其实简单的Map操作起来还是比较方便的，这里不再一一举例。 但是通常情况下我们使用的Map更多情况下是一个复杂Map，如果像下面这样编写的一个代码，它就有可能抛出一个NullPointerException
+Map&lt;K, List&lt;V&gt;&gt; map = new HashMap&lt;&gt;(); map.get(key).add(val); 上述代码之所以会出现空指针的异常，主要原因就是当map并不包含key时。（map.get(key).add(val)）也就等价于null.add(val) 在我们日常工作开发中通常采用的解决方案，代码如下：
+Map&lt;K, List&lt;V&gt;&gt; map = new HashMap&lt;&gt;(); if (!map.containsKey(key)) { map.put(key, new ArrayList&lt;&gt;()); } map.get(key).add(val); 上述方案便可规避掉NullPointerException异常，但是代码看上去过于冗长。
+重点来了！解锁复杂Map避免空指针异常的简化代码 Map&lt;K, List&lt;V&gt;&gt; map = new HashMap&lt;&gt;(); map.computerIfAbsent(key, k-&gt; new ArrayList&lt;&gt;()); map.get(key).add(val); 代码是不是看上去简化清爽了许多。 关于computeIfAbsent的Java文档可以参考：computeIfAbsent
+当然如此清爽代码的解决方案不止一种，比如还有Guava Multimap
+使用Guava Multimap解锁新姿势(该方式代码更加简洁) Multimap&lt;K, V&gt; multimap = ArrayListMultimap."/>
+
+  <script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Java-Map",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http:\/\/vipbbo.com\/2023\/javamap\/"
+  },
+  "image": {
+    "@type": "ImageObject",
+    "url": "http:\/\/vipbbo.com\/cover.png",
+    "width":  800 ,
+    "height":  600 
+  },
+  "genre": "posts",
+  
+  "wordcount":  86 ,
+  "url": "http:\/\/vipbbo.com\/2023\/javamap\/",
+  "datePublished": "2023-01-13T23:05:22\u002b08:00",
+  "dateModified": "2023-01-13T23:05:22\u002b08:00",
+  
+  "publisher": {
+    "@type": "Organization",
+    "name": "Fastbyte01",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http:\/\/vipbbo.com\/logo.png",
+      "width":  127 ,
+      "height":  40 
+    }
+  },
+  "author": {
+    "@type": "Person",
+    "name": "派大星"
+  },
+  "description": ""
+}
+</script>
+</head>
+
+  
+
+
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4585280196682059"
+     crossorigin="anonymous"></script>
+
+
+  <body class="">
+    <div class="wrapper">
+        <nav class="navbar">
+    <div class="container">
+        <div class="navbar-header header-logo">
+        	<a href="http://vipbbo.com/">码上遇见你</a>
+        </div>
+        <div class="menu navbar-right">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+                <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;
+        </div>
+    </div>
+</nav>
+<nav class="navbar-mobile" id="nav-mobile" style="display: none">
+     <div class="container">
+        <div class="navbar-header">
+            <div>  <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;<a href="http://vipbbo.com/">码上遇见你</a></div>
+            <div class="menu-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+     
+          <div class="menu" id="mobile-menu">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+        </div>
+    </div>
+</nav>
+
+    	 <main class="main">
+          <div class="container">
+      		
+<article class="post-warp">
+    <header class="post-header">
+        <h1 class="post-title">Java-Map</h1>
+        <div class="post-meta">
+            Written by <a href="http://vipbbo.com/" rel="author">派大星</a> with ♥ 
+                <span class="post-time">
+                    on <time datetime=2023-01-13 >13 January 2023</time>
+                </span>
+                in
+                
+                <i class="iconfont icon-timer"></i>
+                1 min
+        </div>
+    </header>
+    <div class="post-content">
+        
+
+        
+
+        
+        
+     
+          
+          
+          
+
+          
+          
+          
+
+          <p>Java Map解锁新姿势，相信绝大数人并不知晓；相信我，你懂的。</p>
+<h2 id="简单map的操作">简单Map的操作</h2>
+<p>说到Java Map的操作，其实有很多种，但是归结起来无非就两种，其中一种便是简单Map的操作，</p>
+<h3 id="简单map">简单Map</h3>
+<p>简单Map指的是：value是个atomic value，比如：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Java" data-lang="Java"><span style="display:flex;"><span>Map<span style="color:#f92672">&lt;</span>K<span style="color:#f92672">,</span> Integer<span style="color:#f92672">&gt;;</span>
+</span></span><span style="display:flex;"><span>Map<span style="color:#f92672">&lt;</span>K<span style="color:#f92672">,</span> Character<span style="color:#f92672">&gt;;</span>
+</span></span></code></pre></div><p>上面的K是个generic type(也就是泛型)。</p>
+<h3 id="复杂的map">复杂的Map</h3>
+<p>所谓的复杂的Map指的就是，value不是一个atomic value，常见的一个情况就是value是一个collection，比如：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Map<span style="color:#f92672">&lt;</span>K<span style="color:#f92672">,</span> Collection<span style="color:#f92672">&lt;</span>V<span style="color:#f92672">&gt;&gt;</span>
+</span></span><span style="display:flex;"><span>Map<span style="color:#f92672">&lt;</span>K<span style="color:#f92672">,</span> List<span style="color:#f92672">&lt;</span>V<span style="color:#f92672">&gt;&gt;</span>
+</span></span><span style="display:flex;"><span>Map<span style="color:#f92672">&lt;</span>K<span style="color:#f92672">,</span> Set<span style="color:#f92672">&lt;</span>V<span style="color:#f92672">&gt;&gt;</span>
+</span></span></code></pre></div><p>其实简单的Map操作起来还是比较方便的，这里不再一一举例。
+但是通常情况下我们使用的Map更多情况下是一个复杂Map，如果像下面这样编写的一个代码，它就有可能抛出一个<code>NullPointerException</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Map<span style="color:#f92672">&lt;</span>K<span style="color:#f92672">,</span> List<span style="color:#f92672">&lt;</span>V<span style="color:#f92672">&gt;&gt;</span> map <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashMap<span style="color:#f92672">&lt;&gt;();</span>
+</span></span><span style="display:flex;"><span>map<span style="color:#f92672">.</span><span style="color:#a6e22e">get</span><span style="color:#f92672">(</span>key<span style="color:#f92672">).</span><span style="color:#a6e22e">add</span><span style="color:#f92672">(</span>val<span style="color:#f92672">);</span>
+</span></span></code></pre></div><p>上述代码之所以会出现空指针的异常，主要原因就是当map并不包含key时。（<code>map.get(key).add(val)</code>）也就等价于<code>null.add(val)</code>
+在我们日常工作开发中通常采用的解决方案，代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Map<span style="color:#f92672">&lt;</span>K<span style="color:#f92672">,</span> List<span style="color:#f92672">&lt;</span>V<span style="color:#f92672">&gt;&gt;</span> map <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashMap<span style="color:#f92672">&lt;&gt;();</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> <span style="color:#f92672">(!</span>map<span style="color:#f92672">.</span><span style="color:#a6e22e">containsKey</span><span style="color:#f92672">(</span>key<span style="color:#f92672">))</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    map<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>key<span style="color:#f92672">,</span> <span style="color:#66d9ef">new</span> ArrayList<span style="color:#f92672">&lt;&gt;());</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>map<span style="color:#f92672">.</span><span style="color:#a6e22e">get</span><span style="color:#f92672">(</span>key<span style="color:#f92672">).</span><span style="color:#a6e22e">add</span><span style="color:#f92672">(</span>val<span style="color:#f92672">);</span>
+</span></span></code></pre></div><p>上述方案便可规避掉<code>NullPointerException</code>异常，但是代码看上去过于冗长。</p>
+<h3 id="重点来了解锁复杂map避免空指针异常的简化代码">重点来了！解锁复杂Map避免空指针异常的简化代码</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Map<span style="color:#f92672">&lt;</span>K<span style="color:#f92672">,</span> List<span style="color:#f92672">&lt;</span>V<span style="color:#f92672">&gt;&gt;</span> map <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashMap<span style="color:#f92672">&lt;&gt;();</span>
+</span></span><span style="display:flex;"><span>map<span style="color:#f92672">.</span><span style="color:#a6e22e">computerIfAbsent</span><span style="color:#f92672">(</span>key<span style="color:#f92672">,</span> k<span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">new</span> ArrayList<span style="color:#f92672">&lt;&gt;());</span>
+</span></span><span style="display:flex;"><span>map<span style="color:#f92672">.</span><span style="color:#a6e22e">get</span><span style="color:#f92672">(</span>key<span style="color:#f92672">).</span><span style="color:#a6e22e">add</span><span style="color:#f92672">(</span>val<span style="color:#f92672">);</span>
+</span></span></code></pre></div><p>代码是不是看上去简化清爽了许多。
+关于<code>computeIfAbsent</code>的Java文档可以参考：<a href="https://docs.oracle.com/javase/9/docs/api/java/util/Map.html#computeIfAbsent-K-java.util.function.Function">computeIfAbsent</a></p>
+<p>当然如此清爽代码的解决方案不止一种，比如还有<code>Guava Multimap</code></p>
+<h3 id="使用guava-multimap解锁新姿势该方式代码更加简洁">使用Guava Multimap解锁新姿势(该方式代码更加简洁)</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Multimap<span style="color:#f92672">&lt;</span>K<span style="color:#f92672">,</span> V<span style="color:#f92672">&gt;</span> multimap <span style="color:#f92672">=</span> ArrayListMultimap<span style="color:#f92672">.</span><span style="color:#a6e22e">create</span><span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>multimap<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>key<span style="color:#f92672">,</span>val<span style="color:#f92672">);</span>
+</span></span></code></pre></div><p>该方法唯一不足的一点就是<code>Guava</code>并不是Java标准库的一部分，所以如果想使用Guava Multimap来解决的话需要通过Maven dependency在你的项目中引入Guava；如下方式</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">&lt;!--</span>
+</span></span><span style="display:flex;"><span>  https<span style="color:#f92672">:</span><span style="color:#75715e">//mvnrepository.com/artifact/com.google.guava/guava --
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;</span>dependency<span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;</span>groupId<span style="color:#f92672">&gt;</span>com<span style="color:#f92672">.</span><span style="color:#a6e22e">google</span><span style="color:#f92672">.</span><span style="color:#a6e22e">guava</span><span style="color:#f92672">&lt;/</span>groupId<span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;</span>artifactId<span style="color:#f92672">&gt;</span>guava<span style="color:#f92672">&lt;/</span>artifactId<span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;</span>version<span style="color:#f92672">&gt;</span><span style="color:#ae81ff">30.1.1</span><span style="color:#f92672">-</span>jre<span style="color:#f92672">&lt;/</span>version<span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/</span>dependency<span style="color:#f92672">&gt;</span>
+</span></span></code></pre></div><p>关于Multimap的Java文档在此处：<a href="https://guava.dev/releases/23.0/api/docs/com/google/common/collect/Multimap.html">Multimap</a></p>
+
+    </div>
+
+    <div class="post-copyright">
+             
+            <p class="copyright-item">
+                <span>Author:</span>
+                <span>派大星 </span>
+                </p>
+            
+           
+            <p class="copyright-item">
+                    <span>Words:</span>
+                   <span>86</span>
+            </p>
+
+            <p class="copyright-item">
+                
+                <span>Share:</span>
+                <span>
+
+      
+        <a href="//twitter.com/share?url=http%3a%2f%2fvipbbo.com%2f2023%2fjavamap%2f&amp;text=Java-Map&amp;via=" target="_blank" title="Share on Twitter">
+          <i class="iconfont icon-twitter"></i>
+        </a>
+        
+      
+      
+        <a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fvipbbo.com%2f2023%2fjavamap%2f" target="_blank" title="Share on Facebook">
+          <i class="iconfont icon-facebook"></i>
+        </a>
+        
+      
+      
+      
+      
+        <a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fvipbbo.com%2f2023%2fjavamap%2f&amp;title=Java-Map" target="_blank" title="Share on LinkedIn">
+          <i class="iconfont icon-linkedin"></i>
+        </a>
+        
+      
+      
+        
+      
+        
+      
+
+          
+
+          
+
+          
+
+          
+
+</span>
+                
+            </p>
+
+             
+            <p class="copyright-item">
+                Released under <a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a>
+            </p>
+            
+    </div>
+
+  
+    <div class="post-tags">
+        
+        <section>
+                <a href="javascript:window.history.back();">Back</a></span> · 
+                <span><a href="http://vipbbo.com/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav">
+         
+        
+        <a href="http://vipbbo.com/2023/helloworld/" class="next" rel="next" title="Helloworld">Helloworld&nbsp;<i class="iconfont icon-xiaojiantou"></i></a>
+        
+    </div>
+
+    <div class="post-comment">
+          
+          <div id="disqus_thread"></div>
+  <script type="text/javascript">
+      (function() {
+          
+          
+          if (window.location.hostname == "localhost")
+              return;
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          var disqus_shortname = 'yourdiscussshortname';
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="https://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+ 
+
+          
+    </div>
+</article>
+          </div>
+		   </main>
+      <footer class="footer">
+    <div class="copyright">
+        &copy;
+        
+        <span itemprop="copyrightYear">2023 - 2023</span>
+        
+         
+            <span class="author" itemprop="copyrightHolder"><a href="http://vipbbo.com/">派大星</a> | </span>
+         
+
+		  <span>Crafted with ❤️ by <a href="https://github.com/Fastbyte01/KeepIt" target="_blank" rel="external nofollow noopener noreffer">KeepIt</a> & <a href="https://gohugo.io/" target="_blank" rel="external nofollow noopener noreffer">Hugo</a></span>
+    </div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
+    <script src="/js/vendor_no_gallery.min.js" async=""></script>
+    
+  
+
+
+
+
+
+
+
+     </div>
+  </body>
+</html>
