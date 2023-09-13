@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noodp"/>
+  
+  
+  
+  
+  
+  <link rel="prev" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-mysql%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB-%E9%94%81%E6%9C%BA%E5%88%B6/" />
+  <link rel="next" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-mq%E4%B9%8B%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E6%B6%88%E6%81%AF%E7%9A%84%E9%A1%BA%E5%BA%8F%E6%80%A7%E5%8F%8A%E6%B6%88%E6%81%AF%E7%A7%AF%E5%8E%8B%E9%97%AE%E9%A2%98/" />
+  <link rel="canonical" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-mq%E6%95%B0%E6%8D%AE%E4%B8%A2%E5%A4%B1%E9%97%AE%E9%A2%98%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/" />
+  <link rel='shortcut icon' type='image/x-icon' href='/favicon.ico' />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <title>
+       
+       
+           对线面试官 - MQ数据丢失问题的解决方案 | 码上遇见你
+       
+  </title>
+  <meta name="title" content="对线面试官 - MQ数据丢失问题的解决方案 | 码上遇见你">
+    
+  
+  <link rel="stylesheet" href="/font/iconfont.css">
+  <link rel="stylesheet" href="/css/main.min.css">
+
+
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="对线面试官 - MQ数据丢失问题的解决方案"/>
+<meta name="twitter:description" content="书接上文。这次继续聊一聊MQ
+面试官：继上次你对MQ的回答，我还有一些疑问想要针对MQ。我们继续聊一聊？
+派大星：好的，当然可以。
+面试官：OK，那我们继续上次的话题，就是MQ如何保证消息的可靠性，或者说如何保证消息不丢失呢？
+派大星：这种情况需要就不同情况进行分析。主要是有三张场景会导致消息丢失的问题。
+生产者丢失了消息 MQ丢失了消息 消费的时候丢失了消息 面试官：嗯，不错，那你能就每种情况简单聊一聊吗?
+派大星：可以，首先我先简单说一下RabbitMQ丢失消息如何解决。每种消息丢失的情况的解决方案大致如下图所示： 首先来说一说生产者丢失了消息： 主要场景是：写消息等过程中消息还没有到达MQ的时候，在网络传输的过程中就将消息丢失了；或者消息到了RabbitMQ但是MQ内部错乱没有存储消息导致消息丢失。
+解决方案1：可以使用RabbitMQ事务机制，具体配置如下：
+channel.txSelect(); try{ // 发送消息 }catch{ channel.txRollback(); } channel.txCommit(); 但是该种方案也有弊端：因为是事务机制，所以是同步阻塞的，这样就会导致生产者发送消息的吞吐量大大下降 解决方案2：把channel设置成confirm模式，发送一个消息就不用管了，RabbitMQ如果接收到了这个消息就会回调生产者本地的一个接口，通知你说这条消息已经发送成功并且接受成功，反之也会通知。这种方式的吞吐量也会高一些。
+其次说一些RabbitMQ自己弄丢了消息 这种情况的解决方可可以将RabbitMQ设置为持久化。除非有及其罕见的情况RabbitMQ还没来得及持久化自己就挂了，可能会导致少量的数据丢失，当然这种概率是很小的。
+最后便是第三种情况：消费者丢失了消息 只有当你打开了消费者的autoAck的这样一个机制：你消费到了数据之后消费者会自动通知RabbitMQ说我已经消费到了这条数据；这样会出现一种情况：假设你消费到了一条数据但是还没有处理完，此时消费者就自动autoAck了。此时恰巧消费者系统服务挂了，消息还没来得及处理而且RabbitMQ以为该消息已经处理掉了。 解决方案便是关掉RabbitMQ的自动ACK机制
+面试官：不错，刚刚你有提到RabbitMQ设置持久化。你知道它怎么配置持久化吗：
+派大星：直到的。具体步骤如下(注意两者缺一不可，需同时设置)：
+创建queue的时候将其设置为持久化的，这样保证RabbitMQ持久化queue的元数据，但是不会持久化queue里的数据 另外发送消息的时候将消息的deliveryMode设置为2，就是将消息设置为持久化。此时RabbitMQ就会将消息持久化到磁盘上去。 面试官：不错，但是我们这边实际工作中用的MQ是Kafka居多，关于Kafka消息丢失就以上情况你了解具体的解决方案吗？
+派大星：这个也了解一些。
+首先说一下。Kafka中消费者弄丢了消息的场景： 具体过程为消费者自动提交了offset，其实消息还没有处理完。和RabbitMQ情况差不多。 解决方案为：就是关闭自动提交offset，手动提交offset
+其次说一下Kafka弄丢了消息 主要表现形式为：Kafka的leader接受到了消息但是还没来得及同步给follwer就挂了，此时follwer变成了leader。导致数据丢失。 解决方案为：需要设置4个参数：
+给topic设置replication.replicas参数，这个值必须要大于1，也就是要求每个parttion只要有两个副本。 在Kafka服务端设置min.insync.replicas参数：这个值必须要大于1，这个是要求一个leader只要高指导最少有一个follwer还跟自己保持联系，这样才能确保leader还有一个follwer。 在producer段设置ack=all：这个要求是每条数据必须是写入所有的replica之后，才能认为是成功了。 在producer端设置retries=MAX：这个要求一旦写入失败，就无线重试，卡在这里。 按照上述配置后至少保证了在Kafka段在leader所在的broker发生故障进行leader切换时，数据不会丢失。
+最后聊一下生产者丢失数据的情况 如果是按照上述方式配置了ack=all则一定不会丢，要求是：你的leader接收到消息，所有的follwer都同步到了消息之后，才认为本次消息发送成功，否则生产者会重试无限次。"/>
+
+  <script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BlogPosting",
+  "headline": "对线面试官 - MQ数据丢失问题的解决方案",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http:\/\/vipbbo.com\/2023\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-mq%E6%95%B0%E6%8D%AE%E4%B8%A2%E5%A4%B1%E9%97%AE%E9%A2%98%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88\/"
+  },
+  "image": {
+    "@type": "ImageObject",
+    "url": "http:\/\/vipbbo.com\/cover.png",
+    "width":  800 ,
+    "height":  600 
+  },
+  "genre": "posts",
+  
+  "wordcount":  47 ,
+  "url": "http:\/\/vipbbo.com\/2023\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-mq%E6%95%B0%E6%8D%AE%E4%B8%A2%E5%A4%B1%E9%97%AE%E9%A2%98%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88\/",
+  "datePublished": "2023-01-13T23:05:22\u002b08:00",
+  "dateModified": "2023-01-13T23:05:22\u002b08:00",
+  
+  "publisher": {
+    "@type": "Organization",
+    "name": "Fastbyte01",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http:\/\/vipbbo.com\/logo.png",
+      "width":  127 ,
+      "height":  40 
+    }
+  },
+  "author": {
+    "@type": "Person",
+    "name": "派大星"
+  },
+  "description": ""
+}
+</script>
+</head>
+
+  
+
+
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4585280196682059"
+     crossorigin="anonymous"></script>
+
+
+  <body class="">
+    <div class="wrapper">
+        <nav class="navbar">
+    <div class="container">
+        <div class="navbar-header header-logo">
+        	<a href="http://vipbbo.com/">码上遇见你</a>
+        </div>
+        <div class="menu navbar-right">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+                <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;
+        </div>
+    </div>
+</nav>
+<nav class="navbar-mobile" id="nav-mobile" style="display: none">
+     <div class="container">
+        <div class="navbar-header">
+            <div>  <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;<a href="http://vipbbo.com/">码上遇见你</a></div>
+            <div class="menu-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+     
+          <div class="menu" id="mobile-menu">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+        </div>
+    </div>
+</nav>
+
+    	 <main class="main">
+          <div class="container">
+      		
+<article class="post-warp">
+    <header class="post-header">
+        <h1 class="post-title">对线面试官 - MQ数据丢失问题的解决方案</h1>
+        <div class="post-meta">
+            Written by <a href="http://vipbbo.com/" rel="author">派大星</a> with ♥ 
+                <span class="post-time">
+                    on <time datetime=2023-01-13 >13 January 2023</time>
+                </span>
+                in
+                
+                <i class="iconfont icon-timer"></i>
+                1 min
+        </div>
+    </header>
+    <div class="post-content">
+        
+
+        
+            
+        
+
+        
+        
+     
+          
+          
+          
+
+          
+          
+          
+
+          <p>书接上文。这次继续聊一聊MQ</p>
+<p><strong>面试官：继上次你对MQ的回答，我还有一些疑问想要针对MQ。我们继续聊一聊？</strong></p>
+<p>派大星：好的，当然可以。</p>
+<p><strong>面试官：OK，那我们继续上次的话题，就是MQ如何保证消息的可靠性，或者说如何保证消息不丢失呢？</strong></p>
+<p>派大星：这种情况需要就不同情况进行分析。主要是有三张场景会导致消息丢失的问题。</p>
+<ol>
+<li>生产者丢失了消息</li>
+<li>MQ丢失了消息</li>
+<li>消费的时候丢失了消息</li>
+</ol>
+<p><strong>面试官：嗯，不错，那你能就每种情况简单聊一聊吗?</strong></p>
+<p>派大星：可以，首先我先简单说一下RabbitMQ丢失消息如何解决。每种消息丢失的情况的解决方案大致如下图所示：
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2022/png/22063571/1659619917823-3beb1e21-f5c6-4e2b-b8ef-0be96e1c9f0d.png#averageHue=%23cbcbcb&amp;clientId=uf77cee5c-e33e-4&amp;from=paste&amp;height=293&amp;id=u4c4e0c08&amp;originHeight=586&amp;originWidth=1242&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=99976&amp;status=done&amp;style=none&amp;taskId=u9d4efd28-ad2c-4aab-993c-e5a3ae9dd12&amp;title=&amp;width=621" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure></p>
+<ul>
+<li>首先来说一说生产者丢失了消息：</li>
+</ul>
+<blockquote>
+<p>主要场景是：写消息等过程中消息还没有到达MQ的时候，在网络传输的过程中就将消息丢失了；或者消息到了RabbitMQ但是MQ内部错乱没有存储消息导致消息丢失。</p>
+</blockquote>
+<p>解决方案1：可以<code>使用RabbitMQ事务机制</code>，具体配置如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>channel<span style="color:#f92672">.</span><span style="color:#a6e22e">txSelect</span><span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">try</span><span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 发送消息
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#f92672">}</span><span style="color:#66d9ef">catch</span><span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    channel<span style="color:#f92672">.</span><span style="color:#a6e22e">txRollback</span><span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>channel<span style="color:#f92672">.</span><span style="color:#a6e22e">txCommit</span><span style="color:#f92672">();</span>
+</span></span></code></pre></div><p>但是该种方案也有弊端：<code>因为是事务机制，所以是同步阻塞的，这样就会导致生产者发送消息的吞吐量大大下降</code>
+解决方案2：把channel设置成<code>confirm</code>模式，发送一个消息就不用管了，RabbitMQ如果接收到了这个消息就会回调生产者本地的一个接口，通知你说这条消息已经发送成功并且接受成功，反之也会通知。这种方式的吞吐量也会高一些。</p>
+<ul>
+<li>其次说一些RabbitMQ自己弄丢了消息</li>
+</ul>
+<p>这种情况的解决方可可以将RabbitMQ<code>设置为持久化</code>。除非有及其罕见的情况RabbitMQ还没来得及持久化自己就挂了，可能会导致少量的数据丢失，当然这种概率是很小的。</p>
+<ul>
+<li>最后便是第三种情况：消费者丢失了消息</li>
+</ul>
+<p>只有当你打开了消费者的<code>autoAck</code>的这样一个机制：你消费到了数据之后消费者会自动通知RabbitMQ说我已经消费到了这条数据；这样会出现一种情况：假设你消费到了一条数据但是还没有处理完，此时消费者就自动<code>autoAck</code>了。此时恰巧消费者系统服务挂了，消息还没来得及处理而且RabbitMQ以为该消息已经处理掉了。
+解决方案便是<code>关掉RabbitMQ的自动ACK机制</code></p>
+<p><strong>面试官：不错，刚刚你有提到RabbitMQ设置持久化。你知道它怎么配置持久化吗：</strong></p>
+<p>派大星：直到的。具体步骤如下(注意两者缺一不可，需同时设置)：</p>
+<ul>
+<li>创建queue的时候将其设置为持久化的，这样保证RabbitMQ持久化queue的元数据，但是不会持久化queue里的数据</li>
+<li>另外发送消息的时候将消息的<code>deliveryMode</code>设置为2，就是将消息设置为持久化。此时RabbitMQ就会将消息持久化到磁盘上去。</li>
+</ul>
+<p><strong>面试官：不错，但是我们这边实际工作中用的MQ是Kafka居多，关于Kafka消息丢失就以上情况你了解具体的解决方案吗？</strong></p>
+<p>派大星：这个也了解一些。</p>
+<ul>
+<li>首先说一下。Kafka中消费者弄丢了消息的场景：</li>
+</ul>
+<p>具体过程为消费者自动提交了offset，其实消息还没有处理完。和RabbitMQ情况差不多。
+解决方案为：就是<code>关闭自动提交offset，手动提交offset</code></p>
+<ul>
+<li>其次说一下Kafka弄丢了消息</li>
+</ul>
+<p>主要表现形式为：Kafka的leader接受到了消息但是还没来得及同步给follwer就挂了，此时follwer变成了leader。导致数据丢失。
+解决方案为：需要设置4个参数：</p>
+<ol>
+<li>给topic设置<code>replication.replicas</code>参数，这个值必须要大于1，也就是要求每个parttion只要有两个副本。</li>
+<li>在Kafka服务端设置<code>min.insync.replicas</code>参数：这个值必须要大于1，这个是要求一个leader只要高指导最少有一个follwer还跟自己保持联系，这样才能确保leader还有一个follwer。</li>
+<li>在producer段设置<code>ack=all</code>：这个要求是每条数据必须是写入所有的replica之后，才能认为是成功了。</li>
+<li>在producer端设置<code>retries=MAX</code>：这个要求一旦写入失败，就无线重试，卡在这里。</li>
+</ol>
+<blockquote>
+<p>按照上述配置后至少保证了在Kafka段在leader所在的broker发生故障进行leader切换时，数据不会丢失。</p>
+</blockquote>
+<ul>
+<li>最后聊一下生产者丢失数据的情况</li>
+</ul>
+<p>如果是按照上述方式配置了<code>ack=all</code>则一定不会丢，要求是：你的leader接收到消息，所有的follwer都同步到了消息之后，才认为本次消息发送成功，否则生产者会重试无限次。</p>
+
+    </div>
+
+    <div class="post-copyright">
+             
+            <p class="copyright-item">
+                <span>Author:</span>
+                <span>派大星 </span>
+                </p>
+            
+           
+            <p class="copyright-item">
+                    <span>Words:</span>
+                   <span>47</span>
+            </p>
+
+            <p class="copyright-item">
+                
+                <span>Share:</span>
+                <span>
+
+      
+        <a href="//twitter.com/share?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-mq%25E6%2595%25B0%25E6%258D%25AE%25E4%25B8%25A2%25E5%25A4%25B1%25E9%2597%25AE%25E9%25A2%2598%25E7%259A%2584%25E8%25A7%25A3%25E5%2586%25B3%25E6%2596%25B9%25E6%25A1%2588%2f&amp;text=%e5%af%b9%e7%ba%bf%e9%9d%a2%e8%af%95%e5%ae%98%20-%20MQ%e6%95%b0%e6%8d%ae%e4%b8%a2%e5%a4%b1%e9%97%ae%e9%a2%98%e7%9a%84%e8%a7%a3%e5%86%b3%e6%96%b9%e6%a1%88&amp;via=" target="_blank" title="Share on Twitter">
+          <i class="iconfont icon-twitter"></i>
+        </a>
+        
+      
+      
+        <a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-mq%25E6%2595%25B0%25E6%258D%25AE%25E4%25B8%25A2%25E5%25A4%25B1%25E9%2597%25AE%25E9%25A2%2598%25E7%259A%2584%25E8%25A7%25A3%25E5%2586%25B3%25E6%2596%25B9%25E6%25A1%2588%2f" target="_blank" title="Share on Facebook">
+          <i class="iconfont icon-facebook"></i>
+        </a>
+        
+      
+      
+      
+      
+        <a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-mq%25E6%2595%25B0%25E6%258D%25AE%25E4%25B8%25A2%25E5%25A4%25B1%25E9%2597%25AE%25E9%25A2%2598%25E7%259A%2584%25E8%25A7%25A3%25E5%2586%25B3%25E6%2596%25B9%25E6%25A1%2588%2f&amp;title=%e5%af%b9%e7%ba%bf%e9%9d%a2%e8%af%95%e5%ae%98%20-%20MQ%e6%95%b0%e6%8d%ae%e4%b8%a2%e5%a4%b1%e9%97%ae%e9%a2%98%e7%9a%84%e8%a7%a3%e5%86%b3%e6%96%b9%e6%a1%88" target="_blank" title="Share on LinkedIn">
+          <i class="iconfont icon-linkedin"></i>
+        </a>
+        
+      
+      
+        
+      
+        
+      
+
+          
+
+          
+
+          
+
+          
+
+</span>
+                
+            </p>
+
+             
+            <p class="copyright-item">
+                Released under <a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a>
+            </p>
+            
+    </div>
+
+  
+    <div class="post-tags">
+        
+        <section>
+                <a href="javascript:window.history.back();">Back</a></span> · 
+                <span><a href="http://vipbbo.com/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav">
+        
+        <a href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-mysql%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB-%E9%94%81%E6%9C%BA%E5%88%B6/" class="prev" rel="prev" title="对线面试官 - MySQL隔离级别 锁机制"><i class="iconfont icon-dajiantou"></i>&nbsp;对线面试官 - MySQL隔离级别 锁机制</a>
+         
+        
+        <a href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-mq%E4%B9%8B%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E6%B6%88%E6%81%AF%E7%9A%84%E9%A1%BA%E5%BA%8F%E6%80%A7%E5%8F%8A%E6%B6%88%E6%81%AF%E7%A7%AF%E5%8E%8B%E9%97%AE%E9%A2%98/" class="next" rel="next" title="对线面试官 - MQ之如何保证消息的顺序性及消息积压问题">对线面试官 - MQ之如何保证消息的顺序性及消息积压问题&nbsp;<i class="iconfont icon-xiaojiantou"></i></a>
+        
+    </div>
+
+    <div class="post-comment">
+          
+          <div id="disqus_thread"></div>
+  <script type="text/javascript">
+      (function() {
+          
+          
+          if (window.location.hostname == "localhost")
+              return;
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          var disqus_shortname = 'yourdiscussshortname';
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="https://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+ 
+
+          
+    </div>
+</article>
+          </div>
+		   </main>
+      <footer class="footer">
+    <div class="copyright">
+        &copy;
+        
+        <span itemprop="copyrightYear">2023 - 2023</span>
+        
+         
+            <span class="author" itemprop="copyrightHolder"><a href="http://vipbbo.com/">派大星</a> | </span>
+         
+
+		  <span>Crafted with ❤️ by <a href="https://github.com/Fastbyte01/KeepIt" target="_blank" rel="external nofollow noopener noreffer">KeepIt</a> & <a href="https://gohugo.io/" target="_blank" rel="external nofollow noopener noreffer">Hugo</a></span>
+    </div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    <link crossorigin="anonymous" integrity="sha384-yziQACfvCVwLqVFLqkWBYRO3XeA4EqzfXKGwaWnenYn5XzqfJFlFdKEmvutIQdKb" href="https://lib.baomitu.com/lightgallery/1.10.0/css/lightgallery.min.css" rel="stylesheet">
+      
+     <script src="/js/vendor_gallery.min.js" async="" ></script>
+    
+  
+
+
+
+
+
+
+
+     </div>
+  </body>
+</html>

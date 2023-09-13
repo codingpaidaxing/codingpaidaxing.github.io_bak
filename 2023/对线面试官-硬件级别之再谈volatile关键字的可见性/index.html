@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noodp"/>
+  
+  
+  
+  
+  
+  <link rel="prev" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%A1%AC%E4%BB%B6%E7%BA%A7%E5%88%AB%E4%B9%8B%E5%86%8D%E8%B0%88volatile%E5%85%B3%E9%94%AE%E5%AD%97%E7%9A%84%E6%8C%87%E4%BB%A4%E9%87%8D%E6%8E%92%E5%BA%8F/" />
+  <link rel="next" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E5%90%84%E4%B8%AAmq%E7%9A%84%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%A2%98/" />
+  <link rel="canonical" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%A1%AC%E4%BB%B6%E7%BA%A7%E5%88%AB%E4%B9%8B%E5%86%8D%E8%B0%88volatile%E5%85%B3%E9%94%AE%E5%AD%97%E7%9A%84%E5%8F%AF%E8%A7%81%E6%80%A7/" />
+  <link rel='shortcut icon' type='image/x-icon' href='/favicon.ico' />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <title>
+       
+       
+           对线面试官 - 硬件级别之再谈Volatile关键字的可见性 | 码上遇见你
+       
+  </title>
+  <meta name="title" content="对线面试官 - 硬件级别之再谈Volatile关键字的可见性 | 码上遇见你">
+    
+  
+  <link rel="stylesheet" href="/font/iconfont.css">
+  <link rel="stylesheet" href="/css/main.min.css">
+
+
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="对线面试官 - 硬件级别之再谈Volatile关键字的可见性"/>
+<meta name="twitter:description" content="继之前讲多的Synchronized和**volatile**关键字，本篇文章会再深入从硬件级别带你去了解其特性。
+之前文章也有提到过：
+Synchronized既保证了原子性也保证了可见性、可重入（自己不停地加锁） volatile主要是保证线程可见性，禁止指令重排序
+文章参考：
+面试官：你知道为什么volatile无法保证原子性。只可能保证可见性和有序性？
+派大星：针对于Volatile关键字对原子性的保障在Java里是很有限的，我觉得几乎可以忽略不计。比如在32位的Java虚拟机里面，对long、double变量的赋值写不是原子性的，此时可以通过给变量加Volatile关键字来保证在32位Java虚拟机里面对long、double的赋值写是原子性的。相反int i = 0 原子性是Java语言规范(比如甲骨文)就规定了。
+面试官：不错，那么为什么long、double在32位Java虚拟机里面的简单赋值操作不是原子性的。
+派大星：所有变量的简单赋值操作，Java语言规范都给你保证原子性的。但是例外的是long和double在32位虚拟机里面的简单赋值操作不是原子性的。因为long和double是64位的。 如果多线程情况下同时并发执行long = 30 ，由于long是64位的，就会导致有的线程在修改l的高32位，有的线程在修改long的低32位，多线程并发给long类型的变量进行赋值操作，在32位虚拟机是有问题的。产生的结果导致 a 的值不是30，可能是-3333334430，也就是乱码一样的数字，因为高低32位赋值错了，就导致二进制转换为十进制之后是一个很奇怪的数字。
+面试官：可以从硬件级别的谈一下可见性问题吗？或者说硬件级别为什么会有可见性问题？
+派大星：好的。简单可从下面几种情况分析
+每个处理器都有自己的一个寄存器(register)，所以多个处理器各自运行一个线程的时候，会将主内存中的某个变量副本给加载到寄存器里面，然后对其进行更新。这样就会导致各个线程没法看到其它处理器里的变量值修改了。所以就引发了可见性的第一个问题：寄存器级别的变量副本的更新，无法让其它处理器看到 还有一个问题是，处理器运行的线程对变量的操作针对的都是写缓存(store buffer)，并不是直接更新主内存，所以很可能导致一个线程更新了变量，但是仅仅只是在写缓存中进行了更新，并没有直接更新到主内存中去。这个时候其他线程也就无法读取到它的写缓冲区里面的变量值的。所以也导致了可见性的问题 每一个处理器都有自己的高速缓存，处理器运行的线程对变量的操作可能更新到写缓冲器里面，也可能更新到高速缓存中去或者是主内存中。但是其它处理器还是从自己的高速缓存或者写缓冲器中读取的变量值，此时还是读取的旧值，非新值。 面试官：既然硬件级别是有可见性问题的，那么是如何解决的呢？
+派大星：硬件级别要想实现可见性，其中一个方法就是通过MESI协议。这个MESI协议在之前的文章也有提过但是并没有展开说。根据具体底层硬件的不同 ，MESI协议的实现也是有些区别的。
+面试官：可以简单说说MESI的实现方式吗？
+派大星：可以的，MESI协议实现如下： 就是一个处理器将另外一个处理器的高速缓存中的更新后的数据拿到自己的高速缓存中来更新一下，这样彼此之间的缓存就实现了同步，然后各个处理器之间的线程看到的变量数据也就是一样的了。当然为了实现MESI协议，其中是有两个配套的专业机制的。flush 处理器缓存、refresh处理器缓存
+首先说一下flush处理器缓存其目的是把自己更新的变量值刷新到高速缓存里(或主内存中去)，并且它还会发送一个消息到总线(bus)，通知其它处理器某个变量值被它更新了。这样才可让其它的处理器从自己的高速缓存(主内存)里读取到更新的值。 其次就是refresh处理器缓存，它的目的是处理器中的线程在读取一个变量的时候，如果发现总线(bus)嗅探中有消息说其他处理器的线程更新了该变量的值，则必须从其它处理器的高速缓存(或主内存)中读取到这个最新的值，并更新到自己的高速缓存中去。 总的来说，为了保证可见性，在底层是通过MESI协议、flush处理器缓存和refresh处理器缓存，这一套机制来保障的。并且其实内存屏障的使用，在底层硬件级别的原理，其实就是在执行flush和refresh"/>
+
+  <script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BlogPosting",
+  "headline": "对线面试官 - 硬件级别之再谈Volatile关键字的可见性",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http:\/\/vipbbo.com\/2023\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%A1%AC%E4%BB%B6%E7%BA%A7%E5%88%AB%E4%B9%8B%E5%86%8D%E8%B0%88volatile%E5%85%B3%E9%94%AE%E5%AD%97%E7%9A%84%E5%8F%AF%E8%A7%81%E6%80%A7\/"
+  },
+  "image": {
+    "@type": "ImageObject",
+    "url": "http:\/\/vipbbo.com\/cover.png",
+    "width":  800 ,
+    "height":  600 
+  },
+  "genre": "posts",
+  
+  "wordcount":  35 ,
+  "url": "http:\/\/vipbbo.com\/2023\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%A1%AC%E4%BB%B6%E7%BA%A7%E5%88%AB%E4%B9%8B%E5%86%8D%E8%B0%88volatile%E5%85%B3%E9%94%AE%E5%AD%97%E7%9A%84%E5%8F%AF%E8%A7%81%E6%80%A7\/",
+  "datePublished": "2023-01-13T23:05:22\u002b08:00",
+  "dateModified": "2023-01-13T23:05:22\u002b08:00",
+  
+  "publisher": {
+    "@type": "Organization",
+    "name": "Fastbyte01",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http:\/\/vipbbo.com\/logo.png",
+      "width":  127 ,
+      "height":  40 
+    }
+  },
+  "author": {
+    "@type": "Person",
+    "name": "派大星"
+  },
+  "description": ""
+}
+</script>
+</head>
+
+  
+
+
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4585280196682059"
+     crossorigin="anonymous"></script>
+
+
+  <body class="">
+    <div class="wrapper">
+        <nav class="navbar">
+    <div class="container">
+        <div class="navbar-header header-logo">
+        	<a href="http://vipbbo.com/">码上遇见你</a>
+        </div>
+        <div class="menu navbar-right">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+                <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;
+        </div>
+    </div>
+</nav>
+<nav class="navbar-mobile" id="nav-mobile" style="display: none">
+     <div class="container">
+        <div class="navbar-header">
+            <div>  <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;<a href="http://vipbbo.com/">码上遇见你</a></div>
+            <div class="menu-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+     
+          <div class="menu" id="mobile-menu">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+        </div>
+    </div>
+</nav>
+
+    	 <main class="main">
+          <div class="container">
+      		
+<article class="post-warp">
+    <header class="post-header">
+        <h1 class="post-title">对线面试官 - 硬件级别之再谈Volatile关键字的可见性</h1>
+        <div class="post-meta">
+            Written by <a href="http://vipbbo.com/" rel="author">派大星</a> with ♥ 
+                <span class="post-time">
+                    on <time datetime=2023-01-13 >13 January 2023</time>
+                </span>
+                in
+                
+                <i class="iconfont icon-timer"></i>
+                1 min
+        </div>
+    </header>
+    <div class="post-content">
+        
+
+        
+
+        
+        
+     
+          
+          
+          
+
+          
+          
+          
+
+          <p>继之前讲多的<code>Synchronized</code>和<code>**volatile**</code><strong>关键字，本篇文章会再深入从硬件级别带你去了解其特性。</strong></p>
+<p><strong>之前文章也有提到过：</strong></p>
+<blockquote>
+<p>Synchronized既保证了原子性也保证了可见性、可重入（自己不停地加锁）
+<strong>volatile</strong>主要是保证线程可见性，禁止指令重排序</p>
+</blockquote>
+<p>文章参考：</p>
+<p><strong>面试官：你知道为什么volatile无法保证原子性。只可能保证可见性和有序性？</strong></p>
+<p>派大星：针对于Volatile关键字对原子性的保障在Java里是很有限的，我觉得几乎可以忽略不计。比如在32位的Java虚拟机里面，对long、double变量的赋值写不是原子性的，此时可以通过给变量加Volatile关键字来保证在32位Java虚拟机里面对long、double的赋值写是原子性的。相反<code>int i = 0 </code>原子性是Java语言规范(比如甲骨文)就规定了。</p>
+<p><strong>面试官：不错，那么为什么long、double在32位Java虚拟机里面的简单赋值操作不是原子性的。</strong></p>
+<p>派大星：所有变量的简单赋值操作，Java语言规范都给你保证原子性的。但是例外的是<code>long和double在32位虚拟机里面的简单赋值操作不是原子性的。因为long和double是64位的</code>。
+如果多线程情况下同时并发执行long  = 30 ，由于long是64位的，就会导致有的线程在修改l的高32位，有的线程在修改long的低32位，多线程并发给long类型的变量进行赋值操作，在32位虚拟机是有问题的。产生的结果导致 a 的值不是30，可能是-3333334430，也就是乱码一样的数字，因为高低32位赋值错了，就导致二进制转换为十进制之后是一个很奇怪的数字。</p>
+<p><strong>面试官：可以从硬件级别的谈一下可见性问题吗？或者说硬件级别为什么会有可见性问题？</strong></p>
+<p>派大星：好的。简单可从下面几种情况分析</p>
+<ol>
+<li>每个处理器都有自己的一个寄存器(register)，所以多个处理器各自运行一个线程的时候，会将主内存中的某个变量副本给加载到寄存器里面，然后对其进行更新。这样就会导致各个线程没法看到其它处理器里的变量值修改了。所以就引发了可见性的第一个问题：<code>寄存器级别的变量副本的更新，无法让其它处理器看到</code></li>
+<li>还有一个问题是，处理器运行的线程对变量的操作针对的都是写缓存(<code>store buffer</code>)，并不是直接更新主内存，所以很可能导致一个线程更新了变量，但是仅仅只是在写缓存中进行了更新，并没有直接更新到主内存中去。这个时候其他线程也就无法读取到它的写缓冲区里面的变量值的。所以也导致了可见性的问题</li>
+<li>每一个处理器都有自己的高速缓存，处理器运行的线程对变量的操作可能更新到写缓冲器里面，也可能更新到高速缓存中去或者是主内存中。但是其它处理器还是从自己的高速缓存或者写缓冲器中读取的变量值，此时还是读取的旧值，非新值。</li>
+</ol>
+<p><strong>面试官：既然硬件级别是有可见性问题的，那么是如何解决的呢？</strong></p>
+<p>派大星：硬件级别要想实现可见性，其中一个方法就是通过<code>MESI协议</code>。这个MESI协议在之前的文章也有提过但是并没有展开说。根据具体底层硬件的不同 ，MESI协议的实现也是有些区别的。</p>
+<p><strong>面试官：可以简单说说MESI的实现方式吗？</strong></p>
+<p>派大星：可以的，MESI协议实现如下：
+就是一个处理器将另外一个处理器的高速缓存中的更新后的数据拿到自己的高速缓存中来更新一下，这样彼此之间的缓存就实现了同步，然后各个处理器之间的线程看到的变量数据也就是一样的了。当然为了实现MESI协议，其中是有两个配套的专业机制的。<code>flush 处理器缓存</code>、<code>refresh处理器缓存</code></p>
+<ul>
+<li>首先说一下<code>flush处理器缓存</code><strong>其目的是把自己更新的变量值刷新到高速缓存里(或主内存中去)</strong>，并且它还会发送一个消息到<code>总线(bus)</code>，通知其它处理器某个变量值被它更新了。这样才可让其它的处理器从自己的高速缓存(主内存)里读取到更新的值。</li>
+<li>其次就是<code>refresh处理器缓存</code>，它的目的是处理器中的线程在读取一个变量的时候，如果发现<code>总线(bus)</code>嗅探中有消息说其他处理器的线程更新了该变量的值，则必须从其<strong>它处理器的高速缓存(或主内存)中读取到这个最新的值，并更新到自己的高速缓存中去</strong>。</li>
+</ul>
+<p>总的来说，为了保证可见性，在底层是通过<code>MESI协议</code>、<code>flush处理器缓存</code>和<code>refresh处理器缓存</code>，这一套机制来保障的。并且其实内存屏障的使用，在底层硬件级别的原理，其实就是在执行<code>flush</code>和<code>refresh</code></p>
+
+    </div>
+
+    <div class="post-copyright">
+             
+            <p class="copyright-item">
+                <span>Author:</span>
+                <span>派大星 </span>
+                </p>
+            
+           
+            <p class="copyright-item">
+                    <span>Words:</span>
+                   <span>35</span>
+            </p>
+
+            <p class="copyright-item">
+                
+                <span>Share:</span>
+                <span>
+
+      
+        <a href="//twitter.com/share?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-%25E7%25A1%25AC%25E4%25BB%25B6%25E7%25BA%25A7%25E5%2588%25AB%25E4%25B9%258B%25E5%2586%258D%25E8%25B0%2588volatile%25E5%2585%25B3%25E9%2594%25AE%25E5%25AD%2597%25E7%259A%2584%25E5%258F%25AF%25E8%25A7%2581%25E6%2580%25A7%2f&amp;text=%e5%af%b9%e7%ba%bf%e9%9d%a2%e8%af%95%e5%ae%98%20-%20%e7%a1%ac%e4%bb%b6%e7%ba%a7%e5%88%ab%e4%b9%8b%e5%86%8d%e8%b0%88Volatile%e5%85%b3%e9%94%ae%e5%ad%97%e7%9a%84%e5%8f%af%e8%a7%81%e6%80%a7&amp;via=" target="_blank" title="Share on Twitter">
+          <i class="iconfont icon-twitter"></i>
+        </a>
+        
+      
+      
+        <a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-%25E7%25A1%25AC%25E4%25BB%25B6%25E7%25BA%25A7%25E5%2588%25AB%25E4%25B9%258B%25E5%2586%258D%25E8%25B0%2588volatile%25E5%2585%25B3%25E9%2594%25AE%25E5%25AD%2597%25E7%259A%2584%25E5%258F%25AF%25E8%25A7%2581%25E6%2580%25A7%2f" target="_blank" title="Share on Facebook">
+          <i class="iconfont icon-facebook"></i>
+        </a>
+        
+      
+      
+      
+      
+        <a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-%25E7%25A1%25AC%25E4%25BB%25B6%25E7%25BA%25A7%25E5%2588%25AB%25E4%25B9%258B%25E5%2586%258D%25E8%25B0%2588volatile%25E5%2585%25B3%25E9%2594%25AE%25E5%25AD%2597%25E7%259A%2584%25E5%258F%25AF%25E8%25A7%2581%25E6%2580%25A7%2f&amp;title=%e5%af%b9%e7%ba%bf%e9%9d%a2%e8%af%95%e5%ae%98%20-%20%e7%a1%ac%e4%bb%b6%e7%ba%a7%e5%88%ab%e4%b9%8b%e5%86%8d%e8%b0%88Volatile%e5%85%b3%e9%94%ae%e5%ad%97%e7%9a%84%e5%8f%af%e8%a7%81%e6%80%a7" target="_blank" title="Share on LinkedIn">
+          <i class="iconfont icon-linkedin"></i>
+        </a>
+        
+      
+      
+        
+      
+        
+      
+
+          
+
+          
+
+          
+
+          
+
+</span>
+                
+            </p>
+
+             
+            <p class="copyright-item">
+                Released under <a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a>
+            </p>
+            
+    </div>
+
+  
+    <div class="post-tags">
+        
+        <section>
+                <a href="javascript:window.history.back();">Back</a></span> · 
+                <span><a href="http://vipbbo.com/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav">
+        
+        <a href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%A1%AC%E4%BB%B6%E7%BA%A7%E5%88%AB%E4%B9%8B%E5%86%8D%E8%B0%88volatile%E5%85%B3%E9%94%AE%E5%AD%97%E7%9A%84%E6%8C%87%E4%BB%A4%E9%87%8D%E6%8E%92%E5%BA%8F/" class="prev" rel="prev" title="对线面试官 - 硬件级别之再谈Volatile关键字的指令重排序"><i class="iconfont icon-dajiantou"></i>&nbsp;对线面试官 - 硬件级别之再谈Volatile关键字的指令重排序</a>
+         
+        
+        <a href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E5%90%84%E4%B8%AAmq%E7%9A%84%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%A2%98/" class="next" rel="next" title="对线面试官 - 各个MQ的经典面试题">对线面试官 - 各个MQ的经典面试题&nbsp;<i class="iconfont icon-xiaojiantou"></i></a>
+        
+    </div>
+
+    <div class="post-comment">
+          
+          <div id="disqus_thread"></div>
+  <script type="text/javascript">
+      (function() {
+          
+          
+          if (window.location.hostname == "localhost")
+              return;
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          var disqus_shortname = 'yourdiscussshortname';
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="https://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+ 
+
+          
+    </div>
+</article>
+          </div>
+		   </main>
+      <footer class="footer">
+    <div class="copyright">
+        &copy;
+        
+        <span itemprop="copyrightYear">2023 - 2023</span>
+        
+         
+            <span class="author" itemprop="copyrightHolder"><a href="http://vipbbo.com/">派大星</a> | </span>
+         
+
+		  <span>Crafted with ❤️ by <a href="https://github.com/Fastbyte01/KeepIt" target="_blank" rel="external nofollow noopener noreffer">KeepIt</a> & <a href="https://gohugo.io/" target="_blank" rel="external nofollow noopener noreffer">Hugo</a></span>
+    </div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
+    <script src="/js/vendor_no_gallery.min.js" async=""></script>
+    
+  
+
+
+
+
+
+
+
+     </div>
+  </body>
+</html>

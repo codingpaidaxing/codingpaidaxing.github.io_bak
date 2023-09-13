@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noodp"/>
+  
+  
+  
+  
+  
+  <link rel="prev" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-mq%E4%B9%8B%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E6%B6%88%E6%81%AF%E7%9A%84%E9%A1%BA%E5%BA%8F%E6%80%A7%E5%8F%8A%E6%B6%88%E6%81%AF%E7%A7%AF%E5%8E%8B%E9%97%AE%E9%A2%98/" />
+  <link rel="next" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-java-io%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%97%AE%E9%A2%98%E7%AA%81%E5%87%BB%E7%AF%87/" />
+  <link rel="canonical" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-java%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AF%B9%E9%94%81%E7%9A%84%E4%BC%98%E5%8C%96/" />
+  <link rel='shortcut icon' type='image/x-icon' href='/favicon.ico' />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <title>
+       
+       
+           对线面试官 - Java虚拟机对锁的优化 | 码上遇见你
+       
+  </title>
+  <meta name="title" content="对线面试官 - Java虚拟机对锁的优化 | 码上遇见你">
+    
+  
+  <link rel="stylesheet" href="/font/iconfont.css">
+  <link rel="stylesheet" href="/css/main.min.css">
+
+
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="对线面试官 - Java虚拟机对锁的优化"/>
+<meta name="twitter:description" content="我们之间有聊到过关于Synchronized关键字的相关特性，其主要特性便是保证了原子性和可见性。并且是可重入的。详情可参考文章：
+本次给大家带来的便是Java虚拟机对Synchronized后期做了哪些优化模拟一些面试题，希望能够帮助小伙伴。步入正题：
+面试官：之前咱们有聊过关于Java关键字Synchronized和Volatile其特性和相关原理。我看你有提到过在JDK1.6对Synchronized关键字做了一些优化，针对这一方面能展开聊聊做了什么优化吗？
+派大星：可以的。首先Synchronized在JDK1.6之后引入了锁升级(偏向锁、自旋锁、重量级锁)的概念，而非是直接申请操作系统级别的重量级锁，这本身就是优化的一个点。其次细节上的优化大致有如下几个点：
+锁消除：锁消除是JIT编译器对Synchronized锁做的优化之一，其方式就是在编译的时候，JIT会通过逃逸分析技术来分析Synchronized锁对象是不是只可能被一个线程来枷锁，没有其它线程来竞争枷锁，如果是这样的话，编译的时候就不需要monitorenter和monitorexit的指令。也就是说当仅有一个线程争用锁的时候，就可以消除这个锁了。 锁粗化：锁粗化的意思是在JIT编译器编译的时候如果发现代码里存在连续多次加锁释放锁的代码，会将其合并为一个锁，也就是将锁粗化了。避免了频繁多次加锁释放锁。 偏向锁：首先因为Synchronized中的monitorenter和 monitorexit指令是要使用CAS操作加锁和释放锁的，开销相对比较大，因此如果发现大概率只有一个线程会主要竞争一个锁，那么此时就会给这个锁维护一个偏好(Bias)，后面它加锁和释放锁，基于Bias来执行，不需要通过CAS。这样性能也会提升很多。但是如果出现来其它的线程来竞争这个锁，此时就会将分配给之前那个线程的Bias偏好收回。 轻量级锁：由于竞争锁太过激烈，偏向锁没有成功实现，此时就会尝试使用轻量级锁的方式来加锁，其操作就是将对象头的Mark Word里的轻量级指针(monitor)指向自己，然后去和ObjectMonitor(是monitor指针指向外部的一个C&#43;&#43;实现对象)里加锁的的线程是不是一个，如果是一个则会重入加锁，如果不是一个那么就会加锁失败。 面试官：不错，那你知道CAS硬件底层原理是怎么实现的吗？
+派大星：其实底层是和MESI有关系的，简单来讲就是通过独占锁的机制（这里其它处理器的数据就会全部失效），然后将数据查询出来，并进行比较，最后再写回去。也就是CAS操作。"/>
+
+  <script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BlogPosting",
+  "headline": "对线面试官 - Java虚拟机对锁的优化",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http:\/\/vipbbo.com\/2023\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-java%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AF%B9%E9%94%81%E7%9A%84%E4%BC%98%E5%8C%96\/"
+  },
+  "image": {
+    "@type": "ImageObject",
+    "url": "http:\/\/vipbbo.com\/cover.png",
+    "width":  800 ,
+    "height":  600 
+  },
+  "genre": "posts",
+  
+  "wordcount":  12 ,
+  "url": "http:\/\/vipbbo.com\/2023\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-java%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AF%B9%E9%94%81%E7%9A%84%E4%BC%98%E5%8C%96\/",
+  "datePublished": "2023-01-13T23:05:22\u002b08:00",
+  "dateModified": "2023-01-13T23:05:22\u002b08:00",
+  
+  "publisher": {
+    "@type": "Organization",
+    "name": "Fastbyte01",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http:\/\/vipbbo.com\/logo.png",
+      "width":  127 ,
+      "height":  40 
+    }
+  },
+  "author": {
+    "@type": "Person",
+    "name": "派大星"
+  },
+  "description": ""
+}
+</script>
+</head>
+
+  
+
+
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4585280196682059"
+     crossorigin="anonymous"></script>
+
+
+  <body class="">
+    <div class="wrapper">
+        <nav class="navbar">
+    <div class="container">
+        <div class="navbar-header header-logo">
+        	<a href="http://vipbbo.com/">码上遇见你</a>
+        </div>
+        <div class="menu navbar-right">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+                <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;
+        </div>
+    </div>
+</nav>
+<nav class="navbar-mobile" id="nav-mobile" style="display: none">
+     <div class="container">
+        <div class="navbar-header">
+            <div>  <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;<a href="http://vipbbo.com/">码上遇见你</a></div>
+            <div class="menu-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+     
+          <div class="menu" id="mobile-menu">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+        </div>
+    </div>
+</nav>
+
+    	 <main class="main">
+          <div class="container">
+      		
+<article class="post-warp">
+    <header class="post-header">
+        <h1 class="post-title">对线面试官 - Java虚拟机对锁的优化</h1>
+        <div class="post-meta">
+            Written by <a href="http://vipbbo.com/" rel="author">派大星</a> with ♥ 
+                <span class="post-time">
+                    on <time datetime=2023-01-13 >13 January 2023</time>
+                </span>
+                in
+                
+                <i class="iconfont icon-timer"></i>
+                1 min
+        </div>
+    </header>
+    <div class="post-content">
+        
+
+        
+
+        
+        
+     
+          
+          
+          
+
+          
+          
+          
+
+          <p>我们之间有聊到过关于Synchronized关键字的相关特性，其主要特性便是保证了<code>原子性</code>和<code>可见性</code>。并且是<code>可重入的</code>。详情可参考文章：</p>
+<p>本次给大家带来的便是Java虚拟机对Synchronized后期做了哪些优化模拟一些面试题，希望能够帮助小伙伴。步入正题：</p>
+<p><strong>面试官：之前咱们有聊过关于Java关键字Synchronized和Volatile其特性和相关原理。我看你有提到过在JDK1.6对Synchronized关键字做了一些优化，针对这一方面能展开聊聊做了什么优化吗？</strong></p>
+<p>派大星：可以的。首先Synchronized在JDK1.6之后引入了锁升级(<code>偏向锁、自旋锁、重量级锁</code>)的概念，而非是直接申请操作系统级别的重量级锁，这本身就是优化的一个点。其次细节上的优化大致有如下几个点：</p>
+<ul>
+<li>锁消除：锁消除是JIT编译器对Synchronized锁做的优化之一，其方式就是在编译的时候，JIT会通过逃逸分析技术来分析Synchronized锁对象是不是只可能被一个线程来枷锁，没有其它线程来竞争枷锁，如果是这样的话，编译的时候就不需要<code>monitorenter</code>和<code>monitorexit</code>的指令。也就是说当仅有一个线程争用锁的时候，就可以消除这个锁了。</li>
+<li>锁粗化：锁粗化的意思是在JIT编译器编译的时候如果发现代码里存在连续多次加锁释放锁的代码，会将其合并为一个锁，也就是将锁粗化了。避免了频繁多次加锁释放锁。</li>
+<li>偏向锁：首先因为Synchronized中的<code>monitorenter</code>和 <code>monitorexit</code>指令是要使用CAS操作加锁和释放锁的，开销相对比较大，因此如果发现大概率只有一个线程会主要竞争一个锁，那么此时就会给这个锁维护一个<code>偏好(Bias)</code>，后面它加锁和释放锁，基于Bias来执行，不需要通过CAS。这样性能也会提升很多。但是如果出现来其它的线程来竞争这个锁，此时就会将分配给之前那个线程的Bias偏好收回。</li>
+<li>轻量级锁：由于竞争锁太过激烈，偏向锁没有成功实现，此时就会尝试使用轻量级锁的方式来加锁，其操作就是将对象头的Mark Word里的轻量级指针(monitor)指向自己，然后去和<code>ObjectMonitor(是monitor指针指向外部的一个C++实现对象)</code>里加锁的的线程是不是一个，如果是一个则会重入加锁，如果不是一个那么就会加锁失败。</li>
+</ul>
+<p><strong>面试官：不错，那你知道CAS硬件底层原理是怎么实现的吗？</strong></p>
+<p>派大星：其实底层是和MESI有关系的，简单来讲就是通过独占锁的机制（这里其它处理器的数据就会全部失效），然后将数据查询出来，并进行比较，最后再写回去。也就是CAS操作。</p>
+
+    </div>
+
+    <div class="post-copyright">
+             
+            <p class="copyright-item">
+                <span>Author:</span>
+                <span>派大星 </span>
+                </p>
+            
+           
+            <p class="copyright-item">
+                    <span>Words:</span>
+                   <span>12</span>
+            </p>
+
+            <p class="copyright-item">
+                
+                <span>Share:</span>
+                <span>
+
+      
+        <a href="//twitter.com/share?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-java%25E8%2599%259A%25E6%258B%259F%25E6%259C%25BA%25E5%25AF%25B9%25E9%2594%2581%25E7%259A%2584%25E4%25BC%2598%25E5%258C%2596%2f&amp;text=%e5%af%b9%e7%ba%bf%e9%9d%a2%e8%af%95%e5%ae%98%20-%20Java%e8%99%9a%e6%8b%9f%e6%9c%ba%e5%af%b9%e9%94%81%e7%9a%84%e4%bc%98%e5%8c%96&amp;via=" target="_blank" title="Share on Twitter">
+          <i class="iconfont icon-twitter"></i>
+        </a>
+        
+      
+      
+        <a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-java%25E8%2599%259A%25E6%258B%259F%25E6%259C%25BA%25E5%25AF%25B9%25E9%2594%2581%25E7%259A%2584%25E4%25BC%2598%25E5%258C%2596%2f" target="_blank" title="Share on Facebook">
+          <i class="iconfont icon-facebook"></i>
+        </a>
+        
+      
+      
+      
+      
+        <a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-java%25E8%2599%259A%25E6%258B%259F%25E6%259C%25BA%25E5%25AF%25B9%25E9%2594%2581%25E7%259A%2584%25E4%25BC%2598%25E5%258C%2596%2f&amp;title=%e5%af%b9%e7%ba%bf%e9%9d%a2%e8%af%95%e5%ae%98%20-%20Java%e8%99%9a%e6%8b%9f%e6%9c%ba%e5%af%b9%e9%94%81%e7%9a%84%e4%bc%98%e5%8c%96" target="_blank" title="Share on LinkedIn">
+          <i class="iconfont icon-linkedin"></i>
+        </a>
+        
+      
+      
+        
+      
+        
+      
+
+          
+
+          
+
+          
+
+          
+
+</span>
+                
+            </p>
+
+             
+            <p class="copyright-item">
+                Released under <a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a>
+            </p>
+            
+    </div>
+
+  
+    <div class="post-tags">
+        
+        <section>
+                <a href="javascript:window.history.back();">Back</a></span> · 
+                <span><a href="http://vipbbo.com/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav">
+        
+        <a href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-mq%E4%B9%8B%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E6%B6%88%E6%81%AF%E7%9A%84%E9%A1%BA%E5%BA%8F%E6%80%A7%E5%8F%8A%E6%B6%88%E6%81%AF%E7%A7%AF%E5%8E%8B%E9%97%AE%E9%A2%98/" class="prev" rel="prev" title="对线面试官 - MQ之如何保证消息的顺序性及消息积压问题"><i class="iconfont icon-dajiantou"></i>&nbsp;对线面试官 - MQ之如何保证消息的顺序性及消息积压问题</a>
+         
+        
+        <a href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-java-io%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%97%AE%E9%A2%98%E7%AA%81%E5%87%BB%E7%AF%87/" class="next" rel="next" title="对线面试官 - Java IO经典面试问题突击篇">对线面试官 - Java IO经典面试问题突击篇&nbsp;<i class="iconfont icon-xiaojiantou"></i></a>
+        
+    </div>
+
+    <div class="post-comment">
+          
+          <div id="disqus_thread"></div>
+  <script type="text/javascript">
+      (function() {
+          
+          
+          if (window.location.hostname == "localhost")
+              return;
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          var disqus_shortname = 'yourdiscussshortname';
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="https://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+ 
+
+          
+    </div>
+</article>
+          </div>
+		   </main>
+      <footer class="footer">
+    <div class="copyright">
+        &copy;
+        
+        <span itemprop="copyrightYear">2023 - 2023</span>
+        
+         
+            <span class="author" itemprop="copyrightHolder"><a href="http://vipbbo.com/">派大星</a> | </span>
+         
+
+		  <span>Crafted with ❤️ by <a href="https://github.com/Fastbyte01/KeepIt" target="_blank" rel="external nofollow noopener noreffer">KeepIt</a> & <a href="https://gohugo.io/" target="_blank" rel="external nofollow noopener noreffer">Hugo</a></span>
+    </div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
+    <script src="/js/vendor_no_gallery.min.js" async=""></script>
+    
+  
+
+
+
+
+
+
+
+     </div>
+  </body>
+</html>

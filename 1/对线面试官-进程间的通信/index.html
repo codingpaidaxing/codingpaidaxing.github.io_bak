@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noodp"/>
+  
+  
+  
+  
+  
+  <link rel="prev" href="http://vipbbo.com/1/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-redis-%E5%8D%81%E4%B8%80-_-%E5%8F%8C%E5%86%99%E4%B8%80%E8%87%B4%E6%80%A7%E9%97%AE%E9%A2%98/" />
+  <link rel="next" href="http://vipbbo.com/1/java-spi/" />
+  <link rel="canonical" href="http://vipbbo.com/1/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E8%BF%9B%E7%A8%8B%E9%97%B4%E7%9A%84%E9%80%9A%E4%BF%A1/" />
+  <link rel='shortcut icon' type='image/x-icon' href='/favicon.ico' />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <title>
+       
+       
+            | 码上遇见你
+       
+  </title>
+  <meta name="title" content=" | 码上遇见你">
+    
+  
+  <link rel="stylesheet" href="/font/iconfont.css">
+  <link rel="stylesheet" href="/css/main.min.css">
+
+
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content=""/>
+<meta name="twitter:description" content="面试官：能简单聊聊进程间的通信方式吗？
+派大星：可以的，主要方式为：管道、命名管道、消息队列、共享内存。
+面试官：可以简单介绍一下这些通信方式吗？
+派大星：好的。 首先说一下：
+管道(pipe)： unix操作系统里面，有一个fork操作，可以创建进程的子进程，或者说是复制一个进程完全一样的子进程，共享代码空间，但是各自有独立的数据空间，不过子进程的数据空间是拷贝父进程的数据空间的。
+管道机制要求的是两个进程之间是有血缘关系的。就比如fork出来的父子进程。
+Linux操作系统里面，管道用来缓存要在进程间传输的数据，管道是一个固定大小的缓冲区，大小为4kb。管道中的数据一旦被读取出来，就不在管道里面了。但是如果管道满了，那么写管道的操作就阻塞了，直到别人读了管道的数据；反之如果管道是空的，那么读操作的管道就阻塞了。管道一边连着一个进程的输出，一遍连着进程的输入，然后就一个进程写数据另外一个进程读数据、如果两个进程都没了管道也就没了。管道是半双工的，就是数据只能流向一个方向，就比如说你架设一个管道，只能一个进程写，一个进程读。
+Linux里面对管道的实现是使用了两个文件，指向了一个VFS(虚拟文件系统)的索引节点node，然后VFS索引节点指向一个物理页面，接着一个进程通过自己关联的那个文件写数据，另外一个进程通过自己关联的那个文件读数据。
+其次聊一下：
+命名管道(FIFO) 管道的通信要求必须是父子关系的进程间通信，这样就受到了限制。所以可以用命令管道来解决这个问题。
+之前的管道是没有名字的，所以必须是有父子关系的进程才可以使用。但是命名管道是有名字的。这个命名管道相当于是有一个名字的文件，是有路径的。所以没有血缘关系的进程都可以通过这个命名管道来进行通信，名字在文件系统上，数据在内存里。其它的和管道一样：一个进程写，一个进程读。也是半双工。数据只能单向滚动
+然后聊聊：
+消息队列 Linux的消息队列可以认为是一个链表结构。Linux内核有一个msgque链表，这个链表里的每个指针指向一个msgid_ds结构，这个结构就描述了一个消息队列。然后进程间就通过这个消息队列即可完成通信。益阳市写入数据和消费数据，消费队列的好处是对每个消息可以指定类型，消费的时候就消费指定类型的消息即可。功能也相对比较多一些。
+最后说一下：
+共享内存 一块物理内存被映射到两个进程的进程地址空间，所以进程之间互相都可以立即看到对方在共享内存里做出的修改。有利有弊由于其是共享内存，所以需要锁来保证同步，这里就涉及了Linux底层的一些东西了。不做展开，可自行了解。
+面试官：不错，你知道线程见如何切换吗?简单聊聊？
+派大星：这个了解一些。 简单的讲就是一个进程的多个线程间切换的时候就涉及到了上下文切换。简单来说就是有一个时间片算法，CPU给每个线程一个时间片来执行，时间片结束之后，就保存当前线程的状态然后切换到下一个线程去执行。这就是所谓多线程并发执行的原理。就是多个线程来来回回的切换。每个线程就一个时间片里执行。底层原理可自行去了解哈。
+如有问题，欢迎加微信交流：w714771310，备注- 技术交流 。或关注微信公众号【码上遇见你】。"/>
+
+  <script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BlogPosting",
+  "headline": "",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http:\/\/vipbbo.com\/1\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E8%BF%9B%E7%A8%8B%E9%97%B4%E7%9A%84%E9%80%9A%E4%BF%A1\/"
+  },
+  "image": {
+    "@type": "ImageObject",
+    "url": "http:\/\/vipbbo.com\/cover.png",
+    "width":  800 ,
+    "height":  600 
+  },
+  "genre": "posts",
+  
+  "wordcount":  26 ,
+  "url": "http:\/\/vipbbo.com\/1\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E8%BF%9B%E7%A8%8B%E9%97%B4%E7%9A%84%E9%80%9A%E4%BF%A1\/",
+  
+  
+  
+  "publisher": {
+    "@type": "Organization",
+    "name": "Fastbyte01",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http:\/\/vipbbo.com\/logo.png",
+      "width":  127 ,
+      "height":  40 
+    }
+  },
+  "author": {
+    "@type": "Person",
+    "name": "派大星"
+  },
+  "description": ""
+}
+</script>
+</head>
+
+  
+
+
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4585280196682059"
+     crossorigin="anonymous"></script>
+
+
+  <body class="">
+    <div class="wrapper">
+        <nav class="navbar">
+    <div class="container">
+        <div class="navbar-header header-logo">
+        	<a href="http://vipbbo.com/">码上遇见你</a>
+        </div>
+        <div class="menu navbar-right">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+                <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;
+        </div>
+    </div>
+</nav>
+<nav class="navbar-mobile" id="nav-mobile" style="display: none">
+     <div class="container">
+        <div class="navbar-header">
+            <div>  <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;<a href="http://vipbbo.com/">码上遇见你</a></div>
+            <div class="menu-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+     
+          <div class="menu" id="mobile-menu">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+        </div>
+    </div>
+</nav>
+
+    	 <main class="main">
+          <div class="container">
+      		
+<article class="post-warp">
+    <header class="post-header">
+        <h1 class="post-title"></h1>
+        <div class="post-meta">
+            Written by <a href="http://vipbbo.com/" rel="author">派大星</a> with ♥ 
+                <span class="post-time">
+                    on <time datetime=0001-01-01 >1 January 0001</time>
+                </span>
+                in
+                
+                <i class="iconfont icon-timer"></i>
+                1 min
+        </div>
+    </header>
+    <div class="post-content">
+        
+
+        
+
+        
+        
+     
+          
+          
+          
+
+          
+          
+          
+
+          <p><strong>面试官：能简单聊聊进程间的通信方式吗？</strong></p>
+<p>派大星：可以的，主要方式为：管道、命名管道、消息队列、共享内存。</p>
+<p><strong>面试官：可以简单介绍一下这些通信方式吗？</strong></p>
+<p>派大星：好的。
+首先说一下：</p>
+<ul>
+<li>管道(pipe)：</li>
+</ul>
+<p>unix操作系统里面，有一个<code>fork操作</code>，可以创建进程的子进程，或者说是复制一个进程完全一样的子进程，共享代码空间，但是各自有独立的数据空间，不过子进程的数据空间是拷贝父进程的数据空间的。</p>
+<p><code>管道机制要求的是两个进程之间是有血缘关系的。就比如fork出来的父子进程</code>。</p>
+<p>Linux操作系统里面，管道用来缓存要在进程间传输的数据，<code>管道是一个固定大小的缓冲区，大小为4kb</code>。管道中的数据一旦被读取出来，就不在管道里面了。但是如果管道满了，那么写管道的操作就阻塞了，直到别人读了管道的数据；反之如果管道是空的，那么读操作的管道就阻塞了。管道一边连着一个进程的输出，一遍连着进程的输入，然后就一个进程写数据另外一个进程读数据、如果两个进程都没了管道也就没了。<code>管道是半双工的</code>，就是数据只能流向一个方向，就比如说你架设一个管道，只能一个进程写，一个进程读。</p>
+<p>Linux里面对管道的实现是使用了两个文件，指向了一个VFS(虚拟文件系统)的索引节点node，然后VFS索引节点指向一个物理页面，接着一个进程通过自己关联的那个文件写数据，另外一个进程通过自己关联的那个文件读数据。</p>
+<p>其次聊一下：</p>
+<ul>
+<li>命名管道(FIFO)</li>
+</ul>
+<p>管道的通信要求必须是父子关系的进程间通信，这样就受到了限制。所以可以用命令管道来解决这个问题。</p>
+<p>之前的管道是没有名字的，所以必须是有父子关系的进程才可以使用。但是命名管道是有名字的。这个命名管道相当于是有一个名字的文件，是有路径的。所以没有血缘关系的进程都可以通过这个命名管道来进行通信，名字在文件系统上，数据在内存里。其它的和管道一样：一个进程写，一个进程读。<code>也是半双工</code>。数据只能单向滚动</p>
+<p>然后聊聊：</p>
+<ul>
+<li>消息队列</li>
+</ul>
+<p>Linux的消息队列可以认为是一个链表结构。Linux内核有一个msgque链表，这个链表里的每个指针指向一个msgid_ds结构，这个结构就描述了一个消息队列。然后进程间就通过这个消息队列即可完成通信。益阳市写入数据和消费数据，消费队列的好处是对每个消息可以指定类型，消费的时候就消费指定类型的消息即可。功能也相对比较多一些。</p>
+<p>最后说一下：</p>
+<ul>
+<li>共享内存</li>
+</ul>
+<p>一块物理内存被映射到两个进程的进程地址空间，所以进程之间互相都可以立即看到对方在共享内存里做出的修改。有利有弊由于其是共享内存，所以需要锁来保证同步，这里就涉及了Linux底层的一些东西了。不做展开，可自行了解。</p>
+<p><strong>面试官：不错，你知道线程见如何切换吗?简单聊聊？</strong></p>
+<p>派大星：这个了解一些。
+简单的讲就是一个进程的多个线程间切换的时候就涉及到了上下文切换。简单来说就是有一个时间片算法，CPU给每个线程一个时间片来执行，时间片结束之后，就保存当前线程的状态然后切换到下一个线程去执行。这就是所谓多线程并发执行的原理。就是多个线程来来回回的切换。每个线程就一个时间片里执行。底层原理可自行去了解哈。</p>
+<blockquote>
+<p>如有问题，欢迎加微信交流：w714771310，备注- 技术交流  。或关注微信公众号【码上遇见你】。</p>
+</blockquote>
+<hr>
+
+    </div>
+
+    <div class="post-copyright">
+             
+            <p class="copyright-item">
+                <span>Author:</span>
+                <span>派大星 </span>
+                </p>
+            
+           
+            <p class="copyright-item">
+                    <span>Words:</span>
+                   <span>26</span>
+            </p>
+
+            <p class="copyright-item">
+                
+                <span>Share:</span>
+                <span>
+
+      
+        <a href="//twitter.com/share?url=http%3a%2f%2fvipbbo.com%2f1%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-%25E8%25BF%259B%25E7%25A8%258B%25E9%2597%25B4%25E7%259A%2584%25E9%2580%259A%25E4%25BF%25A1%2f&amp;text=&amp;via=" target="_blank" title="Share on Twitter">
+          <i class="iconfont icon-twitter"></i>
+        </a>
+        
+      
+      
+        <a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fvipbbo.com%2f1%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-%25E8%25BF%259B%25E7%25A8%258B%25E9%2597%25B4%25E7%259A%2584%25E9%2580%259A%25E4%25BF%25A1%2f" target="_blank" title="Share on Facebook">
+          <i class="iconfont icon-facebook"></i>
+        </a>
+        
+      
+      
+      
+      
+        <a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fvipbbo.com%2f1%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-%25E8%25BF%259B%25E7%25A8%258B%25E9%2597%25B4%25E7%259A%2584%25E9%2580%259A%25E4%25BF%25A1%2f&amp;title=" target="_blank" title="Share on LinkedIn">
+          <i class="iconfont icon-linkedin"></i>
+        </a>
+        
+      
+      
+        
+      
+        
+      
+
+          
+
+          
+
+          
+
+          
+
+</span>
+                
+            </p>
+
+             
+            <p class="copyright-item">
+                Released under <a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a>
+            </p>
+            
+    </div>
+
+  
+    <div class="post-tags">
+        
+        <section>
+                <a href="javascript:window.history.back();">Back</a></span> · 
+                <span><a href="http://vipbbo.com/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav">
+        
+        <a href="http://vipbbo.com/1/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-redis-%E5%8D%81%E4%B8%80-_-%E5%8F%8C%E5%86%99%E4%B8%80%E8%87%B4%E6%80%A7%E9%97%AE%E9%A2%98/" class="prev" rel="prev" title=""><i class="iconfont icon-dajiantou"></i>&nbsp;</a>
+         
+        
+        <a href="http://vipbbo.com/1/java-spi/" class="next" rel="next" title="">&nbsp;<i class="iconfont icon-xiaojiantou"></i></a>
+        
+    </div>
+
+    <div class="post-comment">
+          
+          <div id="disqus_thread"></div>
+  <script type="text/javascript">
+      (function() {
+          
+          
+          if (window.location.hostname == "localhost")
+              return;
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          var disqus_shortname = 'yourdiscussshortname';
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="https://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+ 
+
+          
+    </div>
+</article>
+          </div>
+		   </main>
+      <footer class="footer">
+    <div class="copyright">
+        &copy;
+        
+        <span itemprop="copyrightYear">2023 - 2023</span>
+        
+         
+            <span class="author" itemprop="copyrightHolder"><a href="http://vipbbo.com/">派大星</a> | </span>
+         
+
+		  <span>Crafted with ❤️ by <a href="https://github.com/Fastbyte01/KeepIt" target="_blank" rel="external nofollow noopener noreffer">KeepIt</a> & <a href="https://gohugo.io/" target="_blank" rel="external nofollow noopener noreffer">Hugo</a></span>
+    </div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
+    <script src="/js/vendor_no_gallery.min.js" async=""></script>
+    
+  
+
+
+
+
+
+
+
+     </div>
+  </body>
+</html>

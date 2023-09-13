@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noodp"/>
+  
+  
+  
+  
+  
+  <link rel="prev" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-redis-%E4%B9%9D-_-%E6%8C%81%E4%B9%85%E5%8C%96%E7%9A%84%E6%96%B9%E5%BC%8F%E5%8F%8A%E4%BC%98%E7%BC%BA%E7%82%B9/" />
+  <link rel="next" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%BB%9D%E6%97%A0%E4%BB%85%E6%9C%89%E7%9C%9F%E5%AE%9E%E7%BA%BF%E4%B8%8A%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5%E9%9D%A2%E8%AF%95%E9%A2%98%E7%AA%81%E5%87%BB%E7%AF%87/" />
+  <link rel="canonical" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-redis-_-%E5%8D%81-redis%E9%9B%86%E7%BE%A4%E6%A8%A1%E5%BC%8F/" />
+  <link rel='shortcut icon' type='image/x-icon' href='/favicon.ico' />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <title>
+       
+       
+           对线面试官 Redis _ 十 Redis集群模式 | 码上遇见你
+       
+  </title>
+  <meta name="title" content="对线面试官 Redis _ 十 Redis集群模式 | 码上遇见你">
+    
+  
+  <link rel="stylesheet" href="/font/iconfont.css">
+  <link rel="stylesheet" href="/css/main.min.css">
+
+
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="对线面试官 Redis _ 十 Redis集群模式"/>
+<meta name="twitter:description" content="面试官：Redis集群模式有了解过吗？具体的工作原理可以简单说一下吗？
+面试官的心理分析： 主要考察的是在实际工作中是否接触过海量数据&#43;高并发&#43;高可用的场景。以及Redis这几年的一个变化。因为在前几年Redis本身不支持 集群模式，只能依赖于一些中间件，比如codis、推特的twemproxy等。但是最近几年Redis官方支持了集群模式Cluster，在实际应用中 该集群模式也被广泛使用，面试官主要是想考察了解你对Redis的一个掌握程度。
+派大星：有了解，前几年主要通过Redis的一些中间件来做，比如codis、推特的twemproxy等，但是最近几年Redis官方支持了集群模式 Cluster。
+面试官：那你简单介绍一下Redis Cluster吧。
+派大星：好的，Redis Cluster它会自动将数据进行分片，同时每个master只有一部分数据。提供内置的高可用支持，部分master不可用 时还是可以对外提供服务的。在Redis Cluster架构下，每个Redis需要开发两个端口，比如一个是：6379 一个是16379；另外一个就是 加1w的端口号，比如16379。端口号用来进行节点之间的通信，也被称为cluster bus。cluster bus的通信用来故障检测、配置更新、故 障转移授权。cluster bus用了另外一种二进制协议，gossip 协议，用于节点间进行高效的数据交换，占用较少的网络带宽和处理时间
+面试官：不错，可以继续讲一讲节点间的内部通信机制吗
+派大星：可以，首先来讲一般集群元数据的维护方式有两种：
+集中式、gossip协议，Redis采用的是gossip协议进行通信。 面试官：这两个有什么区别吗？
+派大星：当然，首先针对与集中式来说，它是将集群元数据(节点信息，故障信息)等集中存储在某个节点上，这种存储方式有点典型的代 表就是大数据中storm 。它是分布式的大数据实时计算引擎，是集中式的元数据存储的结构，底层基于zookeeper对所有元数据进行存 储维护。如图： 集中式的好处就在于：对于元数据的读取和更新时效性 非常好，一旦出现数据的变更，就立即更新到集中式存储中，其它节点也可以 第一时间进行感知到。缺点就是所有的元数据都在一个地方。可以会导致元数据的存储有压力。
+派大星：其次对于goosip 协议来讲它的优点相比较于集中式存储它的元数据信息相对比较分散，不集中在一个地方，更新请求会分散 在其它有元数据的节点，从而降低了压力。相对来说时效性没有那么好。会有一些滞后。
+面试官：gossip协议你了解多少，可以简单介绍以下嘛？
+派大星：gossip协议包含很多信息，比如ping 、 pong 、 meet 、 fail 等等。
+meet：某个节点会发送meet给新加入的节点，然后新节点就会加入集群中，并于其它节点进行通信 ping：每个节点都会给其它节点频繁的发送ping，其中包含自己元数据信息，互相通过ping来交换元数据信息。 pong：返回ping和meet，包含自己的状态和其它信息，用于信息广播和更新。 fail：某个节点判断另外一个节点fail后，就会给其它节点发送fail。通知其它节点告诉某个节点宕机了。 派大星：ping是要携带一些元数据，如果很频繁的话可能会导致网络开销较大。并且每个节点每秒会执行10次的ping，每次会选择5个 最久没有通信的其它节点。当然这期间如果发现了某个节点通信延时达到了(cluster_node_time_out / 2 )。那么就会立即发送平，避免 数据交换延时过长，落后的时间太长了。比如说两个节点已经有10分钟没有交换数据了，那么整个集群就存在严重的数据不一致的情况 ，就会有问题。所以cluster_node_timeout 可以去调节,调节的比较好的好。ping频率自然也就降低了。
+面试官：既然Redis Cluster有这么多的节点，它是如何做的选择呢，也就是怎么做的节点负载均衡？
+派大星：说到节点负载均衡就需要知道分布式的寻址算法：
+hash算法：（大量缓存重建） 一致性hash算法：(自动缓存迁移)&#43;虚拟节点(自动负载均衡) Redis cluster的Hash slot算法 以上三种算法Redis中采用的是Hash slot算法。
+面试官：那你能简单介绍下这三种算法吗？
+派大星：好的， 首先Hash算法，会根据key计算其Hash值，然后对节点数取模，接着打在不同的master节点上。一旦某一个节点宕机，所有请求打过来，都会基于最新的剩余的master节点进行取模尝试获取数据。这样就会导致后续所有请求过来，都无法拿到有效的缓存，导致大量的请求直接打到DB上。 对于一致性Hash算法而言，它会将整个Hash值空间组装成一个虚拟的圆环，整个空间按顺时针方向流转，下一步将各个master节点进行Hash，这样就能确定每个节点在其Hash环位置上。请求过来的时候，会先根据key计算Hash值并确定此数据在环上的位置，从此位置沿着环的顺时针方向行走，遇到的第一个master节点就是key所在的位置。这种情况即使有一个节点挂了宕机了，受影响的数据仅仅是此节点到环空间前一个节点(也就是沿着逆时针方向行走遇到的第一个节点)之间的数据，其它不会受到影响，增加一个节点也同理。相比较于Hash算法即使挂了一个节点不会使后面的所有请求都直接打到DB上。但是一致性Hash算法如果在节点特别少的情况下，容易出现因为节点分布不均匀而造成缓存热点的问题。为了解决这种热点问题，一致性Hash算法引入了虚拟节点机制，即对每一个节点计算多个Hash，每个计算结果位置都放置一个虚拟节点。这样就实现了数据的均匀分布，负载均衡。 至于Redis Cluster的Hash slot算法。首先Redis Cluster中有固定的16384个Hash slot，对每个key计算CRC16 值，然后对16384取模，可以获取key对应的Hash Slot。 Redis Cluster中每个master都会持有部分slot，比如有3个master，那么每个master可能会持有5000多个Hash Slot。Hash Slot让node的增加移除变得简化，增加一个master，将其它master的hash slot移动部分过去即可，减少一个slot，将它的hash slot移动到其它的master即可。移动hash slot的成本也很低。针对客户端的API可以针对指定的数据，让其走同一个Hash Slot，通过Hash Tag即可以实现。 这样就保证了任何一台机器宕机，其它的节点都不受影响，因为key要找的是Hash Slot而不是机器。"/>
+
+  <script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BlogPosting",
+  "headline": "对线面试官 Redis _ 十 Redis集群模式",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http:\/\/vipbbo.com\/2023\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-redis-_-%E5%8D%81-redis%E9%9B%86%E7%BE%A4%E6%A8%A1%E5%BC%8F\/"
+  },
+  "image": {
+    "@type": "ImageObject",
+    "url": "http:\/\/vipbbo.com\/cover.png",
+    "width":  800 ,
+    "height":  600 
+  },
+  "genre": "posts",
+  
+  "wordcount":  117 ,
+  "url": "http:\/\/vipbbo.com\/2023\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-redis-_-%E5%8D%81-redis%E9%9B%86%E7%BE%A4%E6%A8%A1%E5%BC%8F\/",
+  "datePublished": "2023-01-13T23:05:22\u002b08:00",
+  "dateModified": "2023-01-13T23:05:22\u002b08:00",
+  
+  "publisher": {
+    "@type": "Organization",
+    "name": "Fastbyte01",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http:\/\/vipbbo.com\/logo.png",
+      "width":  127 ,
+      "height":  40 
+    }
+  },
+  "author": {
+    "@type": "Person",
+    "name": "派大星"
+  },
+  "description": ""
+}
+</script>
+</head>
+
+  
+
+
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4585280196682059"
+     crossorigin="anonymous"></script>
+
+
+  <body class="">
+    <div class="wrapper">
+        <nav class="navbar">
+    <div class="container">
+        <div class="navbar-header header-logo">
+        	<a href="http://vipbbo.com/">码上遇见你</a>
+        </div>
+        <div class="menu navbar-right">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+                <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;
+        </div>
+    </div>
+</nav>
+<nav class="navbar-mobile" id="nav-mobile" style="display: none">
+     <div class="container">
+        <div class="navbar-header">
+            <div>  <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;<a href="http://vipbbo.com/">码上遇见你</a></div>
+            <div class="menu-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+     
+          <div class="menu" id="mobile-menu">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+        </div>
+    </div>
+</nav>
+
+    	 <main class="main">
+          <div class="container">
+      		
+<article class="post-warp">
+    <header class="post-header">
+        <h1 class="post-title">对线面试官 Redis _ 十 Redis集群模式</h1>
+        <div class="post-meta">
+            Written by <a href="http://vipbbo.com/" rel="author">派大星</a> with ♥ 
+                <span class="post-time">
+                    on <time datetime=2023-01-13 >13 January 2023</time>
+                </span>
+                in
+                
+                <i class="iconfont icon-timer"></i>
+                1 min
+        </div>
+    </header>
+    <div class="post-content">
+        
+
+        
+            
+        
+
+        
+        
+     
+          
+          
+          
+
+          
+          
+          
+
+          <p><strong>面试官：Redis集群模式有了解过吗？具体的工作原理可以简单说一下吗？</strong></p>
+<blockquote>
+<p>面试官的心理分析：
+主要考察的是在实际工作中是否接触过海量数据+高并发+高可用的场景。以及Redis这几年的一个变化。因为在前几年Redis本身不支持
+集群模式，只能依赖于一些中间件，比如codis、推特的twemproxy等。但是最近几年Redis官方支持了集群模式Cluster，在实际应用中
+该集群模式也被广泛使用，面试官主要是想考察了解你对Redis的一个掌握程度。</p>
+</blockquote>
+<p>派大星：有了解，前几年主要通过Redis的一些中间件来做，比如codis、推特的twemproxy等，但是最近几年Redis官方支持了集群模式
+Cluster。</p>
+<p><strong>面试官：那你简单介绍一下Redis Cluster吧。</strong></p>
+<p>派大星：好的，Redis Cluster它会自动将数据进行分片，同时每个master只有一部分数据。提供内置的高可用支持，部分master不可用
+时还是可以对外提供服务的。在Redis Cluster架构下，每个Redis需要开发两个端口，比如一个是：6379 一个是16379；另外一个就是
+加1w的端口号，比如16379。端口号用来进行节点之间的通信，也被称为cluster bus。cluster bus的通信用来故障检测、配置更新、故
+障转移授权。cluster bus用了另外一种二进制协议，<code>gossip</code> 协议，用于节点间进行高效的数据交换，占用较少的网络带宽和处理时间</p>
+<p><strong>面试官：不错，可以继续讲一讲节点间的内部通信机制吗</strong></p>
+<p>派大星：可以，首先来讲一般集群元数据的维护方式有两种：</p>
+<ul>
+<li>集中式、gossip协议，Redis采用的是gossip协议进行通信。</li>
+</ul>
+<p><strong>面试官：这两个有什么区别吗？</strong></p>
+<p>派大星：当然，首先针对与集中式来说，它是将集群元数据(节点信息，故障信息)等集中存储在某个节点上，这种存储方式有点典型的代
+表就是大数据中<code>storm</code> 。它是分布式的大数据实时计算引擎，是集中式的元数据存储的结构，底层基于zookeeper对所有元数据进行存
+储维护。如图：
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1689085042774-d1f3eb68-124a-47f4-bfda-dd1b77287576.png#averageHue=%23c5c5c5&amp;clientId=u676564a0-e932-4&amp;from=paste&amp;height=284&amp;id=u2051f633&amp;originHeight=568&amp;originWidth=1050&amp;originalType=binary&amp;ratio=2&amp;rotation=0&amp;showTitle=false&amp;size=43579&amp;status=done&amp;style=none&amp;taskId=u80e05d8f-b990-42a8-856b-56206eb162e&amp;title=&amp;width=525" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure>
+集中式的好处就在于：对于元数据的读取和更新<code>时效性</code> 非常好，一旦出现数据的变更，就立即更新到集中式存储中，其它节点也可以
+第一时间进行感知到。缺点就是所有的元数据都在一个地方。可以会导致元数据的存储有压力。</p>
+<p>派大星：其次对于<code>goosip</code> 协议来讲它的优点相比较于集中式存储它的元数据信息相对比较分散，不集中在一个地方，更新请求会分散
+在其它有元数据的节点，从而降低了压力。相对来说时效性没有那么好。会有一些滞后。</p>
+<p><strong>面试官：gossip协议你了解多少，可以简单介绍以下嘛？</strong></p>
+<p>派大星：gossip协议包含很多信息，比如<code>ping</code> 、 <code>pong</code> 、 <code>meet</code>  、 <code>fail</code>  等等。</p>
+<ul>
+<li>meet：某个节点会发送meet给新加入的节点，然后新节点就会加入集群中，并于其它节点进行通信</li>
+<li>ping：每个节点都会给其它节点频繁的发送ping，其中包含自己元数据信息，互相通过ping来交换元数据信息。</li>
+<li>pong：返回ping和meet，包含自己的状态和其它信息，用于信息广播和更新。</li>
+<li>fail：某个节点判断另外一个节点fail后，就会给其它节点发送fail。通知其它节点告诉某个节点宕机了。</li>
+</ul>
+<p>派大星：ping是要携带一些元数据，如果很频繁的话可能会导致网络开销较大。并且每个节点每秒会执行10次的ping，每次会选择5个
+最久没有通信的其它节点。当然这期间如果发现了某个节点通信延时达到了(<code>cluster_node_time_out / 2</code> )。那么就会立即发送平，避免
+数据交换延时过长，落后的时间太长了。比如说两个节点已经有10分钟没有交换数据了，那么整个集群就存在严重的数据不一致的情况
+，就会有问题。所以<code>cluster_node_timeout</code> 可以去调节,调节的比较好的好。ping频率自然也就降低了。</p>
+<p><strong>面试官：既然Redis Cluster有这么多的节点，它是如何做的选择呢，也就是怎么做的节点负载均衡？</strong></p>
+<p>派大星：说到节点负载均衡就需要知道分布式的寻址算法：</p>
+<ul>
+<li>hash算法：（大量缓存重建）</li>
+<li>一致性hash算法：(自动缓存迁移)+虚拟节点(自动负载均衡)</li>
+<li>Redis cluster的Hash slot算法</li>
+</ul>
+<p>以上三种算法Redis中采用的是Hash slot算法。</p>
+<p><strong>面试官：那你能简单介绍下这三种算法吗？</strong></p>
+<p>派大星：好的，
+首先Hash算法，<code>会根据key计算其Hash值，然后对节点数取模</code>，接着打在不同的master节点上。一旦某一个节点宕机，所有请求打过来，都会基于最新的剩余的master节点进行取模尝试获取数据。这样就会导致后续所有请求过来，都无法拿到有效的缓存，导致大量的请求直接打到DB上。
+对于一致性Hash算法而言，它会将整个Hash值空间组装成一个虚拟的圆环，整个空间按顺时针方向流转，下一步将各个master节点进行Hash，这样就能确定每个节点在其Hash环位置上。请求过来的时候，会先根据key计算Hash值并确定此数据在环上的位置，从此位置沿着环的顺时针方向行走，遇到的第一个master节点就是key所在的位置。这种情况即使有一个节点挂了宕机了，受影响的数据仅仅是此节点到环空间前一个节点(也就是沿着逆时针方向行走遇到的第一个节点)之间的数据，其它不会受到影响，增加一个节点也同理。相比较于Hash算法即使挂了一个节点不会使后面的所有请求都直接打到DB上。但是一致性Hash算法如果在节点特别少的情况下，容易出现因为节点分布不均匀而造成<code>缓存热点</code>的问题。为了解决这种热点问题，一致性Hash算法引入了<code>虚拟节点机制</code>，即对每一个节点计算多个Hash，每个计算结果位置都放置一个虚拟节点。这样就实现了数据的均匀分布，负载均衡。
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1689086009725-f426b325-77bd-42ed-bf7f-ea79ca47890c.png#averageHue=%23eff0e7&amp;clientId=u676564a0-e932-4&amp;from=paste&amp;height=756&amp;id=ufb622fe3&amp;originHeight=1512&amp;originWidth=1456&amp;originalType=binary&amp;ratio=2&amp;rotation=0&amp;showTitle=false&amp;size=506541&amp;status=done&amp;style=none&amp;taskId=u58c9508b-6409-418f-91da-4c38173032a&amp;title=&amp;width=728" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure>
+至于Redis Cluster的Hash slot算法。首先Redis Cluster中有固定的<code>16384</code>个Hash slot，对每个key计算<code>CRC16</code> 值，然后对16384取模，可以获取key对应的Hash Slot。
+Redis Cluster中每个master都会持有部分slot，比如有3个master，那么每个master可能会持有5000多个Hash Slot。Hash Slot让node的增加移除变得简化，增加一个master，将其它master的hash slot移动部分过去即可，减少一个slot，将它的hash slot移动到其它的master即可。移动hash slot的成本也很低。针对客户端的API可以针对指定的数据，让其走同一个Hash Slot，通过Hash Tag即可以实现。
+这样就保证了任何一台机器宕机，其它的节点都不受影响，因为key要找的是Hash Slot而不是机器。</p>
+<p><strong>面试官：不错，那Redis Cluster的高可用机制的主备切换原理是什么，这个有了解过吗？</strong></p>
+<p>派大星：首先来说Redis Cluster 的主备切换原理其实和Redis Sentinel是十分相似的。
+第一步：它会先判断是否宕机。如果一个节点认为另外一个节点宕机，难么就是<code>pfail</code>，也就是主观宕机。假设如果多个节点都认为另外一个节点宕机了。那么就是<code>fail</code>客观宕机。这里和<code>odown</code>、<code>sdown</code>很相似。主要表现形式则是：在<code>cluster-node-timeout</code>内，某个节点一直没有返回<code>pong</code>，那么就会认为是<code>pfail</code>。一个节点一旦认为某个节点<code>pfail</code>了，就会在<code>gossip ping</code>消息中，<code>ping</code>给其它的节点，如果<code>超过半数的节点</code>都认为<code>pfail</code>了，那么就会是<code>fail</code>
+至于如何选举，对宕机的master node，会从其所有的slave node中选举一个master node。首先会判断并检查每个slave node于master node断开连接的时间，如果超过了<code>cluster-node-timeout * cluster-slave-validity-factor</code> 了，就没有资格成为master。
+这一步之后每个从节点，都会根据自己对master复制数据的offset来设置一个选举的事件，offset越大(代表复制的数据越多)的从节点，选举的事件越靠前，会优先进行选举。这时候所有的master node开始对要进行选举的slave node进行投票，如果大部分master node(N/2 +1 )都投给了某个slave node。那么选举就会被通过。表明该slave node会切换成master。
+综上所述，整个流程和哨兵相比很类似。所以说Redis Cluster功能强大。直接集成了<code>Relocation</code>和<code>Sentinel</code>。</p>
+<blockquote>
+<p>如有问题，欢迎加微信交流：w714771310，备注- 面试  。或关注微信公众号【码上遇见你】。</p>
+</blockquote>
+
+    </div>
+
+    <div class="post-copyright">
+             
+            <p class="copyright-item">
+                <span>Author:</span>
+                <span>派大星 </span>
+                </p>
+            
+           
+            <p class="copyright-item">
+                    <span>Words:</span>
+                   <span>117</span>
+            </p>
+
+            <p class="copyright-item">
+                
+                <span>Share:</span>
+                <span>
+
+      
+        <a href="//twitter.com/share?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-redis-_-%25E5%258D%2581-redis%25E9%259B%2586%25E7%25BE%25A4%25E6%25A8%25A1%25E5%25BC%258F%2f&amp;text=%e5%af%b9%e7%ba%bf%e9%9d%a2%e8%af%95%e5%ae%98%20Redis%20_%20%e5%8d%81%20Redis%e9%9b%86%e7%be%a4%e6%a8%a1%e5%bc%8f&amp;via=" target="_blank" title="Share on Twitter">
+          <i class="iconfont icon-twitter"></i>
+        </a>
+        
+      
+      
+        <a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-redis-_-%25E5%258D%2581-redis%25E9%259B%2586%25E7%25BE%25A4%25E6%25A8%25A1%25E5%25BC%258F%2f" target="_blank" title="Share on Facebook">
+          <i class="iconfont icon-facebook"></i>
+        </a>
+        
+      
+      
+      
+      
+        <a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-redis-_-%25E5%258D%2581-redis%25E9%259B%2586%25E7%25BE%25A4%25E6%25A8%25A1%25E5%25BC%258F%2f&amp;title=%e5%af%b9%e7%ba%bf%e9%9d%a2%e8%af%95%e5%ae%98%20Redis%20_%20%e5%8d%81%20Redis%e9%9b%86%e7%be%a4%e6%a8%a1%e5%bc%8f" target="_blank" title="Share on LinkedIn">
+          <i class="iconfont icon-linkedin"></i>
+        </a>
+        
+      
+      
+        
+      
+        
+      
+
+          
+
+          
+
+          
+
+          
+
+</span>
+                
+            </p>
+
+             
+            <p class="copyright-item">
+                Released under <a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a>
+            </p>
+            
+    </div>
+
+  
+    <div class="post-tags">
+        
+        <section>
+                <a href="javascript:window.history.back();">Back</a></span> · 
+                <span><a href="http://vipbbo.com/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav">
+        
+        <a href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-redis-%E4%B9%9D-_-%E6%8C%81%E4%B9%85%E5%8C%96%E7%9A%84%E6%96%B9%E5%BC%8F%E5%8F%8A%E4%BC%98%E7%BC%BA%E7%82%B9/" class="prev" rel="prev" title="对线面试官-Redis 九 _ 持久化的方式及优缺点"><i class="iconfont icon-dajiantou"></i>&nbsp;对线面试官-Redis 九 _ 持久化的方式及优缺点</a>
+         
+        
+        <a href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%BB%9D%E6%97%A0%E4%BB%85%E6%9C%89%E7%9C%9F%E5%AE%9E%E7%BA%BF%E4%B8%8A%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5%E9%9D%A2%E8%AF%95%E9%A2%98%E7%AA%81%E5%87%BB%E7%AF%87/" class="next" rel="next" title="对线面试官 - 绝无仅有真实线上问题排查面试题突击篇">对线面试官 - 绝无仅有真实线上问题排查面试题突击篇&nbsp;<i class="iconfont icon-xiaojiantou"></i></a>
+        
+    </div>
+
+    <div class="post-comment">
+          
+          <div id="disqus_thread"></div>
+  <script type="text/javascript">
+      (function() {
+          
+          
+          if (window.location.hostname == "localhost")
+              return;
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          var disqus_shortname = 'yourdiscussshortname';
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="https://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+ 
+
+          
+    </div>
+</article>
+          </div>
+		   </main>
+      <footer class="footer">
+    <div class="copyright">
+        &copy;
+        
+        <span itemprop="copyrightYear">2023 - 2023</span>
+        
+         
+            <span class="author" itemprop="copyrightHolder"><a href="http://vipbbo.com/">派大星</a> | </span>
+         
+
+		  <span>Crafted with ❤️ by <a href="https://github.com/Fastbyte01/KeepIt" target="_blank" rel="external nofollow noopener noreffer">KeepIt</a> & <a href="https://gohugo.io/" target="_blank" rel="external nofollow noopener noreffer">Hugo</a></span>
+    </div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    <link crossorigin="anonymous" integrity="sha384-yziQACfvCVwLqVFLqkWBYRO3XeA4EqzfXKGwaWnenYn5XzqfJFlFdKEmvutIQdKb" href="https://lib.baomitu.com/lightgallery/1.10.0/css/lightgallery.min.css" rel="stylesheet">
+      
+     <script src="/js/vendor_gallery.min.js" async="" ></script>
+    
+  
+
+
+
+
+
+
+
+     </div>
+  </body>
+</html>

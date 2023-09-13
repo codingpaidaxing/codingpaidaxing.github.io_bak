@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noodp"/>
+  
+  
+  
+  
+  
+  <link rel="prev" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%BB%9D%E6%97%A0%E4%BB%85%E6%9C%89%E7%9C%9F%E5%AE%9E%E7%BA%BF%E4%B8%8A%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5%E9%9D%A2%E8%AF%95%E9%A2%98%E7%AA%81%E5%87%BB%E7%AF%87/" />
+  <link rel="next" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%A1%AC%E4%BB%B6%E7%BA%A7%E5%88%AB%E4%B9%8B%E5%86%8D%E8%B0%88volatile%E5%85%B3%E9%94%AE%E5%AD%97%E7%9A%84%E5%8F%AF%E8%A7%81%E6%80%A7/" />
+  <link rel="canonical" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%A1%AC%E4%BB%B6%E7%BA%A7%E5%88%AB%E4%B9%8B%E5%86%8D%E8%B0%88volatile%E5%85%B3%E9%94%AE%E5%AD%97%E7%9A%84%E6%8C%87%E4%BB%A4%E9%87%8D%E6%8E%92%E5%BA%8F/" />
+  <link rel='shortcut icon' type='image/x-icon' href='/favicon.ico' />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <title>
+       
+       
+           对线面试官 - 硬件级别之再谈Volatile关键字的指令重排序 | 码上遇见你
+       
+  </title>
+  <meta name="title" content="对线面试官 - 硬件级别之再谈Volatile关键字的指令重排序 | 码上遇见你">
+    
+  
+  <link rel="stylesheet" href="/font/iconfont.css">
+  <link rel="stylesheet" href="/css/main.min.css">
+
+
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="对线面试官 - 硬件级别之再谈Volatile关键字的指令重排序"/>
+<meta name="twitter:description" content="面试官：之前从硬件级别聊了可见性的相关问题。这次能能简单从硬件级别聊聊指令重排吗？
+派大星：当然可以，说到有序性就需要提到编译后的代码的执行顺序：Java中有两种编译器，一个是静态编译器(javac)，一个是动态编译器(JIT)。javac负责把.java文件中的源代码编译为.class文件中的字节码，这个一般是程序写好之后进行编译的。而JIT则是负责把.class文件中的字节码编译为JVM所在操作系统支持的机器码。一般在程序运行过程中进行编译。 为什么要提到这两个编译器呢？原因就是由于在这个编译过程中，编译器是很有可能调整代码的执行顺序，从而提高代码的执行效率。尤其是JIT编译器对指令重排序还是挺多的。同时处理器也有可能对JIT编译好的指令进行重排序执行。还有一种情况则是：内存重排序，简单来说就是处理器在实际执行指令的过程中。在高速缓存和写缓冲器或者无效队列等等硬件层面的组件，也可能会导致指令的执行顺序是有变化的。导致其它处理器看到你的执行顺序是错乱的。 但是话又说回来，指令重排序不是胡乱的排序，它们会遵循一个关键的规则，就是数据依赖规则，如果说一个变量的结果依赖于之前的代码执行的结果，那么就不能随意进行重排序，要遵循数据的依赖。此外，之前有提到过的happens-before原则，就是有一些基本的规则时要遵守的，不会让你胡乱重排序
+面试官：new 一个新的对象，JIT会存在指令重排序的可能吗？(JIT指令重排序的经典案例)
+派大星：存在指令重排序的可能。具体情况如下： 假设我们编写这样一行代码：MyObject myObj = new MyObject();这行代码大致会执行三个步骤。
+步骤一：以MyObject类作为原型，给它的对象实例分配一块空间。 如下objRef就是指向了分配好的内存空间的地址的引用。 objRef = allocate(MyObject.class); 步骤二：针对分配好内存空间的对象实例执行它的构造函数，并对这个对象实例进行初始化操作。主要就是执行我们自己写的构造函数里的一些代码，对各个实例变量赋值，初始化的逻辑。 invokeConstructor(objRef); 步骤三：步骤一步骤二执行完成后，一个对象实例就创建完成了。此时就是把objRef指针指向的内存地址，赋值给我们自己的引用类型的变量。此时myObj就可以作为一个类似指针的概念指向了MyObject对象实例的内存地址。属于是给我们自己创建的myObj变量进行赋值操作。 myObj = objRef; 以上就是new对象的一个过程，但是JIT动态编译为了加快程序的执行速度，步骤2是在初始化一个对象实例(比如里面执行一些磁盘读写，网络通信等等)，JIT动态编译则可能重排为步骤一 、步骤三、步骤二。 但是一旦这样进行指令重排则有可能会出现一些问题，可看如下代码：
+public class MyObject{ private Resource resource; public MyObject(){ this.resource = loadResource();// 从配置文件里加载数据构造Resource对象 } public void execute(){ this.resource.execute(); } } // 线程1执行 MyObject myObj = new MyObject() // 线程2执行 myObj.execute(); 一旦出现线程1 刚刚执行完步骤一和步骤三，步骤二还没有执行，此时myObj已经不是null，但是MyObject对象实例内部的resource还是null。 线程2直接执行了myObj.execute()方法，此时内部会调用resource.execute()方法，但是此时resource还是空的就会报NPE。 其实DCL单例模式中就是会出现JIT指令重排，如果不加Volatile关键字则会有一些问题的发生。Volatile是保证了步骤1、2、3全部执行完毕后，才可使用myObj对象。
+面试官：不错，理解的很透彻呀。
+面试官：那你了解处理器的指令乱序执行的机制吗？
+派大星：有过一些了解简单来说就是：
+指令乱序执行机制：指令不一定拿到了就可以立马执行，比如有的执行需要网络通信、磁盘读写、获取锁等等，有的指令不是立马就执行的，为了提升效率，在现代的很多处理器里面走的都是乱序执行的机制。乱序执行完成后，会将每个指令的执行结果放到重排序处理器里面，重排序处理器的作用是把各个指令的结果按照接收指令时的顺序放到硬件组件里面去(高速缓存或写缓冲器里面)。 猜测执行机制：所谓的猜测执行机制就是很有可能会执行if里的代码算出来结果后，再去判断if条件是否成立。这样也会导致代码的执行顺序和想象的不一样。 面试官：你能聊聊上面你提到过的内存指令重排序吗？(高速缓存和写缓冲器的内存重排序造成的视觉假象)
+派大星：可以。首先我们要知道一个概念就是： 处理器将数据写入缓冲器里，这个过程被称之为store，从高速缓存中读取是数据，这个过程是load。写缓冲器和高速缓存执行load和store的过程都是按照处理器指示的顺序执行的。处理器的重排序处理器也是按照程序顺序执行的load和store的。 但是有个问题：就是在其它处理器可能会看到的一个视觉假象，就是有可能出现看到的load和store的执行顺序并非真实的执行顺序而是重排序的。这也就是内存重排序。 内存重排序一共有4种：
+LoadLoad重排序：一个处理器先执行一个L1读操作，再执行一个L2读操作；但是另外一个处理器看到的是先L2再L1. StoreStore重排序：一个处理器先执行一个W1写操作，再执行一个W2写操作，但是另外一个处理器看到的是先W2再W1."/>
+
+  <script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BlogPosting",
+  "headline": "对线面试官 - 硬件级别之再谈Volatile关键字的指令重排序",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http:\/\/vipbbo.com\/2023\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%A1%AC%E4%BB%B6%E7%BA%A7%E5%88%AB%E4%B9%8B%E5%86%8D%E8%B0%88volatile%E5%85%B3%E9%94%AE%E5%AD%97%E7%9A%84%E6%8C%87%E4%BB%A4%E9%87%8D%E6%8E%92%E5%BA%8F\/"
+  },
+  "image": {
+    "@type": "ImageObject",
+    "url": "http:\/\/vipbbo.com\/cover.png",
+    "width":  800 ,
+    "height":  600 
+  },
+  "genre": "posts",
+  
+  "wordcount":  74 ,
+  "url": "http:\/\/vipbbo.com\/2023\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%A1%AC%E4%BB%B6%E7%BA%A7%E5%88%AB%E4%B9%8B%E5%86%8D%E8%B0%88volatile%E5%85%B3%E9%94%AE%E5%AD%97%E7%9A%84%E6%8C%87%E4%BB%A4%E9%87%8D%E6%8E%92%E5%BA%8F\/",
+  "datePublished": "2023-01-13T23:05:22\u002b08:00",
+  "dateModified": "2023-01-13T23:05:22\u002b08:00",
+  
+  "publisher": {
+    "@type": "Organization",
+    "name": "Fastbyte01",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http:\/\/vipbbo.com\/logo.png",
+      "width":  127 ,
+      "height":  40 
+    }
+  },
+  "author": {
+    "@type": "Person",
+    "name": "派大星"
+  },
+  "description": ""
+}
+</script>
+</head>
+
+  
+
+
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4585280196682059"
+     crossorigin="anonymous"></script>
+
+
+  <body class="">
+    <div class="wrapper">
+        <nav class="navbar">
+    <div class="container">
+        <div class="navbar-header header-logo">
+        	<a href="http://vipbbo.com/">码上遇见你</a>
+        </div>
+        <div class="menu navbar-right">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+                <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;
+        </div>
+    </div>
+</nav>
+<nav class="navbar-mobile" id="nav-mobile" style="display: none">
+     <div class="container">
+        <div class="navbar-header">
+            <div>  <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;<a href="http://vipbbo.com/">码上遇见你</a></div>
+            <div class="menu-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+     
+          <div class="menu" id="mobile-menu">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+        </div>
+    </div>
+</nav>
+
+    	 <main class="main">
+          <div class="container">
+      		
+<article class="post-warp">
+    <header class="post-header">
+        <h1 class="post-title">对线面试官 - 硬件级别之再谈Volatile关键字的指令重排序</h1>
+        <div class="post-meta">
+            Written by <a href="http://vipbbo.com/" rel="author">派大星</a> with ♥ 
+                <span class="post-time">
+                    on <time datetime=2023-01-13 >13 January 2023</time>
+                </span>
+                in
+                
+                <i class="iconfont icon-timer"></i>
+                1 min
+        </div>
+    </header>
+    <div class="post-content">
+        
+
+        
+
+        
+        
+     
+          
+          
+          
+
+          
+          
+          
+
+          <p><strong>面试官：之前从硬件级别聊了可见性的相关问题。这次能能简单从硬件级别聊聊指令重排吗？</strong></p>
+<p>派大星：当然可以，说到有序性就需要提到编译后的代码的执行顺序：Java中有两种编译器，<code>一个是静态编译器(javac)</code>，<code>一个是动态编译器(JIT)</code>。<code>javac</code>负责把<code>.java</code>文件中的源代码编译为<code>.class</code>文件中的字节码，这个一般是程序写好之后进行编译的。而<code>JIT</code>则是负责把<code>.class</code>文件中的字节码编译为JVM所在操作系统支持的机器码。一般在程序运行过程中进行编译。
+为什么要提到这两个编译器呢？原因就是由于在这个编译过程中，编译器是很有可能调整代码的执行顺序，从而提高代码的执行效率。尤其是<code>JIT编译器对指令重排序还是挺多的</code>。同时<code>处理器也有可能对JIT编译好的指令进行重排序执行</code>。还有一种情况则是：<code>内存重排序</code>，简单来说就是处理器在实际执行指令的过程中。在高速缓存和写缓冲器或者无效队列等等硬件层面的组件，也可能会导致指令的执行顺序是有变化的。导致其它处理器看到你的执行顺序是错乱的。
+但是话又说回来，指令重排序不是胡乱的排序，它们会遵循一个关键的规则，就是<code>数据依赖规则</code>，如果说一个变量的结果依赖于之前的代码执行的结果，那么就不能随意进行重排序，要遵循数据的依赖。此外，之前有提到过的<code>happens-before</code>原则，就是有一些基本的规则时要遵守的，不会让你胡乱重排序</p>
+<p><strong>面试官：new 一个新的对象，JIT会存在指令重排序的可能吗？(JIT指令重排序的经典案例)</strong></p>
+<p>派大星：存在指令重排序的可能。具体情况如下：
+假设我们编写这样一行代码：<code>MyObject myObj = new MyObject();</code>这行代码大致会执行三个步骤。</p>
+<ul>
+<li>步骤一：以MyObject类作为原型，给它的对象实例<code>分配一块空间</code>。 如下<code>objRef</code>就是指向了分配好的内存空间的地址的引用。</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>objRef <span style="color:#f92672">=</span> allocate<span style="color:#f92672">(</span>MyObject<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">);</span>
+</span></span></code></pre></div><ul>
+<li>步骤二：针对分配好内存空间的对象实例执行它的构造函数，并对这个对象实例进行<code>初始化操作</code>。主要就是执行我们自己写的构造函数里的一些代码，对各个实例变量赋值，初始化的逻辑。</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>invokeConstructor<span style="color:#f92672">(</span>objRef<span style="color:#f92672">);</span>
+</span></span></code></pre></div><ul>
+<li>步骤三：步骤一步骤二执行完成后，一个对象实例就创建完成了。此时就是把objRef指针指向的内存地址，赋值给我们自己的引用类型的变量。此时myObj就可以作为一个类似指针的概念指向了MyObject对象实例的内存地址。属于是给我们自己创建的myObj变量进行<code>赋值操作</code>。</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>myObj <span style="color:#f92672">=</span> objRef<span style="color:#f92672">;</span>
+</span></span></code></pre></div><p>以上就是new对象的一个过程，但是JIT动态编译为了加快程序的执行速度，步骤2是在初始化一个对象实例(比如里面执行一些磁盘读写，网络通信等等)，JIT动态编译则可能重排为<code>步骤一 、步骤三、步骤二</code>。
+但是一旦这样进行指令重排则有可能会出现一些问题，可看如下代码：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MyObject</span><span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Resource resource<span style="color:#f92672">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">MyObject</span><span style="color:#f92672">(){</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">resource</span> <span style="color:#f92672">=</span> loadResource<span style="color:#f92672">();</span><span style="color:#75715e">// 从配置文件里加载数据构造Resource对象
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">execute</span><span style="color:#f92672">(){</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">resource</span><span style="color:#f92672">.</span><span style="color:#a6e22e">execute</span><span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 线程1执行
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>MyObject myObj <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> MyObject<span style="color:#f92672">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 线程2执行
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>myObj<span style="color:#f92672">.</span><span style="color:#a6e22e">execute</span><span style="color:#f92672">();</span>
+</span></span></code></pre></div><p>一旦出现线程1 刚刚执行完步骤一和步骤三，步骤二还没有执行，此时myObj已经不是null，但是MyObject对象实例内部的resource还是null。
+线程2直接执行了myObj.execute()方法，此时内部会调用resource.execute()方法，但是此时resource还是空的就会报NPE。
+其实<code>DCL单例模式中就是会出现JIT指令重排</code>，如果不加Volatile关键字则会有一些问题的发生。Volatile是保证了步骤1、2、3全部执行完毕后，才可使用myObj对象。</p>
+<p><strong>面试官：不错，理解的很透彻呀。</strong></p>
+<p><strong>面试官：那你了解处理器的指令乱序执行的机制吗？</strong></p>
+<p>派大星：有过一些了解简单来说就是：</p>
+<ul>
+<li>指令乱序执行机制：指令不一定拿到了就可以立马执行，比如有的执行需要网络通信、磁盘读写、获取锁等等，有的指令不是立马就执行的，为了提升效率，在现代的很多处理器里面走的都是乱序执行的机制。乱序执行完成后，会将每个指令的执行结果放到<code>重排序处理器</code>里面，<code>重排序处理器的作用是把各个指令的结果按照接收指令时的顺序放到硬件组件里面去(高速缓存或写缓冲器里面)</code>。</li>
+<li>猜测执行机制：所谓的猜测执行机制就是很有可能会执行if里的代码算出来结果后，再去判断if条件是否成立。这样也会导致代码的执行顺序和想象的不一样。</li>
+</ul>
+<p><strong>面试官：你能聊聊上面你提到过的内存指令重排序吗？(高速缓存和写缓冲器的内存重排序造成的视觉假象)</strong></p>
+<p>派大星：可以。首先我们要知道一个概念就是：
+处理器将数据写入缓冲器里，这个过程被称之为<code>store</code>，从高速缓存中读取是数据，这个过程是<code>load</code>。写缓冲器和高速缓存执行load和store的过程都是按照处理器指示的顺序执行的。处理器的重排序处理器也是按照程序顺序执行的load和store的。
+但是有个问题：就是在其它处理器可能会看到的一个视觉假象，就是有可能出现看到的load和store的执行顺序并非真实的执行顺序而是重排序的。这也就是<code>内存重排序</code>。
+内存重排序一共有4种：</p>
+<ol>
+<li>LoadLoad重排序：一个处理器先执行一个L1读操作，再执行一个L2读操作；但是另外一个处理器看到的是先L2再L1.</li>
+<li>StoreStore重排序：一个处理器先执行一个W1写操作，再执行一个W2写操作，但是另外一个处理器看到的是先W2再W1.</li>
+<li>LoadStore重排序：一个处理器先执行一个L1读操作，再执行一个W2写操作；但是另外一个处理器看到的是先W2再L1</li>
+<li>StoreLoad重排序：一个处理器先执行了一个W1写操作，再执行一个L2读操作，但是另外一个处理器看到的是先L2再W1</li>
+</ol>
+<p>以上也就是内存重排序的几种情况。</p>
+
+    </div>
+
+    <div class="post-copyright">
+             
+            <p class="copyright-item">
+                <span>Author:</span>
+                <span>派大星 </span>
+                </p>
+            
+           
+            <p class="copyright-item">
+                    <span>Words:</span>
+                   <span>74</span>
+            </p>
+
+            <p class="copyright-item">
+                
+                <span>Share:</span>
+                <span>
+
+      
+        <a href="//twitter.com/share?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-%25E7%25A1%25AC%25E4%25BB%25B6%25E7%25BA%25A7%25E5%2588%25AB%25E4%25B9%258B%25E5%2586%258D%25E8%25B0%2588volatile%25E5%2585%25B3%25E9%2594%25AE%25E5%25AD%2597%25E7%259A%2584%25E6%258C%2587%25E4%25BB%25A4%25E9%2587%258D%25E6%258E%2592%25E5%25BA%258F%2f&amp;text=%e5%af%b9%e7%ba%bf%e9%9d%a2%e8%af%95%e5%ae%98%20-%20%e7%a1%ac%e4%bb%b6%e7%ba%a7%e5%88%ab%e4%b9%8b%e5%86%8d%e8%b0%88Volatile%e5%85%b3%e9%94%ae%e5%ad%97%e7%9a%84%e6%8c%87%e4%bb%a4%e9%87%8d%e6%8e%92%e5%ba%8f&amp;via=" target="_blank" title="Share on Twitter">
+          <i class="iconfont icon-twitter"></i>
+        </a>
+        
+      
+      
+        <a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-%25E7%25A1%25AC%25E4%25BB%25B6%25E7%25BA%25A7%25E5%2588%25AB%25E4%25B9%258B%25E5%2586%258D%25E8%25B0%2588volatile%25E5%2585%25B3%25E9%2594%25AE%25E5%25AD%2597%25E7%259A%2584%25E6%258C%2587%25E4%25BB%25A4%25E9%2587%258D%25E6%258E%2592%25E5%25BA%258F%2f" target="_blank" title="Share on Facebook">
+          <i class="iconfont icon-facebook"></i>
+        </a>
+        
+      
+      
+      
+      
+        <a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-%25E7%25A1%25AC%25E4%25BB%25B6%25E7%25BA%25A7%25E5%2588%25AB%25E4%25B9%258B%25E5%2586%258D%25E8%25B0%2588volatile%25E5%2585%25B3%25E9%2594%25AE%25E5%25AD%2597%25E7%259A%2584%25E6%258C%2587%25E4%25BB%25A4%25E9%2587%258D%25E6%258E%2592%25E5%25BA%258F%2f&amp;title=%e5%af%b9%e7%ba%bf%e9%9d%a2%e8%af%95%e5%ae%98%20-%20%e7%a1%ac%e4%bb%b6%e7%ba%a7%e5%88%ab%e4%b9%8b%e5%86%8d%e8%b0%88Volatile%e5%85%b3%e9%94%ae%e5%ad%97%e7%9a%84%e6%8c%87%e4%bb%a4%e9%87%8d%e6%8e%92%e5%ba%8f" target="_blank" title="Share on LinkedIn">
+          <i class="iconfont icon-linkedin"></i>
+        </a>
+        
+      
+      
+        
+      
+        
+      
+
+          
+
+          
+
+          
+
+          
+
+</span>
+                
+            </p>
+
+             
+            <p class="copyright-item">
+                Released under <a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a>
+            </p>
+            
+    </div>
+
+  
+    <div class="post-tags">
+        
+        <section>
+                <a href="javascript:window.history.back();">Back</a></span> · 
+                <span><a href="http://vipbbo.com/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav">
+        
+        <a href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%BB%9D%E6%97%A0%E4%BB%85%E6%9C%89%E7%9C%9F%E5%AE%9E%E7%BA%BF%E4%B8%8A%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5%E9%9D%A2%E8%AF%95%E9%A2%98%E7%AA%81%E5%87%BB%E7%AF%87/" class="prev" rel="prev" title="对线面试官 - 绝无仅有真实线上问题排查面试题突击篇"><i class="iconfont icon-dajiantou"></i>&nbsp;对线面试官 - 绝无仅有真实线上问题排查面试题突击篇</a>
+         
+        
+        <a href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%A1%AC%E4%BB%B6%E7%BA%A7%E5%88%AB%E4%B9%8B%E5%86%8D%E8%B0%88volatile%E5%85%B3%E9%94%AE%E5%AD%97%E7%9A%84%E5%8F%AF%E8%A7%81%E6%80%A7/" class="next" rel="next" title="对线面试官 - 硬件级别之再谈Volatile关键字的可见性">对线面试官 - 硬件级别之再谈Volatile关键字的可见性&nbsp;<i class="iconfont icon-xiaojiantou"></i></a>
+        
+    </div>
+
+    <div class="post-comment">
+          
+          <div id="disqus_thread"></div>
+  <script type="text/javascript">
+      (function() {
+          
+          
+          if (window.location.hostname == "localhost")
+              return;
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          var disqus_shortname = 'yourdiscussshortname';
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="https://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+ 
+
+          
+    </div>
+</article>
+          </div>
+		   </main>
+      <footer class="footer">
+    <div class="copyright">
+        &copy;
+        
+        <span itemprop="copyrightYear">2023 - 2023</span>
+        
+         
+            <span class="author" itemprop="copyrightHolder"><a href="http://vipbbo.com/">派大星</a> | </span>
+         
+
+		  <span>Crafted with ❤️ by <a href="https://github.com/Fastbyte01/KeepIt" target="_blank" rel="external nofollow noopener noreffer">KeepIt</a> & <a href="https://gohugo.io/" target="_blank" rel="external nofollow noopener noreffer">Hugo</a></span>
+    </div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
+    <script src="/js/vendor_no_gallery.min.js" async=""></script>
+    
+  
+
+
+
+
+
+
+
+     </div>
+  </body>
+</html>

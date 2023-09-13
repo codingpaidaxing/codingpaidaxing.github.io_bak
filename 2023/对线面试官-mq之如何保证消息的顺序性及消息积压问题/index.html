@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noodp"/>
+  
+  
+  
+  
+  
+  <link rel="prev" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-mq%E6%95%B0%E6%8D%AE%E4%B8%A2%E5%A4%B1%E9%97%AE%E9%A2%98%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/" />
+  <link rel="next" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-java%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AF%B9%E9%94%81%E7%9A%84%E4%BC%98%E5%8C%96/" />
+  <link rel="canonical" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-mq%E4%B9%8B%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E6%B6%88%E6%81%AF%E7%9A%84%E9%A1%BA%E5%BA%8F%E6%80%A7%E5%8F%8A%E6%B6%88%E6%81%AF%E7%A7%AF%E5%8E%8B%E9%97%AE%E9%A2%98/" />
+  <link rel='shortcut icon' type='image/x-icon' href='/favicon.ico' />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <title>
+       
+       
+           对线面试官 - MQ之如何保证消息的顺序性及消息积压问题 | 码上遇见你
+       
+  </title>
+  <meta name="title" content="对线面试官 - MQ之如何保证消息的顺序性及消息积压问题 | 码上遇见你">
+    
+  
+  <link rel="stylesheet" href="/font/iconfont.css">
+  <link rel="stylesheet" href="/css/main.min.css">
+
+
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="对线面试官 - MQ之如何保证消息的顺序性及消息积压问题"/>
+<meta name="twitter:description" content="书接上文。这次继续聊一聊MQ
+面试官：如何保证消息的顺序性，可以简单聊聊什么场景需要避免这种问题的发生以及如何解决吗？
+$\color{red} {Red} $ 这里是红色
+$\color{ Pink} {我} \color{rgb(0,248,0)} {就}\color{#008000} {喜}\color{Purple} {欢}\color{Indigo} {每}\color{DarkSlateBlue} {个}\color{Blue} {颜}\color{DarkBlue} {色}\color{SlateGray} {都}\color{ CadetBlue} {不}\color{PaleTurquoise} {同}$
+派大星 ：当然可以。其实就MySQL而言来说，比如需要依赖MySQL 的binlog做一个同步系统。用户在MySQL中增删改一条数据，对应出来增删改3条binlog，接着将这3条binlog同步到MQ里面。然后到消费出来一次执行，此时就需要保证消息的顺序性，不然就会出现问题。
+面试官：嗯，不错那你简单说说不同MQ消息错乱的一个场景吗？
+派大星：可以的。
+首先来说RabbitMQ：一个queue，多个consumer，这就会出现问题；因为多个消费者是同步一起执行的，无法保证顺序性，并且也无法保证消费者消费到了哪条数据。简单如图所示： **解决方案：**每个消费者建立对应的queue，并且让保持顺序的消息只发送到一个queue上，这样消费者消费数据处理的时候就不会出现顺序错乱。
+其次说一下Kafka： 首先来说Kafka是可以保证生产者写入一个partition的数据一定是有顺序的。
+在Kafka使用中，只要Kafka内部不涉及多个线程并发处理的情况下，其实我们只需要在生产者写入数据的时候可以指定一个key，比如指定某个订单id作为key，这个订单相关的数据就会被分发到一个partition。这里我们要知道一个原则是Kafka一个partition只能被一个消费者消费，这样消费者从partition中取出来的数据一定是有顺序的。
+面试官：什么情况下Kafka会出现消息顺序不一致的情况呢？
+派大星：当消费者内部搞多个线程并发处理的时候，则可能会出现顺序不一致的问题。如图所示： 面试官：那如何解决Kafka多线程处理导致的消息错乱问题呢？
+派大星：其解决方案可以是采用hash算法进行hash分发。相同的订单key的数据分发到同一个内存queue里面去。如图所示： 面试官：嗯，不错。那你在实际使用过程中有遇到过消息积压的问题吗？能说说遇到这种问题的时候你的解决思路是什么样的？
+派大星：好的。其实在面对消息有积压的情况。多数都是消费者故障导致的。简单的解决思路如下： 可以当做是一个临时紧急扩容的一个方案：
+如果consumer有问题，先修复consumer的问题，确保其恢复消费速度。然后将现有的consumer都停掉。 临时建立好原先10倍或20倍的queue的数量。(Kafka-新建一个topic，partition是原来的十倍) 写一个临时分发数据的consumer程序，这个程序部署上去消费积压的数据，消费之后不做耗时处理，直接均匀轮询写入已经建立好10/20倍数量的queue中。 接着临时征用10倍的机器来部署consumer，每一批consumer来消费一个临时queue的数据。 最后等快速消费完积压的数据之后，得恢复原来部署架构，重新使用原来的consumer机器来消费。 面试官：不错。思路不错。突然有个问题，如何解决RabbitMQ中消息延时过期失效的问题？
+派大星：RabbitMQ有一个TTL过期时间，关掉不要开启TTL。"/>
+
+  <script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BlogPosting",
+  "headline": "对线面试官 - MQ之如何保证消息的顺序性及消息积压问题",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http:\/\/vipbbo.com\/2023\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-mq%E4%B9%8B%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E6%B6%88%E6%81%AF%E7%9A%84%E9%A1%BA%E5%BA%8F%E6%80%A7%E5%8F%8A%E6%B6%88%E6%81%AF%E7%A7%AF%E5%8E%8B%E9%97%AE%E9%A2%98\/"
+  },
+  "image": {
+    "@type": "ImageObject",
+    "url": "http:\/\/vipbbo.com\/cover.png",
+    "width":  800 ,
+    "height":  600 
+  },
+  "genre": "posts",
+  
+  "wordcount":  45 ,
+  "url": "http:\/\/vipbbo.com\/2023\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-mq%E4%B9%8B%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E6%B6%88%E6%81%AF%E7%9A%84%E9%A1%BA%E5%BA%8F%E6%80%A7%E5%8F%8A%E6%B6%88%E6%81%AF%E7%A7%AF%E5%8E%8B%E9%97%AE%E9%A2%98\/",
+  "datePublished": "2023-01-13T23:05:22\u002b08:00",
+  "dateModified": "2023-01-13T23:05:22\u002b08:00",
+  
+  "publisher": {
+    "@type": "Organization",
+    "name": "Fastbyte01",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http:\/\/vipbbo.com\/logo.png",
+      "width":  127 ,
+      "height":  40 
+    }
+  },
+  "author": {
+    "@type": "Person",
+    "name": "派大星"
+  },
+  "description": ""
+}
+</script>
+</head>
+
+  
+
+
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4585280196682059"
+     crossorigin="anonymous"></script>
+
+
+  <body class="">
+    <div class="wrapper">
+        <nav class="navbar">
+    <div class="container">
+        <div class="navbar-header header-logo">
+        	<a href="http://vipbbo.com/">码上遇见你</a>
+        </div>
+        <div class="menu navbar-right">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+                <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;
+        </div>
+    </div>
+</nav>
+<nav class="navbar-mobile" id="nav-mobile" style="display: none">
+     <div class="container">
+        <div class="navbar-header">
+            <div>  <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;<a href="http://vipbbo.com/">码上遇见你</a></div>
+            <div class="menu-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+     
+          <div class="menu" id="mobile-menu">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+        </div>
+    </div>
+</nav>
+
+    	 <main class="main">
+          <div class="container">
+      		
+<article class="post-warp">
+    <header class="post-header">
+        <h1 class="post-title">对线面试官 - MQ之如何保证消息的顺序性及消息积压问题</h1>
+        <div class="post-meta">
+            Written by <a href="http://vipbbo.com/" rel="author">派大星</a> with ♥ 
+                <span class="post-time">
+                    on <time datetime=2023-01-13 >13 January 2023</time>
+                </span>
+                in
+                
+                <i class="iconfont icon-timer"></i>
+                1 min
+        </div>
+    </header>
+    <div class="post-content">
+        
+
+        
+            
+        
+
+        
+        
+     
+          
+          
+          
+
+          
+          
+          
+
+          <p><strong>书接上文。这次继续聊一聊MQ</strong></p>
+<p><strong>面试官：如何保证消息的顺序性，可以简单聊聊什么场景需要避免这种问题的发生以及如何解决吗？</strong></p>
+<p>$\color{red} {Red} $
+<!-- raw HTML omitted -->这里是红色<!-- raw HTML omitted --></p>
+<p>$\color{ Pink} {我} \color{rgb(0,248,0)} {就}\color{#008000} {喜}\color{Purple} {欢}\color{Indigo} {每}\color{DarkSlateBlue} {个}\color{Blue} {颜}\color{DarkBlue} {色}\color{SlateGray} {都}\color{ CadetBlue} {不}\color{PaleTurquoise} {同}$</p>
+<p><!-- raw HTML omitted -->派大星<!-- raw HTML omitted --> ：当然可以。其实就MySQL而言来说，比如需要依赖MySQL 的binlog做一个同步系统。用户在MySQL中增删改一条数据，对应出来增删改3条binlog，接着将这3条binlog同步到MQ里面。然后到消费出来一次执行，此时就需要保证消息的顺序性，不然就会出现问题。</p>
+<p>面试官：嗯，不错那你简单说说不同MQ消息错乱的一个场景吗？</p>
+<p>派大星：可以的。</p>
+<ul>
+<li>首先来说RabbitMQ：一个queue，多个consumer，这就会出现问题；因为多个消费者是同步一起执行的，无法保证顺序性，并且也无法保证消费者消费到了哪条数据。简单如图所示：</li>
+</ul>
+<p><figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1692709220592-8b375f71-c141-4181-b470-1f49c6a6213c.png#averageHue=%23d0d0d0&amp;clientId=u2f882443-2a13-4&amp;from=paste&amp;height=268&amp;id=u846c5132&amp;originHeight=268&amp;originWidth=750&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=151347&amp;status=done&amp;style=none&amp;taskId=udb7198df-32ad-451d-87ca-d9cdafa4465&amp;title=&amp;width=750" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure>
+**解决方案：**每个消费者建立对应的queue，并且让保持顺序的消息只发送到一个queue上，这样消费者消费数据处理的时候就不会出现顺序错乱。</p>
+<ul>
+<li>其次说一下Kafka：</li>
+</ul>
+<blockquote>
+<p>首先来说Kafka是可以保证生产者写入一个partition的数据一定是有顺序的。</p>
+</blockquote>
+<p>在Kafka使用中，只要Kafka内部<code>不涉及多个线程并发处理</code>的情况下，其实我们只需要在生产者写入数据的时候可以指定一个key，比如指定某个订单id作为key，这个订单相关的数据就会被分发到一个partition。这里我们要知道一个原则是<code>Kafka一个partition只能被一个消费者消费</code>，这样消费者从partition中取出来的数据一定是有顺序的。</p>
+<p>面试官：什么情况下Kafka会出现消息顺序不一致的情况呢？</p>
+<p>派大星：当消费者内部搞多个线程并发处理的时候，则可能会出现顺序不一致的问题。如图所示：
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1692709716045-274f4573-3995-472f-a988-92c9a855ddcc.png#averageHue=%23d8d8d8&amp;clientId=u53c600c4-9523-4&amp;from=paste&amp;height=345&amp;id=ufa8d1b47&amp;originHeight=345&amp;originWidth=833&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=289357&amp;status=done&amp;style=none&amp;taskId=u068ff186-aa7e-41f2-8bb7-d3811876118&amp;title=&amp;width=833" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure></p>
+<p>面试官：那如何解决Kafka多线程处理导致的消息错乱问题呢？</p>
+<p>派大星：其解决方案可以是采用<code>hash算法</code>进行hash分发。相同的订单key的数据分发到同一个<code>内存queue</code>里面去。如图所示：
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1692710022488-d9293668-4623-42f9-94ad-e84427d2f912.png#averageHue=%23cbcbcb&amp;clientId=u2b513a9e-7391-4&amp;from=paste&amp;height=341&amp;id=u944ec769&amp;originHeight=341&amp;originWidth=750&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=71626&amp;status=done&amp;style=none&amp;taskId=u69ab1b6b-9bcd-4883-bed7-0c03070bf36&amp;title=&amp;width=750" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure></p>
+<p>面试官：嗯，不错。那你在实际使用过程中有遇到过消息积压的问题吗？能说说遇到这种问题的时候你的解决思路是什么样的？</p>
+<p>派大星：好的。其实在面对消息有积压的情况。多数都是消费者故障导致的。简单的解决思路如下：
+可以当做是一个临时紧急扩容的一个方案：</p>
+<ol>
+<li>如果consumer有问题，先修复consumer的问题，确保其恢复消费速度。然后将现有的consumer都停掉。</li>
+<li>临时建立好原先10倍或20倍的queue的数量。(Kafka-新建一个topic，partition是原来的十倍)</li>
+<li>写一个临时分发数据的consumer程序，这个程序部署上去消费积压的数据，消费之后不做耗时处理，直接均匀轮询写入已经建立好10/20倍数量的queue中。</li>
+<li>接着临时征用10倍的机器来部署consumer，每一批consumer来消费一个临时queue的数据。</li>
+<li>最后等快速消费完积压的数据之后，得恢复原来部署架构，重新使用原来的consumer机器来消费。</li>
+</ol>
+<p>面试官：不错。思路不错。突然有个问题，如何解决RabbitMQ中消息延时过期失效的问题？</p>
+<p>派大星：RabbitMQ有一个TTL过期时间，关掉不要开启TTL。</p>
+
+    </div>
+
+    <div class="post-copyright">
+             
+            <p class="copyright-item">
+                <span>Author:</span>
+                <span>派大星 </span>
+                </p>
+            
+           
+            <p class="copyright-item">
+                    <span>Words:</span>
+                   <span>45</span>
+            </p>
+
+            <p class="copyright-item">
+                
+                <span>Share:</span>
+                <span>
+
+      
+        <a href="//twitter.com/share?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-mq%25E4%25B9%258B%25E5%25A6%2582%25E4%25BD%2595%25E4%25BF%259D%25E8%25AF%2581%25E6%25B6%2588%25E6%2581%25AF%25E7%259A%2584%25E9%25A1%25BA%25E5%25BA%258F%25E6%2580%25A7%25E5%258F%258A%25E6%25B6%2588%25E6%2581%25AF%25E7%25A7%25AF%25E5%258E%258B%25E9%2597%25AE%25E9%25A2%2598%2f&amp;text=%e5%af%b9%e7%ba%bf%e9%9d%a2%e8%af%95%e5%ae%98%20-%20MQ%e4%b9%8b%e5%a6%82%e4%bd%95%e4%bf%9d%e8%af%81%e6%b6%88%e6%81%af%e7%9a%84%e9%a1%ba%e5%ba%8f%e6%80%a7%e5%8f%8a%e6%b6%88%e6%81%af%e7%a7%af%e5%8e%8b%e9%97%ae%e9%a2%98&amp;via=" target="_blank" title="Share on Twitter">
+          <i class="iconfont icon-twitter"></i>
+        </a>
+        
+      
+      
+        <a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-mq%25E4%25B9%258B%25E5%25A6%2582%25E4%25BD%2595%25E4%25BF%259D%25E8%25AF%2581%25E6%25B6%2588%25E6%2581%25AF%25E7%259A%2584%25E9%25A1%25BA%25E5%25BA%258F%25E6%2580%25A7%25E5%258F%258A%25E6%25B6%2588%25E6%2581%25AF%25E7%25A7%25AF%25E5%258E%258B%25E9%2597%25AE%25E9%25A2%2598%2f" target="_blank" title="Share on Facebook">
+          <i class="iconfont icon-facebook"></i>
+        </a>
+        
+      
+      
+      
+      
+        <a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-mq%25E4%25B9%258B%25E5%25A6%2582%25E4%25BD%2595%25E4%25BF%259D%25E8%25AF%2581%25E6%25B6%2588%25E6%2581%25AF%25E7%259A%2584%25E9%25A1%25BA%25E5%25BA%258F%25E6%2580%25A7%25E5%258F%258A%25E6%25B6%2588%25E6%2581%25AF%25E7%25A7%25AF%25E5%258E%258B%25E9%2597%25AE%25E9%25A2%2598%2f&amp;title=%e5%af%b9%e7%ba%bf%e9%9d%a2%e8%af%95%e5%ae%98%20-%20MQ%e4%b9%8b%e5%a6%82%e4%bd%95%e4%bf%9d%e8%af%81%e6%b6%88%e6%81%af%e7%9a%84%e9%a1%ba%e5%ba%8f%e6%80%a7%e5%8f%8a%e6%b6%88%e6%81%af%e7%a7%af%e5%8e%8b%e9%97%ae%e9%a2%98" target="_blank" title="Share on LinkedIn">
+          <i class="iconfont icon-linkedin"></i>
+        </a>
+        
+      
+      
+        
+      
+        
+      
+
+          
+
+          
+
+          
+
+          
+
+</span>
+                
+            </p>
+
+             
+            <p class="copyright-item">
+                Released under <a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a>
+            </p>
+            
+    </div>
+
+  
+    <div class="post-tags">
+        
+        <section>
+                <a href="javascript:window.history.back();">Back</a></span> · 
+                <span><a href="http://vipbbo.com/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav">
+        
+        <a href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-mq%E6%95%B0%E6%8D%AE%E4%B8%A2%E5%A4%B1%E9%97%AE%E9%A2%98%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/" class="prev" rel="prev" title="对线面试官 - MQ数据丢失问题的解决方案"><i class="iconfont icon-dajiantou"></i>&nbsp;对线面试官 - MQ数据丢失问题的解决方案</a>
+         
+        
+        <a href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-java%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AF%B9%E9%94%81%E7%9A%84%E4%BC%98%E5%8C%96/" class="next" rel="next" title="对线面试官 - Java虚拟机对锁的优化">对线面试官 - Java虚拟机对锁的优化&nbsp;<i class="iconfont icon-xiaojiantou"></i></a>
+        
+    </div>
+
+    <div class="post-comment">
+          
+          <div id="disqus_thread"></div>
+  <script type="text/javascript">
+      (function() {
+          
+          
+          if (window.location.hostname == "localhost")
+              return;
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          var disqus_shortname = 'yourdiscussshortname';
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="https://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+ 
+
+          
+    </div>
+</article>
+          </div>
+		   </main>
+      <footer class="footer">
+    <div class="copyright">
+        &copy;
+        
+        <span itemprop="copyrightYear">2023 - 2023</span>
+        
+         
+            <span class="author" itemprop="copyrightHolder"><a href="http://vipbbo.com/">派大星</a> | </span>
+         
+
+		  <span>Crafted with ❤️ by <a href="https://github.com/Fastbyte01/KeepIt" target="_blank" rel="external nofollow noopener noreffer">KeepIt</a> & <a href="https://gohugo.io/" target="_blank" rel="external nofollow noopener noreffer">Hugo</a></span>
+    </div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    <link crossorigin="anonymous" integrity="sha384-yziQACfvCVwLqVFLqkWBYRO3XeA4EqzfXKGwaWnenYn5XzqfJFlFdKEmvutIQdKb" href="https://lib.baomitu.com/lightgallery/1.10.0/css/lightgallery.min.css" rel="stylesheet">
+      
+     <script src="/js/vendor_gallery.min.js" async="" ></script>
+    
+  
+
+
+
+
+
+
+
+     </div>
+  </body>
+</html>

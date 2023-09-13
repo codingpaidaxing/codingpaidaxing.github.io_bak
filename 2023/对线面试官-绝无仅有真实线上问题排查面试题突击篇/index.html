@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noodp"/>
+  
+  
+  
+  
+  
+  <link rel="prev" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-redis-_-%E5%8D%81-redis%E9%9B%86%E7%BE%A4%E6%A8%A1%E5%BC%8F/" />
+  <link rel="next" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%A1%AC%E4%BB%B6%E7%BA%A7%E5%88%AB%E4%B9%8B%E5%86%8D%E8%B0%88volatile%E5%85%B3%E9%94%AE%E5%AD%97%E7%9A%84%E6%8C%87%E4%BB%A4%E9%87%8D%E6%8E%92%E5%BA%8F/" />
+  <link rel="canonical" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%BB%9D%E6%97%A0%E4%BB%85%E6%9C%89%E7%9C%9F%E5%AE%9E%E7%BA%BF%E4%B8%8A%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5%E9%9D%A2%E8%AF%95%E9%A2%98%E7%AA%81%E5%87%BB%E7%AF%87/" />
+  <link rel='shortcut icon' type='image/x-icon' href='/favicon.ico' />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <title>
+       
+       
+           对线面试官 - 绝无仅有真实线上问题排查面试题突击篇 | 码上遇见你
+       
+  </title>
+  <meta name="title" content="对线面试官 - 绝无仅有真实线上问题排查面试题突击篇 | 码上遇见你">
+    
+  
+  <link rel="stylesheet" href="/font/iconfont.css">
+  <link rel="stylesheet" href="/css/main.min.css">
+
+
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="对线面试官 - 绝无仅有真实线上问题排查面试题突击篇"/>
+<meta name="twitter:description" content="Tips：涉及到的命令会在后面统一整理出来方便使用。
+面试官：如果线上服务器CPU 100%了，该如何排查、定位和解决？这个有遇到过吗？可以简单聊聊吗？ 面试官心理分析
+主要是想要考察你有没有处理过高负载的线上问题场景。
+派大星：首先我们要通过定位具体是哪个进程耗费CPU，可以使用top -c命令。这样可以显示进程列表，然后输入P，便会按照CPU的使用率进行排序。如图所示： 通过top -c定位到具体是哪个进城后，接下来要定位耗费CPU的线程；可以通过命令top -Hp pid，这里的pid就是进程id。然后输入P，就会按照cpu的使用率排序。如图所示： 找到耗费CPU较高的线程之后，便可以通过命令printf &quot;%x\n&quot; pid这里命令是要把线程pid换成16进制的。如图所示： 然后通过命令jstack 进程id | grep &#39;0x加上刚刚计算出来的16进制&#39; -C5 -color打印堆栈信息。 比如：jstack 9529 | grep &#39;0x4418&#39; -C5 -color 这样就可已锁定是哪个方法出现了问题。
+面试官：如果遇到线上进程kill不掉怎么办？你应该如何排查处理？ 面试官心理分析：
+主要是想要考察你有没有遇到过线上的问题，如何应对及处理
+派大星：很巧，在线上确实有遇到过类似的问题，在说解决问题的方案的时候先聊一下我们线上发布流程背景。 我们有自己的一套线上发布的流程系统，就是在每次部署的时候会从git仓库上去自动拉去代码，然后根据profile，Maven会自动打对应环境的包。然后进行发布。系统发布是由发布系统的进程创建的子进程去发布的。 当时出现一个现象是无论怎么kill 系统的进程都无法杀死，后来通过命令ps aux查看到系统进程的哪种数据的status那列是zombie状态，也就是僵尸进程。 解决方案可通过ps -ef | 僵尸进程id ，找到父进程，然后kill掉父进程即可。
+面试官：嗯，可以。确实有处理过线上问题。回去等消息吧。看好你喔。
+线上CPU 100%排查命令： # 获取哪个进程耗费CPU 输入命令后按p排序 top -c # 定位耗费CPU的线程 top -Hp pid # 将进程id转换为16进制 printf &#34;%x\n&#34; pid # 打印堆栈信息即可锁定 jstack 9529 | grep &#39;0x4418&#39; -C5 -color 无法kill进程相关排查命令 # 查找zombie僵尸状态的进程，并锁定父进程 ps aux ps -ef | 僵尸进程id "/>
+
+  <script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BlogPosting",
+  "headline": "对线面试官 - 绝无仅有真实线上问题排查面试题突击篇",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http:\/\/vipbbo.com\/2023\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%BB%9D%E6%97%A0%E4%BB%85%E6%9C%89%E7%9C%9F%E5%AE%9E%E7%BA%BF%E4%B8%8A%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5%E9%9D%A2%E8%AF%95%E9%A2%98%E7%AA%81%E5%87%BB%E7%AF%87\/"
+  },
+  "image": {
+    "@type": "ImageObject",
+    "url": "http:\/\/vipbbo.com\/cover.png",
+    "width":  800 ,
+    "height":  600 
+  },
+  "genre": "posts",
+  
+  "wordcount":  78 ,
+  "url": "http:\/\/vipbbo.com\/2023\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%BB%9D%E6%97%A0%E4%BB%85%E6%9C%89%E7%9C%9F%E5%AE%9E%E7%BA%BF%E4%B8%8A%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5%E9%9D%A2%E8%AF%95%E9%A2%98%E7%AA%81%E5%87%BB%E7%AF%87\/",
+  "datePublished": "2023-01-13T23:05:22\u002b08:00",
+  "dateModified": "2023-01-13T23:05:22\u002b08:00",
+  
+  "publisher": {
+    "@type": "Organization",
+    "name": "Fastbyte01",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http:\/\/vipbbo.com\/logo.png",
+      "width":  127 ,
+      "height":  40 
+    }
+  },
+  "author": {
+    "@type": "Person",
+    "name": "派大星"
+  },
+  "description": ""
+}
+</script>
+</head>
+
+  
+
+
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4585280196682059"
+     crossorigin="anonymous"></script>
+
+
+  <body class="">
+    <div class="wrapper">
+        <nav class="navbar">
+    <div class="container">
+        <div class="navbar-header header-logo">
+        	<a href="http://vipbbo.com/">码上遇见你</a>
+        </div>
+        <div class="menu navbar-right">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+                <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;
+        </div>
+    </div>
+</nav>
+<nav class="navbar-mobile" id="nav-mobile" style="display: none">
+     <div class="container">
+        <div class="navbar-header">
+            <div>  <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;<a href="http://vipbbo.com/">码上遇见你</a></div>
+            <div class="menu-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+     
+          <div class="menu" id="mobile-menu">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+        </div>
+    </div>
+</nav>
+
+    	 <main class="main">
+          <div class="container">
+      		
+<article class="post-warp">
+    <header class="post-header">
+        <h1 class="post-title">对线面试官 - 绝无仅有真实线上问题排查面试题突击篇</h1>
+        <div class="post-meta">
+            Written by <a href="http://vipbbo.com/" rel="author">派大星</a> with ♥ 
+                <span class="post-time">
+                    on <time datetime=2023-01-13 >13 January 2023</time>
+                </span>
+                in
+                
+                <i class="iconfont icon-timer"></i>
+                1 min
+        </div>
+    </header>
+    <div class="post-content">
+        
+
+        
+            
+        
+
+        
+        
+     
+          
+          
+          
+
+          
+          
+          
+
+          <p><strong>Tips：涉及到的命令会在后面统一整理出来方便使用。</strong></p>
+<p><strong>面试官：如果线上服务器CPU 100%了，该如何排查、定位和解决？这个有遇到过吗？可以简单聊聊吗？</strong>
+面试官心理分析</p>
+<blockquote>
+<p>主要是想要考察你有没有处理过高负载的线上问题场景。</p>
+</blockquote>
+<p>派大星：首先我们要通过定位具体是哪个进程耗费CPU，可以使用<code>top -c</code>命令。这样可以显示进程列表，然后输入<code>P</code>，便会按照CPU的使用率进行排序。如图所示：
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1693497268624-3e054309-b746-4b12-a951-99c5ff52545f.png#averageHue=%23121212&amp;clientId=u37445a1a-e922-4&amp;from=paste&amp;height=446&amp;id=ua9a86134&amp;originHeight=892&amp;originWidth=1688&amp;originalType=binary&amp;ratio=2&amp;rotation=0&amp;showTitle=false&amp;size=150372&amp;status=done&amp;style=none&amp;taskId=u3242229c-3e3f-4ed4-b76a-efe378eb6ff&amp;title=&amp;width=844" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure>
+通过<code>top -c</code>定位到具体是哪个进城后，接下来要定位耗费CPU的线程；可以通过命令<code>top -Hp pid</code>，这里的pid就是进程id。然后输入P，就会按照cpu的使用率排序。如图所示：
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1693497489756-bde21d38-cb3c-4b6e-b814-978e83e54537.png#averageHue=%23171717&amp;clientId=u37445a1a-e922-4&amp;from=paste&amp;height=434&amp;id=u4f5a0f21&amp;originHeight=868&amp;originWidth=1280&amp;originalType=binary&amp;ratio=2&amp;rotation=0&amp;showTitle=false&amp;size=133424&amp;status=done&amp;style=none&amp;taskId=u294c62de-2a2c-4ceb-9c1a-db9585ae353&amp;title=&amp;width=640" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure>
+找到耗费CPU较高的线程之后，便可以通过命令<code>printf &quot;%x\n&quot; pid</code>这里命令是要把线程pid换成16进制的。如图所示：
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1693497866640-4ef8fcc8-4a68-45d5-b95b-587a51b5c856.png#averageHue=%23030303&amp;clientId=u37445a1a-e922-4&amp;from=paste&amp;height=176&amp;id=u367d6682&amp;originHeight=352&amp;originWidth=888&amp;originalType=binary&amp;ratio=2&amp;rotation=0&amp;showTitle=false&amp;size=30744&amp;status=done&amp;style=none&amp;taskId=ub38f3ce5-9711-41d7-9615-8005813cf39&amp;title=&amp;width=444" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure>
+然后通过命令<code>jstack 进程id | grep '0x加上刚刚计算出来的16进制' -C5 -color</code>打印堆栈信息。
+比如：<code>jstack 9529 | grep '0x4418' -C5 -color</code>
+这样就可已锁定是哪个方法出现了问题。</p>
+<p><strong>面试官：如果遇到线上进程kill不掉怎么办？你应该如何排查处理？</strong>
+<strong>面试官心理分析：</strong></p>
+<blockquote>
+<p><strong>主要是想要考察你有没有遇到过线上的问题，如何应对及处理</strong></p>
+</blockquote>
+<p>派大星：很巧，在线上确实有遇到过类似的问题，在说解决问题的方案的时候先聊一下我们线上发布流程背景。
+我们有自己的一套线上发布的流程系统，就是在每次部署的时候会从git仓库上去自动拉去代码，然后根据profile，Maven会自动打对应环境的包。然后进行发布。系统发布是由发布系统的进程创建的子进程去发布的。
+当时出现一个现象是无论怎么kill 系统的进程都无法杀死，后来通过命令<code>ps aux</code>查看到系统进程的哪种数据的status那列是zombie状态，也就是僵尸进程。
+解决方案可通过<code>ps -ef | 僵尸进程id</code> ，找到父进程，然后kill掉父进程即可。</p>
+<p>面试官：嗯，可以。确实有处理过线上问题。回去等消息吧。看好你喔。</p>
+<ul>
+<li>线上CPU 100%排查命令：</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span><span style="color:#75715e"># 获取哪个进程耗费CPU  输入命令后按p排序</span>
+</span></span><span style="display:flex;"><span>top -c
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 定位耗费CPU的线程</span>
+</span></span><span style="display:flex;"><span>top -Hp pid
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 将进程id转换为16进制</span>
+</span></span><span style="display:flex;"><span>printf <span style="color:#e6db74">&#34;%x\n&#34;</span> pid
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 打印堆栈信息即可锁定</span>
+</span></span><span style="display:flex;"><span>jstack <span style="color:#ae81ff">9529</span> | grep <span style="color:#e6db74">&#39;0x4418&#39;</span> -C5 -color
+</span></span></code></pre></div><ul>
+<li>无法kill进程相关排查命令</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span><span style="color:#75715e"># 查找zombie僵尸状态的进程，并锁定父进程</span>
+</span></span><span style="display:flex;"><span>ps aux
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>ps -ef | 僵尸进程id 
+</span></span></code></pre></div>
+    </div>
+
+    <div class="post-copyright">
+             
+            <p class="copyright-item">
+                <span>Author:</span>
+                <span>派大星 </span>
+                </p>
+            
+           
+            <p class="copyright-item">
+                    <span>Words:</span>
+                   <span>78</span>
+            </p>
+
+            <p class="copyright-item">
+                
+                <span>Share:</span>
+                <span>
+
+      
+        <a href="//twitter.com/share?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-%25E7%25BB%259D%25E6%2597%25A0%25E4%25BB%2585%25E6%259C%2589%25E7%259C%259F%25E5%25AE%259E%25E7%25BA%25BF%25E4%25B8%258A%25E9%2597%25AE%25E9%25A2%2598%25E6%258E%2592%25E6%259F%25A5%25E9%259D%25A2%25E8%25AF%2595%25E9%25A2%2598%25E7%25AA%2581%25E5%2587%25BB%25E7%25AF%2587%2f&amp;text=%e5%af%b9%e7%ba%bf%e9%9d%a2%e8%af%95%e5%ae%98%20-%20%e7%bb%9d%e6%97%a0%e4%bb%85%e6%9c%89%e7%9c%9f%e5%ae%9e%e7%ba%bf%e4%b8%8a%e9%97%ae%e9%a2%98%e6%8e%92%e6%9f%a5%e9%9d%a2%e8%af%95%e9%a2%98%e7%aa%81%e5%87%bb%e7%af%87&amp;via=" target="_blank" title="Share on Twitter">
+          <i class="iconfont icon-twitter"></i>
+        </a>
+        
+      
+      
+        <a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-%25E7%25BB%259D%25E6%2597%25A0%25E4%25BB%2585%25E6%259C%2589%25E7%259C%259F%25E5%25AE%259E%25E7%25BA%25BF%25E4%25B8%258A%25E9%2597%25AE%25E9%25A2%2598%25E6%258E%2592%25E6%259F%25A5%25E9%259D%25A2%25E8%25AF%2595%25E9%25A2%2598%25E7%25AA%2581%25E5%2587%25BB%25E7%25AF%2587%2f" target="_blank" title="Share on Facebook">
+          <i class="iconfont icon-facebook"></i>
+        </a>
+        
+      
+      
+      
+      
+        <a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-%25E7%25BB%259D%25E6%2597%25A0%25E4%25BB%2585%25E6%259C%2589%25E7%259C%259F%25E5%25AE%259E%25E7%25BA%25BF%25E4%25B8%258A%25E9%2597%25AE%25E9%25A2%2598%25E6%258E%2592%25E6%259F%25A5%25E9%259D%25A2%25E8%25AF%2595%25E9%25A2%2598%25E7%25AA%2581%25E5%2587%25BB%25E7%25AF%2587%2f&amp;title=%e5%af%b9%e7%ba%bf%e9%9d%a2%e8%af%95%e5%ae%98%20-%20%e7%bb%9d%e6%97%a0%e4%bb%85%e6%9c%89%e7%9c%9f%e5%ae%9e%e7%ba%bf%e4%b8%8a%e9%97%ae%e9%a2%98%e6%8e%92%e6%9f%a5%e9%9d%a2%e8%af%95%e9%a2%98%e7%aa%81%e5%87%bb%e7%af%87" target="_blank" title="Share on LinkedIn">
+          <i class="iconfont icon-linkedin"></i>
+        </a>
+        
+      
+      
+        
+      
+        
+      
+
+          
+
+          
+
+          
+
+          
+
+</span>
+                
+            </p>
+
+             
+            <p class="copyright-item">
+                Released under <a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a>
+            </p>
+            
+    </div>
+
+  
+    <div class="post-tags">
+        
+        <section>
+                <a href="javascript:window.history.back();">Back</a></span> · 
+                <span><a href="http://vipbbo.com/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav">
+        
+        <a href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-redis-_-%E5%8D%81-redis%E9%9B%86%E7%BE%A4%E6%A8%A1%E5%BC%8F/" class="prev" rel="prev" title="对线面试官 Redis _ 十 Redis集群模式"><i class="iconfont icon-dajiantou"></i>&nbsp;对线面试官 Redis _ 十 Redis集群模式</a>
+         
+        
+        <a href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%A1%AC%E4%BB%B6%E7%BA%A7%E5%88%AB%E4%B9%8B%E5%86%8D%E8%B0%88volatile%E5%85%B3%E9%94%AE%E5%AD%97%E7%9A%84%E6%8C%87%E4%BB%A4%E9%87%8D%E6%8E%92%E5%BA%8F/" class="next" rel="next" title="对线面试官 - 硬件级别之再谈Volatile关键字的指令重排序">对线面试官 - 硬件级别之再谈Volatile关键字的指令重排序&nbsp;<i class="iconfont icon-xiaojiantou"></i></a>
+        
+    </div>
+
+    <div class="post-comment">
+          
+          <div id="disqus_thread"></div>
+  <script type="text/javascript">
+      (function() {
+          
+          
+          if (window.location.hostname == "localhost")
+              return;
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          var disqus_shortname = 'yourdiscussshortname';
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="https://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+ 
+
+          
+    </div>
+</article>
+          </div>
+		   </main>
+      <footer class="footer">
+    <div class="copyright">
+        &copy;
+        
+        <span itemprop="copyrightYear">2023 - 2023</span>
+        
+         
+            <span class="author" itemprop="copyrightHolder"><a href="http://vipbbo.com/">派大星</a> | </span>
+         
+
+		  <span>Crafted with ❤️ by <a href="https://github.com/Fastbyte01/KeepIt" target="_blank" rel="external nofollow noopener noreffer">KeepIt</a> & <a href="https://gohugo.io/" target="_blank" rel="external nofollow noopener noreffer">Hugo</a></span>
+    </div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    <link crossorigin="anonymous" integrity="sha384-yziQACfvCVwLqVFLqkWBYRO3XeA4EqzfXKGwaWnenYn5XzqfJFlFdKEmvutIQdKb" href="https://lib.baomitu.com/lightgallery/1.10.0/css/lightgallery.min.css" rel="stylesheet">
+      
+     <script src="/js/vendor_gallery.min.js" async="" ></script>
+    
+  
+
+
+
+
+
+
+
+     </div>
+  </body>
+</html>

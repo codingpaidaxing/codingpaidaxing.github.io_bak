@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noodp"/>
+  
+  
+  
+  
+  
+  <link rel="prev" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%BD%91%E7%BB%9C%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%A2%98/" />
+  <link rel="next" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-hashmap/" />
+  <link rel="canonical" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-tcp%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%A2%98/" />
+  <link rel='shortcut icon' type='image/x-icon' href='/favicon.ico' />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <title>
+       
+       
+           🔥对线面试官 - TCP经典面试题 | 码上遇见你
+       
+  </title>
+  <meta name="title" content="🔥对线面试官 - TCP经典面试题 | 码上遇见你">
+    
+  
+  <link rel="stylesheet" href="/font/iconfont.css">
+  <link rel="stylesheet" href="/css/main.min.css">
+
+
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="🔥对线面试官 - TCP经典面试题"/>
+<meta name="twitter:description" content="面试官：TCP三次握手和四次挥手的工作流程是什么？
+派大星：首先说一下TCP三次握手。
+第一次握手，客户端发送链接请求报文，此时SYN=1、ACK=0、seq=x，这就是个连接请求此时客户端处于SYN_SENT状态，等待服务器响应。 第二次握手，服务端收到SYN=1的请求报文后需要返回一个确认的报文，ack=x&#43;1，SYN=1，ACK=1，seq=y，发送给客户端，自己处于一个SYN_RECV的状态。 第三次握手，客户端接着又给服务端发送了ack=y&#43;1，ACK=1，seq=x&#43;1 简单总结：其实说白了三次握手就是来回来去的三次请求，每次请求携带上次一堆的TCP报文头，根据报文头是否正确从而建立连接。
+面试官：为什么不是五次握手或者两次握手？
+派大星： 假设如果是两次握手的话，第一次客户端握手过去结果卡在某个地方了，没有到达服务端。可是客户端再次重新又发送了第一次握手过去，服务端收到了并握手返回，接着彼此就建立了连接。意外的是，之前卡住的第一次握手又死灰复燃发送到了服务端。服务端直接返回一个第二次握手。这个时候服务器也就开辟了一个资源等待接收客户端的数据。可是客户端直接就忽略了该回合的第二次握手，因为之前已经通信过了。如果要是三次握手的话，那个第二次握手发回去之后客户端发现第一次握手已经被丢弃了，就会发送个复位的报文过去，避免了资源的开销。
+说白了就是两次握手可能会导致服务端资源的一个浪费。三次握手会有一个复位的报文从而避免这种情况。
+派大星：既然三次握手都可以保证连接，四次五次握手就有些浪费资源了。
+面试官：不错，继续聊一聊为什么是四次挥手》
+派大星：好的。
+第一次挥手，客户端发送报文，FIN=1，seq=u，此时进入FIN-WAIT-1状态。 第二次挥手，服务端就收到报文，这是便进入CLOSE_WAIT状态，返回一个报文，ACK=1，ack=u&#43;1 seq=v。客户端收到这个报文后，直接进入到FIN-WAIT-2状态，此时客户端到服务端的连接断开了。 第三次挥手，服务端发送连接释放的报文，FIN=1，ack=u&#43;1，seq=w服务端进入LAST-ACK状态。 第四次挥手，客户端收到连接释放的报文后，发应答报文，ACK=1，ack=w&#43;1，seq=u&#43;1，进入到TIME_WAIT状态，等待一会客户端进入到CLOSED状态，服务端收到报文之后就进入到CLOSED状态。 可参考的文章：https://zhuanlan.zhihu.com/p/125067441"/>
+
+  <script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BlogPosting",
+  "headline": "🔥对线面试官 - TCP经典面试题",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http:\/\/vipbbo.com\/2023\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-tcp%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%A2%98\/"
+  },
+  "image": {
+    "@type": "ImageObject",
+    "url": "http:\/\/vipbbo.com\/cover.png",
+    "width":  800 ,
+    "height":  600 
+  },
+  "genre": "posts",
+  
+  "wordcount":  19 ,
+  "url": "http:\/\/vipbbo.com\/2023\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-tcp%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%A2%98\/",
+  "datePublished": "2023-01-13T23:05:22\u002b08:00",
+  "dateModified": "2023-01-13T23:05:22\u002b08:00",
+  
+  "publisher": {
+    "@type": "Organization",
+    "name": "Fastbyte01",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http:\/\/vipbbo.com\/logo.png",
+      "width":  127 ,
+      "height":  40 
+    }
+  },
+  "author": {
+    "@type": "Person",
+    "name": "派大星"
+  },
+  "description": ""
+}
+</script>
+</head>
+
+  
+
+
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4585280196682059"
+     crossorigin="anonymous"></script>
+
+
+  <body class="">
+    <div class="wrapper">
+        <nav class="navbar">
+    <div class="container">
+        <div class="navbar-header header-logo">
+        	<a href="http://vipbbo.com/">码上遇见你</a>
+        </div>
+        <div class="menu navbar-right">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+                <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;
+        </div>
+    </div>
+</nav>
+<nav class="navbar-mobile" id="nav-mobile" style="display: none">
+     <div class="container">
+        <div class="navbar-header">
+            <div>  <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;<a href="http://vipbbo.com/">码上遇见你</a></div>
+            <div class="menu-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+     
+          <div class="menu" id="mobile-menu">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+        </div>
+    </div>
+</nav>
+
+    	 <main class="main">
+          <div class="container">
+      		
+<article class="post-warp">
+    <header class="post-header">
+        <h1 class="post-title">🔥对线面试官 - TCP经典面试题</h1>
+        <div class="post-meta">
+            Written by <a href="http://vipbbo.com/" rel="author">派大星</a> with ♥ 
+                <span class="post-time">
+                    on <time datetime=2023-01-13 >13 January 2023</time>
+                </span>
+                in
+                
+                <i class="iconfont icon-timer"></i>
+                1 min
+        </div>
+    </header>
+    <div class="post-content">
+        
+
+        
+            
+        
+
+        
+        
+     
+          
+          
+          
+
+          
+          
+          
+
+          <p><strong>面试官：TCP三次握手和四次挥手的工作流程是什么？</strong></p>
+<p>派大星：首先说一下TCP三次握手。</p>
+<ul>
+<li>第一次握手，客户端发送链接请求报文，此时<code>SYN=1、ACK=0、seq=x</code>，这就是个连接请求此时客户端处于<code>SYN_SENT</code>状态，等待服务器响应。</li>
+</ul>
+<p><figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/gif/22063571/1691502957436-913cc17f-038b-4e3f-8613-8867f95f5735.gif#averageHue=%23fefbf5&amp;clientId=u1879c32a-3468-4&amp;from=paste&amp;height=287&amp;id=u6090b226&amp;originHeight=574&amp;originWidth=881&amp;originalType=binary&amp;ratio=2&amp;rotation=0&amp;showTitle=false&amp;size=215965&amp;status=done&amp;style=none&amp;taskId=uefc413eb-c167-4b11-a5b5-0b5bb6cb38f&amp;title=&amp;width=440.5" alt="第一次握手.gif" class="lazyload"><figcaption class="image-caption">第一次握手.gif</figcaption></figure></p>
+<ul>
+<li>第二次握手，服务端收到<code>SYN=1</code>的请求报文后需要返回一个确认的报文，<code>ack=x+1，SYN=1，ACK=1，seq=y</code>，发送给客户端，自己处于一个<code>SYN_RECV</code>的状态。</li>
+</ul>
+<p><figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/gif/22063571/1691503002258-906b2481-8abd-4505-b87f-4d85b81d1f51.gif#averageHue=%23fef9f1&amp;clientId=u1879c32a-3468-4&amp;from=paste&amp;height=287&amp;id=ud0cbaf61&amp;originHeight=574&amp;originWidth=881&amp;originalType=binary&amp;ratio=2&amp;rotation=0&amp;showTitle=false&amp;size=163246&amp;status=done&amp;style=none&amp;taskId=u724e647d-3646-4d0d-b8ae-7b55d05930e&amp;title=&amp;width=440.5" alt="第二次握手.gif" class="lazyload"><figcaption class="image-caption">第二次握手.gif</figcaption></figure></p>
+<ul>
+<li>第三次握手，客户端接着又给服务端发送了<code>ack=y+1，ACK=1，seq=x+1</code></li>
+</ul>
+<p><figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/gif/22063571/1691503038993-7f84d9ae-82eb-4a89-90f4-3d1dfe61fae5.gif#averageHue=%23fdf7eb&amp;clientId=u1879c32a-3468-4&amp;from=paste&amp;height=287&amp;id=ud0ce047f&amp;originHeight=574&amp;originWidth=881&amp;originalType=binary&amp;ratio=2&amp;rotation=0&amp;showTitle=false&amp;size=257216&amp;status=done&amp;style=none&amp;taskId=u3f645c96-9564-4e97-91f0-5b1409189c4&amp;title=&amp;width=440.5" alt="第三次握手.gif" class="lazyload"><figcaption class="image-caption">第三次握手.gif</figcaption></figure>
+简单总结：其实说白了三次握手就是来回来去的三次请求，每次请求携带上次一堆的TCP报文头，根据报文头是否正确从而建立连接。</p>
+<p><strong>面试官：为什么不是五次握手或者两次握手？</strong></p>
+<p>派大星： 假设如果是两次握手的话，第一次客户端握手过去结果卡在某个地方了，没有到达服务端。可是客户端再次重新又发送了第一次握手过去，服务端收到了并握手返回，接着彼此就建立了连接。意外的是，之前卡住的第一次握手又死灰复燃发送到了服务端。服务端直接返回一个第二次握手。这个时候服务器也就开辟了一个资源等待接收客户端的数据。可是客户端直接就忽略了该回合的第二次握手，因为之前已经通信过了。如果要是三次握手的话，那个第二次握手发回去之后客户端发现第一次握手已经被丢弃了，就会发送个<code>复位的报文</code>过去，避免了资源的开销。</p>
+<blockquote>
+<p>说白了就是两次握手可能会导致服务端资源的一个浪费。三次握手会有一个复位的报文从而避免这种情况。</p>
+</blockquote>
+<p>派大星：既然三次握手都可以保证连接，四次五次握手就有些浪费资源了。</p>
+<p>面试官：不错，继续聊一聊为什么是四次挥手》</p>
+<p>派大星：好的。</p>
+<ul>
+<li>第一次挥手，客户端发送报文，<code>FIN=1，seq=u</code>，此时进入<code>FIN-WAIT-1</code>状态。</li>
+<li>第二次挥手，服务端就收到报文，这是便进入<code>CLOSE_WAIT</code>状态，返回一个报文，<code>ACK=1，ack=u+1 seq=v</code>。客户端收到这个报文后，直接进入到<code>FIN-WAIT-2</code>状态，此时客户端到服务端的连接断开了。</li>
+<li>第三次挥手，服务端发送连接释放的报文，<code>FIN=1，ack=u+1，seq=w</code>服务端进入<code>LAST-ACK</code>状态。</li>
+<li>第四次挥手，客户端收到连接释放的报文后，发应答报文，<code>ACK=1，ack=w+1，seq=u+1</code>，进入到<code>TIME_WAIT</code>状态，等待一会客户端进入到<code>CLOSED</code>状态，服务端收到报文之后就进入到<code>CLOSED</code>状态。</li>
+</ul>
+<p>可参考的文章：<a href="https://zhuanlan.zhihu.com/p/125067441">https://zhuanlan.zhihu.com/p/125067441</a></p>
+
+    </div>
+
+    <div class="post-copyright">
+             
+            <p class="copyright-item">
+                <span>Author:</span>
+                <span>派大星 </span>
+                </p>
+            
+           
+            <p class="copyright-item">
+                    <span>Words:</span>
+                   <span>19</span>
+            </p>
+
+            <p class="copyright-item">
+                
+                <span>Share:</span>
+                <span>
+
+      
+        <a href="//twitter.com/share?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-tcp%25E7%25BB%258F%25E5%2585%25B8%25E9%259D%25A2%25E8%25AF%2595%25E9%25A2%2598%2f&amp;text=%f0%9f%94%a5%e5%af%b9%e7%ba%bf%e9%9d%a2%e8%af%95%e5%ae%98%20-%20TCP%e7%bb%8f%e5%85%b8%e9%9d%a2%e8%af%95%e9%a2%98&amp;via=" target="_blank" title="Share on Twitter">
+          <i class="iconfont icon-twitter"></i>
+        </a>
+        
+      
+      
+        <a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-tcp%25E7%25BB%258F%25E5%2585%25B8%25E9%259D%25A2%25E8%25AF%2595%25E9%25A2%2598%2f" target="_blank" title="Share on Facebook">
+          <i class="iconfont icon-facebook"></i>
+        </a>
+        
+      
+      
+      
+      
+        <a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-tcp%25E7%25BB%258F%25E5%2585%25B8%25E9%259D%25A2%25E8%25AF%2595%25E9%25A2%2598%2f&amp;title=%f0%9f%94%a5%e5%af%b9%e7%ba%bf%e9%9d%a2%e8%af%95%e5%ae%98%20-%20TCP%e7%bb%8f%e5%85%b8%e9%9d%a2%e8%af%95%e9%a2%98" target="_blank" title="Share on LinkedIn">
+          <i class="iconfont icon-linkedin"></i>
+        </a>
+        
+      
+      
+        
+      
+        
+      
+
+          
+
+          
+
+          
+
+          
+
+</span>
+                
+            </p>
+
+             
+            <p class="copyright-item">
+                Released under <a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a>
+            </p>
+            
+    </div>
+
+  
+    <div class="post-tags">
+        
+        <section>
+                <a href="javascript:window.history.back();">Back</a></span> · 
+                <span><a href="http://vipbbo.com/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav">
+        
+        <a href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%BD%91%E7%BB%9C%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%A2%98/" class="prev" rel="prev" title="🔥对线面试官 - 网络经典面试题"><i class="iconfont icon-dajiantou"></i>&nbsp;🔥对线面试官 - 网络经典面试题</a>
+         
+        
+        <a href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-hashmap/" class="next" rel="next" title="🔥对线面试官 - HashMap">🔥对线面试官 - HashMap&nbsp;<i class="iconfont icon-xiaojiantou"></i></a>
+        
+    </div>
+
+    <div class="post-comment">
+          
+          <div id="disqus_thread"></div>
+  <script type="text/javascript">
+      (function() {
+          
+          
+          if (window.location.hostname == "localhost")
+              return;
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          var disqus_shortname = 'yourdiscussshortname';
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="https://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+ 
+
+          
+    </div>
+</article>
+          </div>
+		   </main>
+      <footer class="footer">
+    <div class="copyright">
+        &copy;
+        
+        <span itemprop="copyrightYear">2023 - 2023</span>
+        
+         
+            <span class="author" itemprop="copyrightHolder"><a href="http://vipbbo.com/">派大星</a> | </span>
+         
+
+		  <span>Crafted with ❤️ by <a href="https://github.com/Fastbyte01/KeepIt" target="_blank" rel="external nofollow noopener noreffer">KeepIt</a> & <a href="https://gohugo.io/" target="_blank" rel="external nofollow noopener noreffer">Hugo</a></span>
+    </div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    <link crossorigin="anonymous" integrity="sha384-yziQACfvCVwLqVFLqkWBYRO3XeA4EqzfXKGwaWnenYn5XzqfJFlFdKEmvutIQdKb" href="https://lib.baomitu.com/lightgallery/1.10.0/css/lightgallery.min.css" rel="stylesheet">
+      
+     <script src="/js/vendor_gallery.min.js" async="" ></script>
+    
+  
+
+
+
+
+
+
+
+     </div>
+  </body>
+</html>

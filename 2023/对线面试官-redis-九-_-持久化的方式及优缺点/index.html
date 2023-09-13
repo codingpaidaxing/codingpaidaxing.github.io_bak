@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noodp"/>
+  
+  
+  
+  
+  
+  <link rel="prev" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-redis%E5%85%AB-%E5%9F%BA%E4%BA%8E%E5%93%A8%E5%85%B5ha%E7%9A%84%E5%8E%9F%E7%90%86/" />
+  <link rel="next" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-redis-_-%E5%8D%81-redis%E9%9B%86%E7%BE%A4%E6%A8%A1%E5%BC%8F/" />
+  <link rel="canonical" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-redis-%E4%B9%9D-_-%E6%8C%81%E4%B9%85%E5%8C%96%E7%9A%84%E6%96%B9%E5%BC%8F%E5%8F%8A%E4%BC%98%E7%BC%BA%E7%82%B9/" />
+  <link rel='shortcut icon' type='image/x-icon' href='/favicon.ico' />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <title>
+       
+       
+           对线面试官-Redis 九 _ 持久化的方式及优缺点 | 码上遇见你
+       
+  </title>
+  <meta name="title" content="对线面试官-Redis 九 _ 持久化的方式及优缺点 | 码上遇见你">
+    
+  
+  <link rel="stylesheet" href="/font/iconfont.css">
+  <link rel="stylesheet" href="/css/main.min.css">
+
+
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="对线面试官-Redis 九 _ 持久化的方式及优缺点"/>
+<meta name="twitter:description" content="面试官：Redis持久化有了解吗？可以聊一聊吗？
+面试官心理分析： redis 如果仅仅只是将数据缓存在内存里面，如果 redis 宕机了再重启，内存里的数据就全部都弄丢了啊。你必须得用 redis 的持久化机制，将数据写入内存的同时，异步的慢慢的将数据写入磁盘文件里，进行持久化。 如果 redis 宕机重启，自动从磁盘上加载之前持久化的一些数据就可以了，也许会丢失少许数据，但是至少不会将所有数据都弄丢。 这个其实一样，针对的都是 redis 的生产环境可能遇到的一些问题，就是 redis 要是挂了再重启，内存里的数据不就全丢了？能不能重启的时候把数据给恢复了？
+派大星：可以的，Redis持久化分为两种：
+RDB持久化：是对Redis中数据执行周期性的持久化，具有时效性。 AOF持久化：把每条写入命令作为日志，以append-only的模式写入一个日志文件中，在Redis重启的时候，可以通过回放AOF日志的写入命令来重新构建整个数据库。 面试官：那你知道RDB和AOF这两种方式有什么区别吗？或者它们有什么优缺点？ 派大星： 首先来说对于RDB来讲：
+优点：首先对于RDB来说：它具有时效性，因为该特性所以它会有多个数据文件，每个数据文件都代表Redis中某一时刻的数据。这种方式非常适合做冷备，可以将这种完整的数据文件发送到远程的安全存储上，比如S3，阿里云的ODPS，从而以一个预定好的策略来定期备份Redis数据。并且该方式对Redis的读写服务影响非常小，从而也能让Redis保持高性能，因为Redis主进程只需要fork一个子进程让子进程执行磁盘IO操作来进行RDB持久化即可。有点类似于Java序列化，恢复速度相对比较快。 缺点：由于其时点性，所以它不支持拉链，永远只有一个dump.rdb文件，同时也会造成**时点与时点之前窗口数据容易丢失(8点得到一个rdb文件 9点刚要得到rdb文件 挂机了)。**RDB 每次在 fork 子进程来执行 RDB 快照数据文件生成的时候，如果数据文件特别大，可能会导致对客户端提供的服务暂停数毫秒，或者甚至数秒。 派大星：其次来说AOF，
+优点：丢失数据相对较少或不丢失，一般AOF会每隔1秒，通过后台线程执行一次fsync操作，最多丢失1s的数据，AOF日志文件的命令是通过可读性非常好的方式进行记录，所以这个特性非常适合做灾难性的误删除的紧急恢复(比如某人不小心用 flushall 命令清空了所有数据,只要这个时候后台 rewrite 还没有发生)。 缺点：同样的备份文件AOF相比较于RDB，文件会比较大，恢复速度也比较慢，单纯使用AOF的话由于其每秒都会fsync一次日志文件的特性，会导致写的时候的QPS相比较于RDB的QPS要低一些。Redis性能也会有所降低。 派大星：当然在Redis4.0之后也有所更新，具体如图所示： 当然AOF也会产生一写小的问题就是，进行数据恢复的时候，有可能不会恢复出一摸一样的数据。因为基于AOF这种较为复杂的基于命令日志/merage/回放的方式，比基于RDB每次持久化一份完整的数据快照文件的方式更加脆弱，容易有bug。不过AOF就是为了避免rewrite过程导致bug，因此每次rewirte的时候并不是基于旧的指令日志进行merge的，而是基于当时内存中的数据进行指令的重新构建，这样健壮性就会好一些。 面试官：不错，那么在实际生产中，如何选择呢？ 派大星：首先来说不要仅仅使用RDB，因为时点性的原因会导致丢失很多数据，同时也不要仅仅使用AOF，因为那样会有两个问题，第一通过AOF做冷备，没有RDB的体积小恢复的速度快，第二，RDB每次简单粗暴的生成快照文件更加健壮，可以避免AOF这种复杂的备份和恢复机制的bug。Redis目前是支持同时开启这两种方式的持久化的，我们可以综合使用AOF和RDB两种持久化机制，用AOF来保证数据不丢失，作为数据恢复的第一选择；用RDB来做不同程度的冷备，在AOF文件都丢失或损坏不可用的是有可以采用RDB来进行快速的数据恢复。（同时Redis4.0之前Redis中RDB和AOF可以同时开启但是只会用AOF恢复，但是在4.0之后AOF中包含RDB全量增加记录的写操作）。 面试官：非常不错，我对你这边的情况还是比较满意的。 派大星：谢谢。"/>
+
+  <script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BlogPosting",
+  "headline": "对线面试官-Redis 九 _ 持久化的方式及优缺点",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http:\/\/vipbbo.com\/2023\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-redis-%E4%B9%9D-_-%E6%8C%81%E4%B9%85%E5%8C%96%E7%9A%84%E6%96%B9%E5%BC%8F%E5%8F%8A%E4%BC%98%E7%BC%BA%E7%82%B9\/"
+  },
+  "image": {
+    "@type": "ImageObject",
+    "url": "http:\/\/vipbbo.com\/cover.png",
+    "width":  800 ,
+    "height":  600 
+  },
+  "genre": "posts",
+  
+  "wordcount":  44 ,
+  "url": "http:\/\/vipbbo.com\/2023\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-redis-%E4%B9%9D-_-%E6%8C%81%E4%B9%85%E5%8C%96%E7%9A%84%E6%96%B9%E5%BC%8F%E5%8F%8A%E4%BC%98%E7%BC%BA%E7%82%B9\/",
+  "datePublished": "2023-01-13T23:05:22\u002b08:00",
+  "dateModified": "2023-01-13T23:05:22\u002b08:00",
+  
+  "publisher": {
+    "@type": "Organization",
+    "name": "Fastbyte01",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http:\/\/vipbbo.com\/logo.png",
+      "width":  127 ,
+      "height":  40 
+    }
+  },
+  "author": {
+    "@type": "Person",
+    "name": "派大星"
+  },
+  "description": ""
+}
+</script>
+</head>
+
+  
+
+
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4585280196682059"
+     crossorigin="anonymous"></script>
+
+
+  <body class="">
+    <div class="wrapper">
+        <nav class="navbar">
+    <div class="container">
+        <div class="navbar-header header-logo">
+        	<a href="http://vipbbo.com/">码上遇见你</a>
+        </div>
+        <div class="menu navbar-right">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+                <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;
+        </div>
+    </div>
+</nav>
+<nav class="navbar-mobile" id="nav-mobile" style="display: none">
+     <div class="container">
+        <div class="navbar-header">
+            <div>  <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;<a href="http://vipbbo.com/">码上遇见你</a></div>
+            <div class="menu-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+     
+          <div class="menu" id="mobile-menu">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+        </div>
+    </div>
+</nav>
+
+    	 <main class="main">
+          <div class="container">
+      		
+<article class="post-warp">
+    <header class="post-header">
+        <h1 class="post-title">对线面试官-Redis 九 _ 持久化的方式及优缺点</h1>
+        <div class="post-meta">
+            Written by <a href="http://vipbbo.com/" rel="author">派大星</a> with ♥ 
+                <span class="post-time">
+                    on <time datetime=2023-01-13 >13 January 2023</time>
+                </span>
+                in
+                
+                <i class="iconfont icon-timer"></i>
+                1 min
+        </div>
+    </header>
+    <div class="post-content">
+        
+
+        
+            
+        
+
+        
+        
+     
+          
+          
+          
+
+          
+          
+          
+
+          <p><strong>面试官：Redis持久化有了解吗？可以聊一聊吗？</strong></p>
+<blockquote>
+<p>面试官心理分析：
+redis 如果仅仅只是将数据缓存在内存里面，如果 redis 宕机了再重启，内存里的数据就全部都弄丢了啊。你必须得用 redis 的持久化机制，将数据写入内存的同时，异步的慢慢的将数据写入磁盘文件里，进行持久化。
+如果 redis 宕机重启，自动从磁盘上加载之前持久化的一些数据就可以了，也许会丢失少许数据，但是至少不会将所有数据都弄丢。
+这个其实一样，针对的都是 redis 的生产环境可能遇到的一些问题，就是 redis 要是挂了再重启，内存里的数据不就全丢了？能不能重启的时候把数据给恢复了？</p>
+</blockquote>
+<p>派大星：可以的，Redis持久化分为两种：</p>
+<ul>
+<li>RDB持久化：是对Redis中数据执行<code>周期性</code>的持久化，具有<code>时效性</code>。</li>
+<li>AOF持久化：把每条写入命令作为日志，以<code>append-only</code>的模式写入一个日志文件中，在Redis重启的时候，可以通过<strong>回放</strong>AOF日志的写入命令来重新构建整个数据库。</li>
+</ul>
+<p><strong>面试官：那你知道RDB和AOF这两种方式有什么区别吗？或者它们有什么优缺点？</strong>
+派大星：
+首先来说对于RDB来讲：</p>
+<ul>
+<li>优点：首先对于RDB来说：它具有时效性，因为该特性所以它会有多个数据文件，每个数据文件都代表Redis中某一时刻的数据。这种方式<strong>非常适合做冷备，<strong>可以将这种完整的数据文件发送到远程的安全存储上，比如S3，阿里云的ODPS，从而以一个预定好的策略来定期备份Redis数据。并且该方式对Redis的读写服务影响非常小，从而</strong>也能让Redis保持高性能</strong>，因为Redis主进程只需要fork一个子进程让子进程执行磁盘IO操作来进行RDB持久化即可。有点类似于Java序列化，恢复速度相对比较快。</li>
+<li>缺点：由于其时点性，所以它不支持拉链，永远只有一个<code>dump.rdb文件</code>，同时也会造成**时点与时点之前窗口数据容易丢失(<strong>8点得到一个rdb文件  9点刚要得到rdb文件   挂机了</strong>)。**RDB 每次在 fork 子进程来执行 RDB 快照数据文件生成的时候，如果数据文件特别大，可能会导致对客户端提供的服务暂停数毫秒，或者甚至数秒。</li>
+</ul>
+<p>派大星：其次来说AOF，</p>
+<ul>
+<li>优点：丢失数据相对较少或不丢失，一般AOF会每隔1秒，通过后台线程执行一次<code>fsync</code>操作，最多丢失1s的数据，AOF日志文件的命令是通过可读性非常好的方式进行记录，所以这个特性<strong>非常适合做灾难性的误删除的紧急恢复(<strong>比如某人不小心用 flushall 命令清空了所有数据,只要这个时候后台 rewrite 还没有发生</strong>)。</strong></li>
+<li>缺点：同样的备份文件AOF相比较于RDB，文件会比较大，恢复速度也比较慢，单纯使用AOF的话由于其每秒都会<code>fsync</code>一次日志文件的特性，会导致写的时候的QPS相比较于RDB的QPS要低一些。Redis性能也会有所降低。</li>
+</ul>
+<p>派大星：当然在Redis4.0之后也有所更新，具体如图所示：
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1688997717518-47c1254c-0bde-40ff-a883-1feb53fc65b0.png#averageHue=%23c1c1c1&amp;clientId=uf1b23944-7844-4&amp;from=paste&amp;height=221&amp;id=ud55cb727&amp;originHeight=442&amp;originWidth=1834&amp;originalType=binary&amp;ratio=2&amp;rotation=0&amp;showTitle=false&amp;size=93458&amp;status=done&amp;style=none&amp;taskId=ue7a54e03-baf7-46eb-8c97-9fdd0ad1b25&amp;title=&amp;width=917" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure>
+当然AOF也会产生一写小的问题就是，进行数据恢复的时候，有可能不会恢复出一摸一样的数据。因为基于AOF这种较为复杂的基于命令日志/merage/回放的方式，比基于RDB每次持久化一份完整的数据快照文件的方式更加脆弱，容易有bug。不过AOF就是为了避免rewrite过程导致bug，因此每次rewirte的时候并不是基于旧的指令日志进行merge的，而是基于当时内存中的数据进行指令的重新构建，这样健壮性就会好一些。
+<strong>面试官：不错，那么在实际生产中，如何选择呢？</strong>
+派大星：首先来说不要仅仅使用RDB，因为时点性的原因会导致丢失很多数据，同时也不要仅仅使用AOF，因为那样会有两个问题，第一通过AOF做冷备，没有RDB的体积小恢复的速度快，第二，RDB每次简单粗暴的生成快照文件更加健壮，可以避免AOF这种复杂的备份和恢复机制的bug。Redis目前是支持同时开启这两种方式的持久化的，我们可以综合使用AOF和RDB两种持久化机制，用AOF来保证数据不丢失，作为数据恢复的第一选择；用RDB来做不同程度的冷备，在AOF文件都丢失或损坏不可用的是有可以采用RDB来进行快速的数据恢复。（同时Redis4.0之前Redis中RDB和AOF可以同时开启但是只会用AOF恢复，但是在4.0之后AOF中包含RDB全量增加记录的写操作）。
+<strong>面试官：非常不错，我对你这边的情况还是比较满意的。</strong>
+派大星：谢谢。</p>
+
+    </div>
+
+    <div class="post-copyright">
+             
+            <p class="copyright-item">
+                <span>Author:</span>
+                <span>派大星 </span>
+                </p>
+            
+           
+            <p class="copyright-item">
+                    <span>Words:</span>
+                   <span>44</span>
+            </p>
+
+            <p class="copyright-item">
+                
+                <span>Share:</span>
+                <span>
+
+      
+        <a href="//twitter.com/share?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-redis-%25E4%25B9%259D-_-%25E6%258C%2581%25E4%25B9%2585%25E5%258C%2596%25E7%259A%2584%25E6%2596%25B9%25E5%25BC%258F%25E5%258F%258A%25E4%25BC%2598%25E7%25BC%25BA%25E7%2582%25B9%2f&amp;text=%e5%af%b9%e7%ba%bf%e9%9d%a2%e8%af%95%e5%ae%98-Redis%20%e4%b9%9d%20_%20%e6%8c%81%e4%b9%85%e5%8c%96%e7%9a%84%e6%96%b9%e5%bc%8f%e5%8f%8a%e4%bc%98%e7%bc%ba%e7%82%b9&amp;via=" target="_blank" title="Share on Twitter">
+          <i class="iconfont icon-twitter"></i>
+        </a>
+        
+      
+      
+        <a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-redis-%25E4%25B9%259D-_-%25E6%258C%2581%25E4%25B9%2585%25E5%258C%2596%25E7%259A%2584%25E6%2596%25B9%25E5%25BC%258F%25E5%258F%258A%25E4%25BC%2598%25E7%25BC%25BA%25E7%2582%25B9%2f" target="_blank" title="Share on Facebook">
+          <i class="iconfont icon-facebook"></i>
+        </a>
+        
+      
+      
+      
+      
+        <a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-redis-%25E4%25B9%259D-_-%25E6%258C%2581%25E4%25B9%2585%25E5%258C%2596%25E7%259A%2584%25E6%2596%25B9%25E5%25BC%258F%25E5%258F%258A%25E4%25BC%2598%25E7%25BC%25BA%25E7%2582%25B9%2f&amp;title=%e5%af%b9%e7%ba%bf%e9%9d%a2%e8%af%95%e5%ae%98-Redis%20%e4%b9%9d%20_%20%e6%8c%81%e4%b9%85%e5%8c%96%e7%9a%84%e6%96%b9%e5%bc%8f%e5%8f%8a%e4%bc%98%e7%bc%ba%e7%82%b9" target="_blank" title="Share on LinkedIn">
+          <i class="iconfont icon-linkedin"></i>
+        </a>
+        
+      
+      
+        
+      
+        
+      
+
+          
+
+          
+
+          
+
+          
+
+</span>
+                
+            </p>
+
+             
+            <p class="copyright-item">
+                Released under <a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a>
+            </p>
+            
+    </div>
+
+  
+    <div class="post-tags">
+        
+        <section>
+                <a href="javascript:window.history.back();">Back</a></span> · 
+                <span><a href="http://vipbbo.com/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav">
+        
+        <a href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-redis%E5%85%AB-%E5%9F%BA%E4%BA%8E%E5%93%A8%E5%85%B5ha%E7%9A%84%E5%8E%9F%E7%90%86/" class="prev" rel="prev" title="对线面试官-Redis(八 基于哨兵HA的原理)"><i class="iconfont icon-dajiantou"></i>&nbsp;对线面试官-Redis(八 基于哨兵HA的原理)</a>
+         
+        
+        <a href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-redis-_-%E5%8D%81-redis%E9%9B%86%E7%BE%A4%E6%A8%A1%E5%BC%8F/" class="next" rel="next" title="对线面试官 Redis _ 十 Redis集群模式">对线面试官 Redis _ 十 Redis集群模式&nbsp;<i class="iconfont icon-xiaojiantou"></i></a>
+        
+    </div>
+
+    <div class="post-comment">
+          
+          <div id="disqus_thread"></div>
+  <script type="text/javascript">
+      (function() {
+          
+          
+          if (window.location.hostname == "localhost")
+              return;
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          var disqus_shortname = 'yourdiscussshortname';
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="https://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+ 
+
+          
+    </div>
+</article>
+          </div>
+		   </main>
+      <footer class="footer">
+    <div class="copyright">
+        &copy;
+        
+        <span itemprop="copyrightYear">2023 - 2023</span>
+        
+         
+            <span class="author" itemprop="copyrightHolder"><a href="http://vipbbo.com/">派大星</a> | </span>
+         
+
+		  <span>Crafted with ❤️ by <a href="https://github.com/Fastbyte01/KeepIt" target="_blank" rel="external nofollow noopener noreffer">KeepIt</a> & <a href="https://gohugo.io/" target="_blank" rel="external nofollow noopener noreffer">Hugo</a></span>
+    </div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    <link crossorigin="anonymous" integrity="sha384-yziQACfvCVwLqVFLqkWBYRO3XeA4EqzfXKGwaWnenYn5XzqfJFlFdKEmvutIQdKb" href="https://lib.baomitu.com/lightgallery/1.10.0/css/lightgallery.min.css" rel="stylesheet">
+      
+     <script src="/js/vendor_gallery.min.js" async="" ></script>
+    
+  
+
+
+
+
+
+
+
+     </div>
+  </body>
+</html>

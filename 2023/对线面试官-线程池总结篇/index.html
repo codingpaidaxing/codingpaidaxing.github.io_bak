@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noodp"/>
+  
+  
+  
+  
+  
+  <link rel="prev" href="http://vipbbo.com/1/java-spi/" />
+  <link rel="next" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-redis%E5%85%AB-%E5%9F%BA%E4%BA%8E%E5%93%A8%E5%85%B5ha%E7%9A%84%E5%8E%9F%E7%90%86/" />
+  <link rel="canonical" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E6%80%BB%E7%BB%93%E7%AF%87/" />
+  <link rel='shortcut icon' type='image/x-icon' href='/favicon.ico' />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <title>
+       
+       
+           对线面试官-线程池(总结篇) | 码上遇见你
+       
+  </title>
+  <meta name="title" content="对线面试官-线程池(总结篇) | 码上遇见你">
+    
+  
+  <link rel="stylesheet" href="/font/iconfont.css">
+  <link rel="stylesheet" href="/css/main.min.css">
+
+
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="对线面试官-线程池(总结篇)"/>
+<meta name="twitter:description" content="创建线程的方式 主要有两大类方式：
+通过Executors创建（6种） 通过ThreadPoolExecutorPools创建（1种） Executors.newFixedThreadPool() 注意：这里主要是考察你实际到底用没用过。真正使用过的一定会说这些创建方式的优缺点。 ！！！不建议使用Executors创建线程：
+FixedThreadPool 和 SingleThreadPool允许的请求队列长度为Integer.MAX_VALUE，从而可能会堆积大量请求。造成OOM（因为newFixedThreadPool中队列的实现是LinkedBlockingQueue而LinkedBlockingQueue 的最大容量是 Integer.MAX_VALUE）源码如下： CachedThreadPool和 ScheduledThreadPool 允许的创建线程数量为Integer.MAX_VALUE可能会创建大量的线程，从而导致 OOM。 Executors 突击面试可忽略 每个线程池的具体demo
+Executors.newFixedThreadPool：创建一个固定大小的线程池，可控制并发的线程数，超出的线程会在队列中等待 public static void fixedThreadPool() { // 创建 2 个数据级的线程池 ExecutorService threadPool = Executors.newFixedThreadPool(2); // 创建任务 Runnable runnable = new Runnable() { @Override public void run() { System.out.println(&#34;任务被执行,线程:&#34; &#43; Thread.currentThread().getName()); } }; // 线程池执行任务(一次添加 4 个任务) // 执行任务的方法有两种:submit 和 execute threadPool.submit(runnable); // 执行方式 1:submit threadPool.execute(runnable); // 执行方式 2:execute threadPool.execute(runnable); threadPool.execute(runnable); } Lambda表达式的写法："/>
+
+  <script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BlogPosting",
+  "headline": "对线面试官-线程池(总结篇)",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http:\/\/vipbbo.com\/2023\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E6%80%BB%E7%BB%93%E7%AF%87\/"
+  },
+  "image": {
+    "@type": "ImageObject",
+    "url": "http:\/\/vipbbo.com\/cover.png",
+    "width":  800 ,
+    "height":  600 
+  },
+  "genre": "posts",
+  
+  "wordcount":  753 ,
+  "url": "http:\/\/vipbbo.com\/2023\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E6%80%BB%E7%BB%93%E7%AF%87\/",
+  "datePublished": "2023-01-13T23:05:22\u002b08:00",
+  "dateModified": "2023-01-13T23:05:22\u002b08:00",
+  
+  "publisher": {
+    "@type": "Organization",
+    "name": "Fastbyte01",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http:\/\/vipbbo.com\/logo.png",
+      "width":  127 ,
+      "height":  40 
+    }
+  },
+  "author": {
+    "@type": "Person",
+    "name": "派大星"
+  },
+  "description": ""
+}
+</script>
+</head>
+
+  
+
+
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4585280196682059"
+     crossorigin="anonymous"></script>
+
+
+  <body class="">
+    <div class="wrapper">
+        <nav class="navbar">
+    <div class="container">
+        <div class="navbar-header header-logo">
+        	<a href="http://vipbbo.com/">码上遇见你</a>
+        </div>
+        <div class="menu navbar-right">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+                <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;
+        </div>
+    </div>
+</nav>
+<nav class="navbar-mobile" id="nav-mobile" style="display: none">
+     <div class="container">
+        <div class="navbar-header">
+            <div>  <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;<a href="http://vipbbo.com/">码上遇见你</a></div>
+            <div class="menu-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+     
+          <div class="menu" id="mobile-menu">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+        </div>
+    </div>
+</nav>
+
+    	 <main class="main">
+          <div class="container">
+      		
+<article class="post-warp">
+    <header class="post-header">
+        <h1 class="post-title">对线面试官-线程池(总结篇)</h1>
+        <div class="post-meta">
+            Written by <a href="http://vipbbo.com/" rel="author">派大星</a> with ♥ 
+                <span class="post-time">
+                    on <time datetime=2023-01-13 >13 January 2023</time>
+                </span>
+                in
+                
+                <i class="iconfont icon-timer"></i>
+                4 min
+        </div>
+    </header>
+    <div class="post-content">
+        
+
+        
+            
+        
+
+        
+        
+     
+          
+          
+          
+
+          
+          
+          
+
+          <h2 id="创建线程的方式">创建线程的方式</h2>
+<blockquote>
+<p>主要有两大类方式：</p>
+<ol>
+<li>通过Executors创建（6种）</li>
+<li>通过ThreadPoolExecutorPools创建（1种）
+<ol>
+<li>Executors.newFixedThreadPool()</li>
+</ol>
+</li>
+</ol>
+</blockquote>
+<p>注意：<strong>这里主要是考察你实际到底用没用过。真正使用过的一定会说这些创建方式的优缺点。</strong>
+<strong>！！！不建议使用Executors创建线程：</strong></p>
+<ul>
+<li><code>FixedThreadPool</code> 和 <code>SingleThreadPool</code>允许的请求队列长度为<code>Integer.MAX_VALUE</code>，从而可能会堆积大量请求。造成OOM（因为newFixedThreadPool中队列的实现是<code>LinkedBlockingQueue</code>而LinkedBlockingQueue 的最大容量是 Integer.MAX_VALUE）源码如下：</li>
+<li><code>CachedThreadPool</code>和 <code>ScheduledThreadPool </code>允许的创建线程数量为<code>Integer.MAX_VALUE</code>可能会创建大量的线程，从而导致 OOM。</li>
+</ul>
+<p><figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1684993669841-7eb7a663-83f2-4047-9f22-5d17e490d647.png#averageHue=%23666665&amp;clientId=u3ad42d93-df9f-4&amp;from=paste&amp;height=506&amp;id=u0ae7487d&amp;originHeight=633&amp;originWidth=994&amp;originalType=binary&amp;ratio=1.25&amp;rotation=0&amp;showTitle=false&amp;size=84561&amp;status=done&amp;style=none&amp;taskId=u9cf875a7-e72d-4c41-bb00-ef704b41321&amp;title=&amp;width=795.2" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure></p>
+<h3 id="executors">Executors</h3>
+<blockquote>
+<p>突击面试可忽略 每个线程池的具体demo</p>
+</blockquote>
+<h4 id="executorsnewfixedthreadpool创建一个固定大小的线程池可控制并发的线程数超出的线程会在队列中等待">Executors.newFixedThreadPool：创建一个固定大小的线程池，可控制并发的线程数，超出的线程会在队列中等待</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">fixedThreadPool</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 创建 2 个数据级的线程池
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        ExecutorService threadPool <span style="color:#f92672">=</span> Executors<span style="color:#f92672">.</span><span style="color:#a6e22e">newFixedThreadPool</span><span style="color:#f92672">(</span><span style="color:#ae81ff">2</span><span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 创建任务
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        Runnable runnable <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Runnable<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">run</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>                System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;任务被执行,线程:&#34;</span> <span style="color:#f92672">+</span> Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">currentThread</span><span style="color:#f92672">().</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">());</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">};</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 线程池执行任务(一次添加 4 个任务)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// 执行任务的方法有两种:submit 和 execute
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        threadPool<span style="color:#f92672">.</span><span style="color:#a6e22e">submit</span><span style="color:#f92672">(</span>runnable<span style="color:#f92672">);</span>  <span style="color:#75715e">// 执行方式 1:submit
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        threadPool<span style="color:#f92672">.</span><span style="color:#a6e22e">execute</span><span style="color:#f92672">(</span>runnable<span style="color:#f92672">);</span> <span style="color:#75715e">// 执行方式 2:execute
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        threadPool<span style="color:#f92672">.</span><span style="color:#a6e22e">execute</span><span style="color:#f92672">(</span>runnable<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>        threadPool<span style="color:#f92672">.</span><span style="color:#a6e22e">execute</span><span style="color:#f92672">(</span>runnable<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">}</span>
+</span></span></code></pre></div><p>Lambda表达式的写法：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">fixedThreadPool</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 创建 2 个数据级的线程池
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    ExecutorService threadPool <span style="color:#f92672">=</span> Executors<span style="color:#f92672">.</span><span style="color:#a6e22e">newFixedThreadPool</span><span style="color:#f92672">(</span><span style="color:#ae81ff">2</span><span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 创建任务
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    Runnable runnable <span style="color:#f92672">=</span> <span style="color:#f92672">()</span> <span style="color:#f92672">-&gt;</span> System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;任务被执行,线程:&#34;</span> <span style="color:#f92672">+</span> Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">currentThread</span><span style="color:#f92672">().</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">());</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 线程池执行任务(一次添加 4 个任务)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 执行任务的方法有两种:submit 和 execute
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    threadPool<span style="color:#f92672">.</span><span style="color:#a6e22e">submit</span><span style="color:#f92672">(</span>runnable<span style="color:#f92672">);</span>  <span style="color:#75715e">// 执行方式 1:submit
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    threadPool<span style="color:#f92672">.</span><span style="color:#a6e22e">execute</span><span style="color:#f92672">(</span>runnable<span style="color:#f92672">);</span> <span style="color:#75715e">// 执行方式 2:execute
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    threadPool<span style="color:#f92672">.</span><span style="color:#a6e22e">execute</span><span style="color:#f92672">(</span>runnable<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>    threadPool<span style="color:#f92672">.</span><span style="color:#a6e22e">execute</span><span style="color:#f92672">(</span>runnable<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><h4 id="executorsnewcachedthreadpool创建一个可以缓存的线程池若线程数超过处理所需则会缓存一段时间后回收若线程数不够则新建线程">Executors.newCachedThreadPool()：创建一个可以缓存的线程池，若线程数超过处理所需，则会缓存一段时间后回收。若线程数不够，则新建线程。</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">cachedThreadPool</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 创建线程池
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    ExecutorService threadPool <span style="color:#f92672">=</span> Executors<span style="color:#f92672">.</span><span style="color:#a6e22e">newCachedThreadPool</span><span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 执行任务
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span><span style="color:#f92672">;</span> i <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">10</span><span style="color:#f92672">;</span> i<span style="color:#f92672">++)</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>        threadPool<span style="color:#f92672">.</span><span style="color:#a6e22e">execute</span><span style="color:#f92672">(()</span> <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>            System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;任务被执行,线程:&#34;</span> <span style="color:#f92672">+</span> Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">currentThread</span><span style="color:#f92672">().</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">());</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>                TimeUnit<span style="color:#f92672">.</span><span style="color:#a6e22e">SECONDS</span><span style="color:#f92672">.</span><span style="color:#a6e22e">sleep</span><span style="color:#f92672">(</span><span style="color:#ae81ff">1</span><span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>InterruptedException e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">});</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><h4 id="executorsnewsinglethreadexecutor创建单个线程数的线程池它可以保证先进先出的执行顺序">Executors.newSingleThreadExecutor()：创建单个线程数的线程池，它可以保证先进先出的执行顺序。</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">singleThreadExecutor</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 创建线程池
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    ExecutorService threadPool <span style="color:#f92672">=</span> Executors<span style="color:#f92672">.</span><span style="color:#a6e22e">newSingleThreadExecutor</span><span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 执行任务
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span><span style="color:#f92672">;</span> i <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">10</span><span style="color:#f92672">;</span> i<span style="color:#f92672">++)</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> index <span style="color:#f92672">=</span> i<span style="color:#f92672">;</span>
+</span></span><span style="display:flex;"><span>        threadPool<span style="color:#f92672">.</span><span style="color:#a6e22e">execute</span><span style="color:#f92672">(()</span> <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>            System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>index <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;:任务被执行&#34;</span><span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>                TimeUnit<span style="color:#f92672">.</span><span style="color:#a6e22e">SECONDS</span><span style="color:#f92672">.</span><span style="color:#a6e22e">sleep</span><span style="color:#f92672">(</span><span style="color:#ae81ff">1</span><span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>InterruptedException e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">});</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><h4 id="executorsnewscheduledthreadpool创建一个可以执行延迟任务的线程池">Executors.newScheduledThreadPool()：创建一个可以执行延迟任务的线程池</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">scheduledThreadPool</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 创建线程池
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    ScheduledExecutorService threadPool <span style="color:#f92672">=</span> Executors<span style="color:#f92672">.</span><span style="color:#a6e22e">newScheduledThreadPool</span><span style="color:#f92672">(</span><span style="color:#ae81ff">5</span><span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 添加定时执行任务(1s 后执行)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;添加任务,时间:&#34;</span> <span style="color:#f92672">+</span> <span style="color:#66d9ef">new</span> Date<span style="color:#f92672">());</span>
+</span></span><span style="display:flex;"><span>    threadPool<span style="color:#f92672">.</span><span style="color:#a6e22e">schedule</span><span style="color:#f92672">(()</span> <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;任务被执行,时间:&#34;</span> <span style="color:#f92672">+</span> <span style="color:#66d9ef">new</span> Date<span style="color:#f92672">());</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>            TimeUnit<span style="color:#f92672">.</span><span style="color:#a6e22e">SECONDS</span><span style="color:#f92672">.</span><span style="color:#a6e22e">sleep</span><span style="color:#f92672">(</span><span style="color:#ae81ff">1</span><span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>InterruptedException e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">},</span> <span style="color:#ae81ff">1</span><span style="color:#f92672">,</span> TimeUnit<span style="color:#f92672">.</span><span style="color:#a6e22e">SECONDS</span><span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><h4 id="executorsnewsinglethreadscheuledexecutor创建一个单线程的可以执行延迟任务的线程池">Executors.newSingleThreadScheuledExecutor()：创建一个单线程的可以执行延迟任务的线程池。</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">SingleThreadScheduledExecutor</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 创建线程池
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    ScheduledExecutorService threadPool <span style="color:#f92672">=</span> Executors<span style="color:#f92672">.</span><span style="color:#a6e22e">newSingleThreadScheduledExecutor</span><span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 添加定时执行任务(2s 后执行)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;添加任务,时间:&#34;</span> <span style="color:#f92672">+</span> <span style="color:#66d9ef">new</span> Date<span style="color:#f92672">());</span>
+</span></span><span style="display:flex;"><span>    threadPool<span style="color:#f92672">.</span><span style="color:#a6e22e">schedule</span><span style="color:#f92672">(()</span> <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;任务被执行,时间:&#34;</span> <span style="color:#f92672">+</span> <span style="color:#66d9ef">new</span> Date<span style="color:#f92672">());</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>            TimeUnit<span style="color:#f92672">.</span><span style="color:#a6e22e">SECONDS</span><span style="color:#f92672">.</span><span style="color:#a6e22e">sleep</span><span style="color:#f92672">(</span><span style="color:#ae81ff">1</span><span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>InterruptedException e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">},</span> <span style="color:#ae81ff">2</span><span style="color:#f92672">,</span> TimeUnit<span style="color:#f92672">.</span><span style="color:#a6e22e">SECONDS</span><span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><h4 id="executorsnewworkstealingpool创建一个抢占式执行的线程池任务执行顺序不确定注意此方法只有在-jdk-18-版本中才能使用">Executors.newWorkStealingPool()：创建一个抢占式执行的线程池（任务执行顺序不确定），注意此方法只有在 JDK 1.8+ 版本中才能使用。</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">workStealingPool</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 创建线程池
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    ExecutorService threadPool <span style="color:#f92672">=</span> Executors<span style="color:#f92672">.</span><span style="color:#a6e22e">newWorkStealingPool</span><span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 执行任务
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span><span style="color:#f92672">;</span> i <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">10</span><span style="color:#f92672">;</span> i<span style="color:#f92672">++)</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> index <span style="color:#f92672">=</span> i<span style="color:#f92672">;</span>
+</span></span><span style="display:flex;"><span>        threadPool<span style="color:#f92672">.</span><span style="color:#a6e22e">execute</span><span style="color:#f92672">(()</span> <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>            System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>index <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; 被执行,线程名:&#34;</span> <span style="color:#f92672">+</span> Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">currentThread</span><span style="color:#f92672">().</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">());</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">});</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 确保任务执行完成
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">while</span> <span style="color:#f92672">(!</span>threadPool<span style="color:#f92672">.</span><span style="color:#a6e22e">isTerminated</span><span style="color:#f92672">())</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><h4 id="threadpoolexecutor最原始的创建线程池的方式它包含了-7-个参数可供设置">ThreadPoolExecutor():最原始的创建线程池的方式，它包含了 7 个参数可供设置。</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">myThreadPoolExecutor</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 创建线程池
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    ThreadPoolExecutor threadPool <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ThreadPoolExecutor<span style="color:#f92672">(</span><span style="color:#ae81ff">5</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">10</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">100</span><span style="color:#f92672">,</span> TimeUnit<span style="color:#f92672">.</span><span style="color:#a6e22e">SECONDS</span><span style="color:#f92672">,</span> <span style="color:#66d9ef">new</span> LinkedBlockingQueue<span style="color:#f92672">&lt;&gt;(</span><span style="color:#ae81ff">10</span><span style="color:#f92672">));</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 执行任务
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span><span style="color:#f92672">;</span> i <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">10</span><span style="color:#f92672">;</span> i<span style="color:#f92672">++)</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> index <span style="color:#f92672">=</span> i<span style="color:#f92672">;</span>
+</span></span><span style="display:flex;"><span>        threadPool<span style="color:#f92672">.</span><span style="color:#a6e22e">execute</span><span style="color:#f92672">(()</span> <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>            System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>index <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; 被执行,线程名:&#34;</span> <span style="color:#f92672">+</span> Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">currentThread</span><span style="color:#f92672">().</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">());</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>                Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">sleep</span><span style="color:#f92672">(</span><span style="color:#ae81ff">1000</span><span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>InterruptedException e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>                e<span style="color:#f92672">.</span><span style="color:#a6e22e">printStackTrace</span><span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">});</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><h3 id="线程池的参数">线程池的参数</h3>
+<p>一共有七个参数：</p>
+<h4 id="参数1corepoolsize">参数1：corePoolSize</h4>
+<blockquote>
+<p>核心线程数，线程池中始终存货的线程数</p>
+</blockquote>
+<h4 id="参数2maximumpoolsize">参数2：maximumPoolSize</h4>
+<blockquote>
+<p>最大线程数，线程池中允许的最大线程数，当线程池中的任务队列满了之后可以创建的最大线程数</p>
+</blockquote>
+<h4 id="参数3keepalivetime">参数3：keepAliveTime</h4>
+<blockquote>
+<p>最大线程数可以<code>存活</code>之间，当线程中没有任务执行时，最大线程就会销毁一部分，最终保持核心线程数量的线程</p>
+</blockquote>
+<h4 id="参数4unit">参数4：unit</h4>
+<blockquote>
+<p>单位 ：是和参数3keepAliveTime配合使用，，合在一起用于设定线程的存活时间，参数keepAliveTime的时间单位i有以下7种可以选择：</p>
+<ul>
+<li>TimeUnit.DAYS：天</li>
+<li>TImeUnit.HOURS：小时</li>
+<li>TimeUnit.MINUTES：分</li>
+<li>TimeUnit.SECONDS：秒</li>
+<li>TimeUnit.MILLISECONDS：毫秒</li>
+<li>TimeUnit.MICROSECONDS：微妙</li>
+<li>TimeUnit.NANOSECONDS：纳秒</li>
+</ul>
+</blockquote>
+<h4 id="参数5workqueue">参数5：workQueue</h4>
+<p>一个阻塞队列，用来存储线程池等待执行的任务，均为线程安全，包含以下7种类型：</p>
+<ul>
+<li>ArrayBlockingQueue：一个由数组结构组成的有界阻塞队列。</li>
+<li>LinkedBlockingQueue：一个由链表结构组成的有界阻塞队列。</li>
+<li>SynchronousQueue：一个不存储元素的阻塞队列，即直接提交给线程不保持它们。</li>
+<li>PriorityBlockingQueue：一个支持优先级排序的无界阻塞队列。</li>
+<li>DelayQueue：一个使用优先级队列实现的无界阻塞队列，只有在延迟期满时才能从中提取元素。</li>
+<li>LinkedTransferQueue：一个由链表结构组成的无界阻塞队列。与SynchronousQueue类似，还含有非阻塞方法。</li>
+<li>LinkedBlockingDeque：一个由链表结构组成的双向阻塞队列。</li>
+</ul>
+<p>较常用的是 <code>LinkedBlockingQueue</code> 和<code> Synchronous</code>，线程池的排队策略与 <code>BlockingQueue</code> 有关。</p>
+<h4 id="参数6threadfactory">参数6：threadFactory</h4>
+<blockquote>
+<p>线程工厂，主要用来创建线程，默认为正常优先级，<code>非守护线程</code>。</p>
+</blockquote>
+<h4 id="参数7handler">参数7：handler</h4>
+<blockquote>
+<p>拒绝策略，拒绝处理任务时的策略，系统有4种可选</p>
+</blockquote>
+<h5 id="abortpolicy拒绝并抛出异常">AbortPolicy：拒绝并抛出异常</h5>
+<h5 id="callerrunspolicy使用当前调用的线程来执行任务">CallerRunsPolicy：使用当前调用的线程来执行任务</h5>
+<h5 id="discardoldestpolicy抛弃队列头部最旧的一个任务并执行当前任务">DiscardOldestPolicy：抛弃队列头部(最旧)的一个任务，并执行当前任务</h5>
+<h5 id="discardpolicy忽略并抛弃当前任务">DiscardPolicy：忽略并抛弃当前任务</h5>
+<blockquote>
+<p>默认的策略为：<code>AbortPolicy</code></p>
+</blockquote>
+<h3 id="线程池的执行流程">线程池的执行流程</h3>
+<p>ThreadPoolExecutor 关键节点的执行流程如下：</p>
+<ul>
+<li>当线程数小于核心线程数时，创建线程。</li>
+<li>当线程数大于等于核心线程数，且任务队列未满时，将任务放入任务队列。</li>
+<li>当线程数大于等于核心线程数，且任务队列已满：若线程数小于最大线程数，创建线程；若线程数等于最大线程数，抛出异常，拒绝任务。</li>
+</ul>
+<p>线程池的执行流程如下图所示：</p>
+<p><figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1685347079375-cb761325-4830-4952-bd7e-8bbff7bc847c.png#averageHue=%23fbf9f7&amp;clientId=u1d9425c1-a505-4&amp;from=paste&amp;height=863&amp;id=u7266947e&amp;originHeight=863&amp;originWidth=1064&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=156880&amp;status=done&amp;style=none&amp;taskId=u88795792-6af6-45b7-b395-e855bfc2a30&amp;title=&amp;width=1064" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure></p>
+<h3 id="线程池有哪些执行方法">线程池有哪些执行方法</h3>
+<h4 id="execute和submit区别">execute和submit区别</h4>
+<h5 id="从提交的任务类型角度">从提交的任务类型角度：</h5>
+<ol>
+<li>execute和submit都是线程池的方法，execute只能提交Runnable类型的任务</li>
+<li>submit既能提交Runnable类型的任务，也能提交Callable类型的任务</li>
+</ol>
+<h5 id="异常">异常</h5>
+<ul>
+<li>execute会直接抛出任务执行时的异常，可以使用<code>try catch</code>来捕获，和普通线程的处理方式完全一致</li>
+<li>submit会吃掉异常，可以通过<code>Future</code>的get方法将任务执行时的异常重新抛出。</li>
+</ul>
+<h5 id="返回值">返回值</h5>
+<ul>
+<li>execute没有返回值</li>
+<li>submit有返回值</li>
+</ul>
+<h5 id="从api层面理解execute和submit">从API层面理解execute和submit</h5>
+<ul>
+<li><code>execute</code>是在Executor接口中定义的。ThreadPoolExecutor()中并没有定义，但是ThreadPoolExecutor类继承了AbstractExecutorService抽象类，而该抽象类实现了ExecutorService接口，ExecutorService接口又继承了Executor接口。</li>
+</ul>
+<p>总结：也就是说ThreadPoolExecutor实现了execute()方法，</p>
+<ul>
+<li>submit()方法时ExecutorService接口中定义的，具体的实现是由AbstractExecutorService进行，</li>
+</ul>
+<p>再AbstractExecutorService中submit方法一共被重载了三次，分别是：</p>
+<ol>
+<li><strong>public Future<!-- raw HTML omitted --> submit(Runnable task)</strong></li>
+</ol>
+<blockquote>
+<p>该重载<strong>submit</strong>方法提交一个 Runnable 任务用于执行，并返回一个表示该任务的 Future。该Future的get方法在成功完成时将会返回null。</p>
+</blockquote>
+<ol start="2">
+<li><strong>public <!-- raw HTML omitted --> Future<!-- raw HTML omitted --> submit(Runnable task, T result)</strong></li>
+</ol>
+<blockquote>
+<p>Runnable 任务用于执行,并返回一个表示该任务的Future。该Future的get方法在成功完成时将会返回给定的结果。</p>
+</blockquote>
+<ol start="3">
+<li><strong>public <!-- raw HTML omitted --> Future<!-- raw HTML omitted --> submit(Callable<!-- raw HTML omitted --> task)</strong></li>
+</ol>
+<blockquote>
+<p>提交一个返回值的任务用于执行，返回一个表示任务的未决结果的 Future。该 Future 的 get 方法在成功完成时将会返回该任务的结果。 如果想立即阻塞任务的等待，则可以使用 result = execute.submit(aCallable).get(); 形式的构造。</p>
+</blockquote>
+<p>从上述方法中我们可以看出
+<strong>2、3</strong>就是说execute不支持Future那一套 来接收多线程的执行结果 ，而submit可以，<strong>1</strong>中说该Future的get方法在成功完成时将会返回null，那要是返回null，和用execute有什么区别？我直接使用execute就好了
+接下来我们可以看下<strong>AbstractExecutorService 源码：</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * @throws RejectedExecutionException {@inheritDoc}
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * @throws NullPointerException       {@inheritDoc}
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> Future<span style="color:#f92672">&lt;?&gt;</span> submit<span style="color:#f92672">(</span>Runnable task<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>task <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span> <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> NullPointerException<span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>        RunnableFuture<span style="color:#f92672">&lt;</span>Void<span style="color:#f92672">&gt;</span> ftask <span style="color:#f92672">=</span> newTaskFor<span style="color:#f92672">(</span>task<span style="color:#f92672">,</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>        execute<span style="color:#f92672">(</span>ftask<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> ftask<span style="color:#f92672">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * @throws RejectedExecutionException {@inheritDoc}
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * @throws NullPointerException       {@inheritDoc}
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span> Future<span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">submit</span><span style="color:#f92672">(</span>Runnable task<span style="color:#f92672">,</span> T result<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>task <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span> <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> NullPointerException<span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>        RunnableFuture<span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span> ftask <span style="color:#f92672">=</span> newTaskFor<span style="color:#f92672">(</span>task<span style="color:#f92672">,</span> result<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>        execute<span style="color:#f92672">(</span>ftask<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> ftask<span style="color:#f92672">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * @throws RejectedExecutionException {@inheritDoc}
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * @throws NullPointerException       {@inheritDoc}
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span> Future<span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">submit</span><span style="color:#f92672">(</span>Callable<span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span> task<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>task <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span> <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> NullPointerException<span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>        RunnableFuture<span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span> ftask <span style="color:#f92672">=</span> newTaskFor<span style="color:#f92672">(</span>task<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>        execute<span style="color:#f92672">(</span>ftask<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> ftask<span style="color:#f92672">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">}</span>
+</span></span></code></pre></div><p>可以明显的看到submit底层调用的时候，又将任务交给了execute()方法。
+总结：<strong>如果提交的任务不需要一个结果的话直接用execute()会提高性能</strong> 。</p>
+<h3 id="捕获线程池中的异常"><strong>捕获线程池中的异常</strong></h3>
+<p>有两种种方法可以捕获线程池中的异常。</p>
+<ul>
+<li>一种方法是通过手动使用try-catch块来捕获异常并打印出来，但这样的写法比较繁琐和不够优雅。</li>
+<li>另一种方法是利用Thread类中的dispatchUncaughtException(Throwable e)方法。当线程抛出异常时，JVM最终会回调这个方法来进行最后的异常处理，而且该异常会被ThreadGroup类中的uncaughtException方法处理。我们可以在创建Thread对象时绑定一个自定义的异常捕获处理器，最终发生异常时会打印我们的错误日志。</li>
+</ul>
+<p>下面是一个示例代码：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    Thread thread <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Thread<span style="color:#f92672">(()</span> <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>        log<span style="color:#f92672">.</span><span style="color:#a6e22e">info</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;------- info -------&#34;</span><span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> RuntimeException<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;运行时异常~~~~~&#34;</span><span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">});</span>
+</span></span><span style="display:flex;"><span>    Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">UncaughtExceptionHandler</span> uncaughtExceptionHandler <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>t<span style="color:#f92672">,</span> e<span style="color:#f92672">)</span> <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>        log<span style="color:#f92672">.</span><span style="color:#a6e22e">error</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Exception in Thread..... &#34;</span><span style="color:#f92672">,</span> e<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">};</span>
+</span></span><span style="display:flex;"><span>    thread<span style="color:#f92672">.</span><span style="color:#a6e22e">setUncaughtExceptionHandler</span><span style="color:#f92672">(</span>uncaughtExceptionHandler<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>    thread<span style="color:#f92672">.</span><span style="color:#a6e22e">start</span><span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><p>然而，在项目中我们更常使用线程池而非单独的线程。线程池中的线程对象实际上是由线程工厂创建的。我们可以在线程工厂中设置一个异常捕获处理器。以下是使用ThreadPoolExecutor创建线程池时设置线程工厂的示例代码：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> ExecutorService executor <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ThreadPoolExecutor<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span><span style="color:#f92672">,</span> <span style="color:#ae81ff">1</span><span style="color:#f92672">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">0</span>L<span style="color:#f92672">,</span> TimeUnit<span style="color:#f92672">.</span><span style="color:#a6e22e">MILLISECONDS</span><span style="color:#f92672">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">new</span> LinkedBlockingQueue<span style="color:#f92672">&lt;</span>Runnable<span style="color:#f92672">&gt;(</span><span style="color:#ae81ff">500</span><span style="color:#f92672">),</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">new</span> NamedThreadFactory<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;refresh-ipDetail&#34;</span><span style="color:#f92672">,</span> <span style="color:#f92672">(</span>ThreadGroup<span style="color:#f92672">)</span><span style="color:#66d9ef">null</span><span style="color:#f92672">,</span><span style="color:#66d9ef">false</span><span style="color:#f92672">,</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">new</span> GlobalUncaughtExceptionHandler<span style="color:#f92672">()));</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Slf4j</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">GlobalUncaughtExceptionHandler</span> <span style="color:#66d9ef">implements</span> Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">UncaughtExceptionHandler</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">uncaughtException</span><span style="color:#f92672">(</span>Thread t<span style="color:#f92672">,</span> Throwable e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>        log<span style="color:#f92672">.</span><span style="color:#a6e22e">error</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Exception in thread {} &#34;</span><span style="color:#f92672">,</span> t<span style="color:#f92672">.</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">(),</span> e<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>        e<span style="color:#f92672">.</span><span style="color:#a6e22e">printStackTrace</span><span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><p>但是在使用Spring的线程池时，由于其线程工厂无法设置任何值，我们可以采用装饰器模式。我们将Spring的线程池线程工厂传入装饰器中，并调用其创建线程的方法。然后，我们添加我们自定义的异常捕获处理器。在使用线程池时，我们替换掉Spring的线程工厂，并将本类的线程工厂进行包装传递进去，从而实现线程池的异常捕获。以下是具体实现方式的示例代码：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Slf4j</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@AllArgsConstructor</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MyThreadFactory</span> <span style="color:#66d9ef">implements</span> ThreadFactory <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> ThreadFactory factory<span style="color:#f92672">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> Thread <span style="color:#a6e22e">newThread</span><span style="color:#f92672">(</span>Runnable r<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>        Thread thread <span style="color:#f92672">=</span> factory<span style="color:#f92672">.</span><span style="color:#a6e22e">newThread</span><span style="color:#f92672">(</span>r<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>        thread<span style="color:#f92672">.</span><span style="color:#a6e22e">setUncaughtExceptionHandler</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> GlobalUncaughtExceptionHandler<span style="color:#f92672">());</span>
+</span></span><span style="display:flex;"><span>        thread<span style="color:#f92672">.</span><span style="color:#a6e22e">setDaemon</span><span style="color:#f92672">(</span><span style="color:#66d9ef">false</span><span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>        thread<span style="color:#f92672">.</span><span style="color:#a6e22e">setPriority</span><span style="color:#f92672">(</span><span style="color:#ae81ff">5</span><span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> thread<span style="color:#f92672">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Bean</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> ThreadPoolTaskExecutor <span style="color:#a6e22e">websocketExecutor</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    ThreadPoolTaskExecutor executor <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ThreadPoolTaskExecutor<span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>    executor<span style="color:#f92672">.</span><span style="color:#a6e22e">setCorePoolSize</span><span style="color:#f92672">(</span><span style="color:#ae81ff">16</span><span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>    executor<span style="color:#f92672">.</span><span style="color:#a6e22e">setMaxPoolSize</span><span style="color:#f92672">(</span><span style="color:#ae81ff">16</span><span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>    executor<span style="color:#f92672">.</span><span style="color:#a6e22e">setQueueCapacity</span><span style="color:#f92672">(</span><span style="color:#ae81ff">1000</span><span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>    executor<span style="color:#f92672">.</span><span style="color:#a6e22e">setThreadNamePrefix</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;websocket-executor-&#34;</span><span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>    executor<span style="color:#f92672">.</span><span style="color:#a6e22e">setRejectedExecutionHandler</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> ThreadPoolExecutor<span style="color:#f92672">.</span><span style="color:#a6e22e">DiscardPolicy</span><span style="color:#f92672">());</span>
+</span></span><span style="display:flex;"><span>    executor<span style="color:#f92672">.</span><span style="color:#a6e22e">setThreadFactory</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> MyThreadFactory<span style="color:#f92672">(</span>executor<span style="color:#f92672">));</span>
+</span></span><span style="display:flex;"><span>    executor<span style="color:#f92672">.</span><span style="color:#a6e22e">initialize</span><span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> executor<span style="color:#f92672">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><h3 id="线程池中的核心线程数如何确定"><strong>线程池中的核心线程数如何确定？</strong></h3>
+<blockquote>
+<p>根据以往的经验，对于CPU密集型任务，核心线程数应该等于机器的核数加一。这样可以充分利用多核CPU的计算能力，并保留一个额外的线程用于处理突发任务。对于IO密集型任务，核心线程数应该设置为两倍的CPU核数，因为IO操作通常需要较多的等待时间，可以利用多个线程同时处理。</p>
+</blockquote>
+<h3 id="当任务数超过核心线程数时如何让它直接启用最大的线程数">当任务数超过核心线程数时，如何让它直接启用最大的线程数？</h3>
+<p>首先需要了解的是默认情况下当任务数超过线程池的核心线程数时，默认会进入到队列中，等队列满了的时候才会启用线程池的最大线程数。如果想要达到直接启用线程池的最大线程数的话，首先我们要知道线程池的工作原理</p>
+<ul>
+<li>第一步：预热核心线程</li>
+<li>第二部：把任务添加到阻塞队列</li>
+<li>第三部：如何阻塞队列已满(添加失败)，则创建非核心线程增加处理效率</li>
+<li>第四部：如果非核心线程数量达到了阈值，则执行拒绝策略</li>
+</ul>
+<p>综上所述的步骤中，如果我们想要这个任务不进入到阻塞队列中。我们只需要人为手动干预第二部即可。那么这就很简单了。因为我们可以使用<code>SynchronousQueue</code>在创建线程池的时候指定线程池的阻塞队列的参数即可。
+<code>SynchronousQueue</code>队列是不能存储元素的一个队列，它的特性是没生产一个任务就需要指定一个消费者来处理这个任务，否则就会阻塞生产者。</p>
+<h3 id="线程池如何知道一个线程的任务执行完成的">线程池如何知道一个线程的任务执行完成的</h3>
+<p>首先我们需要了解的是，当我们把一个任务丢给线程池执行的时候，线程池会调度工作线程来执行这个任务的<code>run</code>方法，当任务的<code>run</code>方法正常执行结束后，也就意味着这个任务完成，所以线程池中的工作线程是通过同步调用任务的<code>run</code>方法，并且等待<code>run</code>方法的返回后，再去统计任务的完成数量。
+综上所述我们如果从外部想要获取线程池内部的任务执行状态有以下几种方法可以实现。</p>
+<h4 id="isterminated方法">isTerminated()方法</h4>
+<p>该方法是线程池内部提供的方法，通过该方法可以去判断线程池的运行状态，这样我们就可以循环去判断<code>isTerminated()</code>方法的返回值，来去获取线程池的运行状态，一旦返回的是<code>Terminated</code>就意味着线程池中的所有任务都已经执行完成了。
+但是这个方法有一个弊端：就是通过该方法获取线程状态的一个前提就是程序需要主动调用<code>shutdown()</code>方法，但是我们在实际业务是很少主动调用这个方法的主动关闭线程池的。所以该方法实用性和灵活性上有些欠佳</p>
+<h4 id="submit方法">submit()方法</h4>
+<p>线程池中有提供一个<code>submit()</code>方法，它提供了一个<strong>Future</strong>的返回值；可以通过**future.get()**去获取任务的执行结果，因为该方法在线程没有执行完之前一直都是阻塞状态，直到任务执行结束才会正常返回。因此只有该方法正常返回，才意味着传入线程池中的任务已经执行完成了。</p>
+<h4 id="countdownlatch方法">CountDownLatch方法</h4>
+<p>这是Java JUC包下的。它是一个计数器；我们可以通过初试化一个计数器进行倒计时。可以利用它提供的两个方法：<code>await()</code>方法阻塞线程，<code>countDown()</code>倒计时，一旦倒计时为0，所有被阻塞在await方法的线程都会被释放。</p>
+<h4 id="总结">总结：</h4>
+<p>其实想要获取线程是否执行完成，我们需要知道的是线程结束后的状态，而线程本身是没有返回值的。所以只能通过阻塞+唤醒的方式来实现。</p>
+<ul>
+<li>线程池的底层实现</li>
+<li>什么是守护线程/非守护线程</li>
+</ul>
+
+    </div>
+
+    <div class="post-copyright">
+             
+            <p class="copyright-item">
+                <span>Author:</span>
+                <span>派大星 </span>
+                </p>
+            
+           
+            <p class="copyright-item">
+                    <span>Words:</span>
+                   <span>753</span>
+            </p>
+
+            <p class="copyright-item">
+                
+                <span>Share:</span>
+                <span>
+
+      
+        <a href="//twitter.com/share?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-%25E7%25BA%25BF%25E7%25A8%258B%25E6%25B1%25A0%25E6%2580%25BB%25E7%25BB%2593%25E7%25AF%2587%2f&amp;text=%e5%af%b9%e7%ba%bf%e9%9d%a2%e8%af%95%e5%ae%98-%e7%ba%bf%e7%a8%8b%e6%b1%a0%28%e6%80%bb%e7%bb%93%e7%af%87%29&amp;via=" target="_blank" title="Share on Twitter">
+          <i class="iconfont icon-twitter"></i>
+        </a>
+        
+      
+      
+        <a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-%25E7%25BA%25BF%25E7%25A8%258B%25E6%25B1%25A0%25E6%2580%25BB%25E7%25BB%2593%25E7%25AF%2587%2f" target="_blank" title="Share on Facebook">
+          <i class="iconfont icon-facebook"></i>
+        </a>
+        
+      
+      
+      
+      
+        <a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-%25E7%25BA%25BF%25E7%25A8%258B%25E6%25B1%25A0%25E6%2580%25BB%25E7%25BB%2593%25E7%25AF%2587%2f&amp;title=%e5%af%b9%e7%ba%bf%e9%9d%a2%e8%af%95%e5%ae%98-%e7%ba%bf%e7%a8%8b%e6%b1%a0%28%e6%80%bb%e7%bb%93%e7%af%87%29" target="_blank" title="Share on LinkedIn">
+          <i class="iconfont icon-linkedin"></i>
+        </a>
+        
+      
+      
+        
+      
+        
+      
+
+          
+
+          
+
+          
+
+          
+
+</span>
+                
+            </p>
+
+             
+            <p class="copyright-item">
+                Released under <a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a>
+            </p>
+            
+    </div>
+
+  
+    <div class="post-tags">
+        
+        <section>
+                <a href="javascript:window.history.back();">Back</a></span> · 
+                <span><a href="http://vipbbo.com/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav">
+        
+        <a href="http://vipbbo.com/1/java-spi/" class="prev" rel="prev" title=""><i class="iconfont icon-dajiantou"></i>&nbsp;</a>
+         
+        
+        <a href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-redis%E5%85%AB-%E5%9F%BA%E4%BA%8E%E5%93%A8%E5%85%B5ha%E7%9A%84%E5%8E%9F%E7%90%86/" class="next" rel="next" title="对线面试官-Redis(八 基于哨兵HA的原理)">对线面试官-Redis(八 基于哨兵HA的原理)&nbsp;<i class="iconfont icon-xiaojiantou"></i></a>
+        
+    </div>
+
+    <div class="post-comment">
+          
+          <div id="disqus_thread"></div>
+  <script type="text/javascript">
+      (function() {
+          
+          
+          if (window.location.hostname == "localhost")
+              return;
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          var disqus_shortname = 'yourdiscussshortname';
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="https://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+ 
+
+          
+    </div>
+</article>
+          </div>
+		   </main>
+      <footer class="footer">
+    <div class="copyright">
+        &copy;
+        
+        <span itemprop="copyrightYear">2023 - 2023</span>
+        
+         
+            <span class="author" itemprop="copyrightHolder"><a href="http://vipbbo.com/">派大星</a> | </span>
+         
+
+		  <span>Crafted with ❤️ by <a href="https://github.com/Fastbyte01/KeepIt" target="_blank" rel="external nofollow noopener noreffer">KeepIt</a> & <a href="https://gohugo.io/" target="_blank" rel="external nofollow noopener noreffer">Hugo</a></span>
+    </div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    <link crossorigin="anonymous" integrity="sha384-yziQACfvCVwLqVFLqkWBYRO3XeA4EqzfXKGwaWnenYn5XzqfJFlFdKEmvutIQdKb" href="https://lib.baomitu.com/lightgallery/1.10.0/css/lightgallery.min.css" rel="stylesheet">
+      
+     <script src="/js/vendor_gallery.min.js" async="" ></script>
+    
+  
+
+
+
+
+
+
+
+     </div>
+  </body>
+</html>

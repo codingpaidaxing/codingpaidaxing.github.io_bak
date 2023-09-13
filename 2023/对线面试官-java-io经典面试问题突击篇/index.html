@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noodp"/>
+  
+  
+  
+  
+  
+  <link rel="prev" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-java%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AF%B9%E9%94%81%E7%9A%84%E4%BC%98%E5%8C%96/" />
+  <link rel="next" href="http://vipbbo.com/2023/%E5%9F%BA%E4%BA%8E%E8%87%AA%E5%AE%9A%E4%B9%89%E6%95%B0%E6%8D%AE%E6%BA%90%E7%9A%84langchain%E7%9A%84%E8%81%8A%E5%A4%A9/" />
+  <link rel="canonical" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-java-io%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%97%AE%E9%A2%98%E7%AA%81%E5%87%BB%E7%AF%87/" />
+  <link rel='shortcut icon' type='image/x-icon' href='/favicon.ico' />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <title>
+       
+       
+           对线面试官 - Java IO经典面试问题突击篇 | 码上遇见你
+       
+  </title>
+  <meta name="title" content="对线面试官 - Java IO经典面试问题突击篇 | 码上遇见你">
+    
+  
+  <link rel="stylesheet" href="/font/iconfont.css">
+  <link rel="stylesheet" href="/css/main.min.css">
+
+
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="对线面试官 - Java IO经典面试问题突击篇"/>
+<meta name="twitter:description" content="面试官：关于BIO、NIO、以及AIO有了解吗可以简单聊一聊吗？
+面试官心理分析：
+主要是想考察io这些基础知识的掌握程度，各种流的使用，
+派大星：当然可以的。
+首先聊一下BIO网络通信原理 最传统的网络通信模型就是BIO，同步阻塞式IO。通俗的讲就是服务端创建一个ServerSocket，客户端用一个Socket去连接那个Server Socket，ServerSocket接收到一个Socket的连接请求就创建一个Socket和一个线程去和那个Socket进行通信。
+客户端和服务端的Socket从而进行同步阻塞式的通信，客户端Socket发送一个请求，服务端Socket进行处理后返回响应，响应不许是等处理完后才返回的。
+这种方式最大的缺点就是，每一次客户端接入都需要在服务端创建一个线程来服务这个客服端。如果客户端较多的情况下会导致服务端的线程数量激增。从而导致服务器端程序的负载过高，甚至容易崩溃宕机。
+优化的点就是可以创建一个线程池，来固定数量处理客户端的请求。但是如果高并发请求的时候也会导致各种的请求排队和延时。毕竟没有那么多的线程去处理。
+其次聊一下NIO： JDK1.4中引入了NIO，这是一种同步非阻塞的IO。基于Reactor模型。在NiO中存在一个Buffer的概念，也就是缓冲区，一般都是将数据写入到Buffer中，然后从Buffer中读取数据。具体的Buffer有：IntBuffer、LongBuffer、CharBuffer、等多种针对于基础类型的Buffer。在NIO还有Channel的概念。NIO中都是通过Channel来进行数据读写的；还有selector，这是多路复用器，selector会不断轮询注册的Channel，如果某个Channel上发生了读写事件，selector会将这些Channel获取出来。我们便可通过selector key获取有读写的Channel，就可以进行IO操作。一个selector就通过一个线程便能轮询很多的Channel。这同时也意味着服务端可以接入很多的客户端。
+其实具体实现简单的讲就是一个线程处理大量的客户端请求，通过一个线程轮询大量的Channel，每次就获取一批有事件的Channel，然后对每个请求启动一个线程处理即可。实际使用中可以结合CachedThreadPool线程池。
+NIO的核心就是非阻塞的。selector一个线程便可以不停地轮询Channel，所有的客户端请求都不会阻塞，直接就会进来，大不了就是等待一下排队而已。
+最后说一下AIO： AIO是基于Proactor模型的。就是异步非阻塞模型。 简单来讲：每个连接发送过来的请求都会绑定一个Buffer，然后通知操作系统去异步完成读。此时运行的程序是可以处理别的请求的，等操作系统完成数据读取之后就会调用你的接口，将操作系统异步读完的数据给到你，然后便可以对这个数据进行处理并将结果返回。写的时候也是给操作系统一个Buffer，让操作系统自己获取数据去完成写操作，写完之后通知即可。
+与BIO不同的是：BIO的工作线程从Channel中读取数据是同步的，是工作线程自己完成的，同时往Channel中写回数据也是工作线程自己完成。这些动作都是同步的。 而AIO则是异步的。在AIO中工作线程读取数据的时候，只需要提供一个Buffer给操作系统，然后工作线程即可处理别的事情，读数据的动作交给操作系统，操作系统内核会去完成读取数据并将数据放入到提供的Buffer中。操作系统内核完成这一些列读数据的操作后会回调你的接口通知已经完成并将存好数据的Buffer交给工作线程。写数据同理一样的操作。
+面试官：不错，掌握的可以，那你可以说说简单聊聊什么同步阻塞、同步非阻塞、异步非阻塞吗？
+派大星：可以的，其实上面已经大致说了一些，下面我在简单阐述一下：
+为什么BIO叫同步非阻塞呢。其实这个不是针对网络编程模型来说的，是针对文件IO操作来说的，也就是磁盘文件的IO读写(FileInputStream)，因为BIO的流读写文件，指的是发起IO的请求直接hang死，必须等着IO处理完成才能返回。 NIO为什么是同步非阻塞。简单来说就是通过NIO的FileChannel发起的文件IO操作，其实是发起之后就返回了，在这期间可以处理别的事情，这就是非阻塞，只不多接下来你还是需要不断地去轮询操作系统查看IO操作是否完成了。 AIO之所以是异步非阻塞的，简单来说就是当你通过AIO发起文件IO操作之后会立马返回可以处理别的事情，等到操作系统处理完成后会通过回调告诉你已经处理完成了。不需要你主动轮询(这就是同步)。异步是操作系统主动通知你。 面试官：不错。很好。期待你加入我的团队。"/>
+
+  <script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BlogPosting",
+  "headline": "对线面试官 - Java IO经典面试问题突击篇",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http:\/\/vipbbo.com\/2023\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-java-io%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%97%AE%E9%A2%98%E7%AA%81%E5%87%BB%E7%AF%87\/"
+  },
+  "image": {
+    "@type": "ImageObject",
+    "url": "http:\/\/vipbbo.com\/cover.png",
+    "width":  800 ,
+    "height":  600 
+  },
+  "genre": "posts",
+  
+  "wordcount":  26 ,
+  "url": "http:\/\/vipbbo.com\/2023\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-java-io%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%97%AE%E9%A2%98%E7%AA%81%E5%87%BB%E7%AF%87\/",
+  "datePublished": "2023-01-13T23:05:22\u002b08:00",
+  "dateModified": "2023-01-13T23:05:22\u002b08:00",
+  
+  "publisher": {
+    "@type": "Organization",
+    "name": "Fastbyte01",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http:\/\/vipbbo.com\/logo.png",
+      "width":  127 ,
+      "height":  40 
+    }
+  },
+  "author": {
+    "@type": "Person",
+    "name": "派大星"
+  },
+  "description": ""
+}
+</script>
+</head>
+
+  
+
+
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4585280196682059"
+     crossorigin="anonymous"></script>
+
+
+  <body class="">
+    <div class="wrapper">
+        <nav class="navbar">
+    <div class="container">
+        <div class="navbar-header header-logo">
+        	<a href="http://vipbbo.com/">码上遇见你</a>
+        </div>
+        <div class="menu navbar-right">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+                <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;
+        </div>
+    </div>
+</nav>
+<nav class="navbar-mobile" id="nav-mobile" style="display: none">
+     <div class="container">
+        <div class="navbar-header">
+            <div>  <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;<a href="http://vipbbo.com/">码上遇见你</a></div>
+            <div class="menu-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+     
+          <div class="menu" id="mobile-menu">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+        </div>
+    </div>
+</nav>
+
+    	 <main class="main">
+          <div class="container">
+      		
+<article class="post-warp">
+    <header class="post-header">
+        <h1 class="post-title">对线面试官 - Java IO经典面试问题突击篇</h1>
+        <div class="post-meta">
+            Written by <a href="http://vipbbo.com/" rel="author">派大星</a> with ♥ 
+                <span class="post-time">
+                    on <time datetime=2023-01-13 >13 January 2023</time>
+                </span>
+                in
+                
+                <i class="iconfont icon-timer"></i>
+                1 min
+        </div>
+    </header>
+    <div class="post-content">
+        
+
+        
+
+        
+        
+     
+          
+          
+          
+
+          
+          
+          
+
+          <p><strong>面试官：关于BIO、NIO、以及AIO有了解吗可以简单聊一聊吗？</strong></p>
+<p>面试官心理分析：</p>
+<blockquote>
+<p>主要是想考察io这些基础知识的掌握程度，各种流的使用，</p>
+</blockquote>
+<p>派大星：当然可以的。</p>
+<ul>
+<li>首先聊一下BIO网络通信原理</li>
+</ul>
+<p>最传统的网络通信模型就是BIO，<code>同步阻塞式IO</code>。通俗的讲就是服务端创建一个ServerSocket，客户端用一个Socket去连接那个Server Socket，ServerSocket接收到一个Socket的连接请求就创建一个Socket和一个线程去和那个Socket进行通信。</p>
+<p>客户端和服务端的Socket从而进行同步阻塞式的通信，客户端Socket发送一个请求，服务端Socket进行处理后返回响应，响应不许是等处理完后才返回的。</p>
+<p>这种方式最大的缺点就是，每一次客户端接入都需要在服务端创建一个线程来服务这个客服端。如果客户端较多的情况下会导致服务端的线程数量激增。从而导致服务器端程序的负载过高，甚至容易崩溃宕机。</p>
+<p>优化的点就是可以创建一个线程池，来固定数量处理客户端的请求。但是如果高并发请求的时候也会导致各种的请求排队和延时。毕竟没有那么多的线程去处理。</p>
+<ul>
+<li>其次聊一下NIO：</li>
+</ul>
+<p>JDK1.4中引入了NIO，这是一种<code>同步非阻塞的IO</code>。基于<code>Reactor模型</code>。在NiO中存在一个<code>Buffer</code>的概念，也就是缓冲区，一般都是将数据写入到Buffer中，然后从Buffer中读取数据。具体的Buffer有：IntBuffer、LongBuffer、CharBuffer、等多种针对于基础类型的Buffer。在NIO还有<code>Channel</code>的概念。NIO中都是通过Channel来进行数据读写的；还有<code>selector</code>，这是多路复用器，selector会不断轮询注册的Channel，如果某个Channel上发生了读写事件，selector会将这些Channel获取出来。我们便可通过selector key获取有读写的Channel，就可以进行IO操作。一个selector就通过一个线程便能轮询很多的Channel。这同时也意味着服务端可以接入很多的客户端。</p>
+<p>其实具体实现简单的讲就是一个线程处理大量的客户端请求，通过一个线程轮询大量的Channel，每次就获取一批有事件的Channel，然后对每个请求启动一个线程处理即可。实际使用中可以结合<code>CachedThreadPool</code>线程池。</p>
+<p>NIO的核心就是非阻塞的。selector一个线程便可以不停地轮询Channel，所有的客户端请求都不会阻塞，直接就会进来，大不了就是等待一下排队而已。</p>
+<p>最后说一下AIO：
+AIO是基于<code>Proactor</code>模型的。就是<code>异步非阻塞模型</code>。
+简单来讲：每个连接发送过来的请求都会绑定一个Buffer，然后通知操作系统去异步完成读。此时运行的程序是可以处理别的请求的，等操作系统完成数据读取之后就会调用你的接口，将操作系统异步读完的数据给到你，然后便可以对这个数据进行处理并将结果返回。写的时候也是给操作系统一个Buffer，让操作系统自己获取数据去完成写操作，写完之后通知即可。</p>
+<p>与BIO不同的是：<strong>BIO的工作线程从Channel中读取数据是同步的，是工作线程自己完成的，同时往Channel中写回数据也是工作线程自己完成。这些动作都是同步的。</strong>
+而AIO则是异步的。在AIO中工作线程读取数据的时候，只需要提供一个Buffer给操作系统，然后工作线程即可处理别的事情，读数据的动作交给操作系统，操作系统内核会去完成读取数据并将数据放入到提供的Buffer中。操作系统内核完成这一些列读数据的操作后会回调你的接口通知已经完成并将存好数据的Buffer交给工作线程。写数据同理一样的操作。</p>
+<p><strong>面试官：不错，掌握的可以，那你可以说说简单聊聊什么同步阻塞、同步非阻塞、异步非阻塞吗？</strong></p>
+<p>派大星：可以的，其实上面已经大致说了一些，下面我在简单阐述一下：</p>
+<ul>
+<li>为什么BIO叫同步非阻塞呢。其实这个不是针对网络编程模型来说的，是针对文件IO操作来说的，也就是磁盘文件的IO读写(FileInputStream)，因为BIO的流读写文件，指的是发起IO的请求直接hang死，必须等着IO处理完成才能返回。</li>
+<li>NIO为什么是同步非阻塞。简单来说就是通过NIO的FileChannel发起的文件IO操作，其实是发起之后就返回了，在这期间可以处理别的事情，这就是非阻塞，只不多接下来你还是需要不断地去轮询操作系统查看IO操作是否完成了。</li>
+<li>AIO之所以是异步非阻塞的，简单来说就是当你通过AIO发起文件IO操作之后会立马返回可以处理别的事情，等到操作系统处理完成后会通过回调告诉你已经处理完成了。不需要你主动轮询(这就是同步)。异步是操作系统主动通知你。</li>
+</ul>
+<p>面试官：不错。很好。期待你加入我的团队。</p>
+
+    </div>
+
+    <div class="post-copyright">
+             
+            <p class="copyright-item">
+                <span>Author:</span>
+                <span>派大星 </span>
+                </p>
+            
+           
+            <p class="copyright-item">
+                    <span>Words:</span>
+                   <span>26</span>
+            </p>
+
+            <p class="copyright-item">
+                
+                <span>Share:</span>
+                <span>
+
+      
+        <a href="//twitter.com/share?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-java-io%25E7%25BB%258F%25E5%2585%25B8%25E9%259D%25A2%25E8%25AF%2595%25E9%2597%25AE%25E9%25A2%2598%25E7%25AA%2581%25E5%2587%25BB%25E7%25AF%2587%2f&amp;text=%e5%af%b9%e7%ba%bf%e9%9d%a2%e8%af%95%e5%ae%98%20-%20Java%20IO%e7%bb%8f%e5%85%b8%e9%9d%a2%e8%af%95%e9%97%ae%e9%a2%98%e7%aa%81%e5%87%bb%e7%af%87&amp;via=" target="_blank" title="Share on Twitter">
+          <i class="iconfont icon-twitter"></i>
+        </a>
+        
+      
+      
+        <a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-java-io%25E7%25BB%258F%25E5%2585%25B8%25E9%259D%25A2%25E8%25AF%2595%25E9%2597%25AE%25E9%25A2%2598%25E7%25AA%2581%25E5%2587%25BB%25E7%25AF%2587%2f" target="_blank" title="Share on Facebook">
+          <i class="iconfont icon-facebook"></i>
+        </a>
+        
+      
+      
+      
+      
+        <a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-java-io%25E7%25BB%258F%25E5%2585%25B8%25E9%259D%25A2%25E8%25AF%2595%25E9%2597%25AE%25E9%25A2%2598%25E7%25AA%2581%25E5%2587%25BB%25E7%25AF%2587%2f&amp;title=%e5%af%b9%e7%ba%bf%e9%9d%a2%e8%af%95%e5%ae%98%20-%20Java%20IO%e7%bb%8f%e5%85%b8%e9%9d%a2%e8%af%95%e9%97%ae%e9%a2%98%e7%aa%81%e5%87%bb%e7%af%87" target="_blank" title="Share on LinkedIn">
+          <i class="iconfont icon-linkedin"></i>
+        </a>
+        
+      
+      
+        
+      
+        
+      
+
+          
+
+          
+
+          
+
+          
+
+</span>
+                
+            </p>
+
+             
+            <p class="copyright-item">
+                Released under <a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a>
+            </p>
+            
+    </div>
+
+  
+    <div class="post-tags">
+        
+        <section>
+                <a href="javascript:window.history.back();">Back</a></span> · 
+                <span><a href="http://vipbbo.com/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav">
+        
+        <a href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-java%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AF%B9%E9%94%81%E7%9A%84%E4%BC%98%E5%8C%96/" class="prev" rel="prev" title="对线面试官 - Java虚拟机对锁的优化"><i class="iconfont icon-dajiantou"></i>&nbsp;对线面试官 - Java虚拟机对锁的优化</a>
+         
+        
+        <a href="http://vipbbo.com/2023/%E5%9F%BA%E4%BA%8E%E8%87%AA%E5%AE%9A%E4%B9%89%E6%95%B0%E6%8D%AE%E6%BA%90%E7%9A%84langchain%E7%9A%84%E8%81%8A%E5%A4%A9/" class="next" rel="next" title="基于自定义数据源的LangChain的聊天">基于自定义数据源的LangChain的聊天&nbsp;<i class="iconfont icon-xiaojiantou"></i></a>
+        
+    </div>
+
+    <div class="post-comment">
+          
+          <div id="disqus_thread"></div>
+  <script type="text/javascript">
+      (function() {
+          
+          
+          if (window.location.hostname == "localhost")
+              return;
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          var disqus_shortname = 'yourdiscussshortname';
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="https://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+ 
+
+          
+    </div>
+</article>
+          </div>
+		   </main>
+      <footer class="footer">
+    <div class="copyright">
+        &copy;
+        
+        <span itemprop="copyrightYear">2023 - 2023</span>
+        
+         
+            <span class="author" itemprop="copyrightHolder"><a href="http://vipbbo.com/">派大星</a> | </span>
+         
+
+		  <span>Crafted with ❤️ by <a href="https://github.com/Fastbyte01/KeepIt" target="_blank" rel="external nofollow noopener noreffer">KeepIt</a> & <a href="https://gohugo.io/" target="_blank" rel="external nofollow noopener noreffer">Hugo</a></span>
+    </div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
+    <script src="/js/vendor_no_gallery.min.js" async=""></script>
+    
+  
+
+
+
+
+
+
+
+     </div>
+  </body>
+</html>

@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noodp"/>
+  
+  
+  
+  
+  
+  <link rel="prev" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-tcp%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%A2%98/" />
+  
+  <link rel="canonical" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-hashmap/" />
+  <link rel='shortcut icon' type='image/x-icon' href='/favicon.ico' />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <title>
+       
+       
+           🔥对线面试官 - HashMap | 码上遇见你
+       
+  </title>
+  <meta name="title" content="🔥对线面试官 - HashMap | 码上遇见你">
+    
+  
+  <link rel="stylesheet" href="/font/iconfont.css">
+  <link rel="stylesheet" href="/css/main.min.css">
+
+
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="🔥对线面试官 - HashMap"/>
+<meta name="twitter:description" content="面试官：HashMap了解吗？能简单说说它的底层实现吗？
+派大星：有过了解，首先对于HashMap在1.7之前是采用的数组&#43;链表，并且根节点是一个entry节点，它的一个内部类。数据插入过程采用的是一个头插法。头插法会在扩容的过程中调用resize方法，然后又调用transfer方法，把里面的一些entry进行了一些rehash，这个过程可能会造成链表的一个循环死循环，也就是死链。最后一点就是由于它没有加锁，也会导致在多线程并发的情况下是线程不安全的。
+派大星：HashMap在1.8之后就进行了升级优化，变成了一个又链表&#43; 数组&#43;红黑树的一个数据结构，并且把原来的entry节点换成了Node节点，头插法优化成了尾插法。虽然它的插入方法有所改变但是插入顺序没有发生改变，所以不会出现1.7的一个死链。
+面试官：不错，上面看你有提到死链的问题，能简单说说1.7为什么会有死链的产生吗？
+派大星：好的。由于1.7之前的数组&#43;链表的数据结构和头插法的原因导致了在并发情况下可能会出现死链的情况。具体的表现形式为：当HashMap需要扩容的时候会将旧的HashMap的节点依次转移到新的HashMap中，假设旧的HashMap的链表是A、B、C，而新的HashMap由于采用的是头插法所以最终新的HashMap里面的链表顺序为C、B、A 。如图所示： 在这样的一个背景下，当在多线程并发的情况下，第一步假设线程T1和T2要对HashMap进行一个扩容操作看，此时T1和T2指向的都是链表的头节点A，并且T1和T2的下一个节点(T1.next和T2.next)指向的都是B节点。当线程T2时间片用完进入到休眠状态，而线程T1开始执行扩容操作一直到T1扩容完成后，线程T2才会被唤醒。这个时候最大的问题是线程T2的指向还没有变，因为是头插法，所以新的HashMap的顺序已经改变了。但对线程T2来说它是不知道的。所以它的指向元素没有发生改变。如图： 这个时候线程T2如果恢复，死循环就开始了。因为T1执行完扩容之后B节点的下一个节点是A，而线程T2的指向的首节点是A，下一个节点是B。这个顺序与新的HashMap节点顺序正好相反。T1执行完之后的顺序是B到A，而T2的顺序是A到B，这样A节点和B节点就形成了死循环 面试官：针对HashMap的死链问题有什么样的解决方案嘛？
+派大星：可以升级为JDK1.8，或者通过以下方式解决。
+使用线程安全容器ConcurrentHashMap替代（推荐使用此方案）。 使用线程安全容器Hashtable替代（性能低，不建议使用）。 使用synchronized或Lock加锁HashMap之后，再进行操作，相当于多线程排队执行（比较麻烦，也不建议使用）。 面试官：JDK1.7到1.8HashMap有什么其它的变化嘛？或者说JDK1.8的HashMap做了哪些性能优化？
+派大星：Hash算法的优化概括来说
+就是主要表现在对每个Hash值，在它的低16位中，让高低16位进行了异或运算，让它的低16位融合了高低16位的特征。从而尽量避免一些可能会出现的hash冲突，会导致元素进入数组的同一个位置 寻址算法的优化：使用与运算代替了取模，提升性能。 同时为了提升链表的优化性能增加了红黑树的数据结构，来提高HashMap的综合性能。 简单来说就是HashMap在put、get的时候进行了hash算法的优化，避免了hash冲突，同时寻址算法也进行了优化。
+面试官：你刚刚提到JDK1.8的HashMap增加了一个红黑树的数据结构。为什么采用红黑树，而不是其它的数据结构呢？
+派大星：以典型的AVL树为例，AVL树是一种高度平衡的二叉树，所以查找效率非常高，但是有就有弊，AVL树为了维持这种高度的平衡，就要付出很大的代价，就是每次插入、删除都要做调整，比较复杂且耗时，所以综合考虑虽然红黑树读取略逊于AVL树，但是维护强于AVL，空间开销与AVL类似，内容极多时略优于AVL，维护优于AVL，所以红黑树是有着良好的稳定性和完整的功能综合实力强，在诸如STL的场景中需要稳定的表现。
+面试官：不错不错。回答的很好。
+派大星：嗯呢，具体的关于HashMap的其它底层实现原理，比如HashMap如何扩容及以上问题的一些细节都可参考之前的文章： 文章地址："/>
+
+  <script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BlogPosting",
+  "headline": "🔥对线面试官 - HashMap",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http:\/\/vipbbo.com\/2023\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-hashmap\/"
+  },
+  "image": {
+    "@type": "ImageObject",
+    "url": "http:\/\/vipbbo.com\/cover.png",
+    "width":  800 ,
+    "height":  600 
+  },
+  "genre": "posts",
+  
+  "wordcount":  25 ,
+  "url": "http:\/\/vipbbo.com\/2023\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-hashmap\/",
+  "datePublished": "2023-01-13T23:05:22\u002b08:00",
+  "dateModified": "2023-01-13T23:05:22\u002b08:00",
+  
+  "publisher": {
+    "@type": "Organization",
+    "name": "Fastbyte01",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http:\/\/vipbbo.com\/logo.png",
+      "width":  127 ,
+      "height":  40 
+    }
+  },
+  "author": {
+    "@type": "Person",
+    "name": "派大星"
+  },
+  "description": ""
+}
+</script>
+</head>
+
+  
+
+
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4585280196682059"
+     crossorigin="anonymous"></script>
+
+
+  <body class="">
+    <div class="wrapper">
+        <nav class="navbar">
+    <div class="container">
+        <div class="navbar-header header-logo">
+        	<a href="http://vipbbo.com/">码上遇见你</a>
+        </div>
+        <div class="menu navbar-right">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+                <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;
+        </div>
+    </div>
+</nav>
+<nav class="navbar-mobile" id="nav-mobile" style="display: none">
+     <div class="container">
+        <div class="navbar-header">
+            <div>  <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;<a href="http://vipbbo.com/">码上遇见你</a></div>
+            <div class="menu-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+     
+          <div class="menu" id="mobile-menu">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+        </div>
+    </div>
+</nav>
+
+    	 <main class="main">
+          <div class="container">
+      		
+<article class="post-warp">
+    <header class="post-header">
+        <h1 class="post-title">🔥对线面试官 - HashMap</h1>
+        <div class="post-meta">
+            Written by <a href="http://vipbbo.com/" rel="author">派大星</a> with ♥ 
+                <span class="post-time">
+                    on <time datetime=2023-01-13 >13 January 2023</time>
+                </span>
+                in
+                
+                <i class="iconfont icon-timer"></i>
+                1 min
+        </div>
+    </header>
+    <div class="post-content">
+        
+
+        
+            
+        
+
+        
+        
+     
+          
+          
+          
+
+          
+          
+          
+
+          <p>面试官：HashMap了解吗？能简单说说它的底层实现吗？</p>
+<p>派大星：有过了解，首先对于HashMap在1.7之前是采用的<code>数组+链表</code>，并且根节点是一个entry节点，它的一个内部类。数据插入过程采用的是一个<code>头插法</code>。头插法会在扩容的过程中调用resize方法，然后又调用transfer方法，把里面的一些entry进行了一些rehash，这个过程可能会造成链表的一个循环死循环，也就是<code>死链</code>。最后一点就是由于它没有加锁，也会导致在多线程并发的情况下是线程不安全的。</p>
+<p>派大星：HashMap在1.8之后就进行了升级优化，变成了一个又<code>链表</code>+ 数组+红黑树的一个数据结构，并且把原来的entry节点换成了Node节点，头插法优化成了尾插法。虽然它的插入方法有所改变但是插入顺序没有发生改变，所以不会出现1.7的一个死链。</p>
+<p>面试官：不错，上面看你有提到死链的问题，能简单说说1.7为什么会有死链的产生吗？</p>
+<p>派大星：好的。由于1.7之前的数组+链表的数据结构和头插法的原因导致了在并发情况下可能会出现死链的情况。具体的表现形式为：当HashMap需要扩容的时候会将旧的HashMap的节点依次转移到新的HashMap中，假设旧的HashMap的链表是A、B、C，而新的HashMap由于采用的是头插法所以最终新的HashMap里面的链表顺序为C、B、A 。如图所示：
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1689738501190-d3056ca2-a81c-4910-8793-71e33bd8d319.png#averageHue=%23fbfbf9&amp;clientId=u6e7c6080-16a3-4&amp;from=paste&amp;height=671&amp;id=u6d5cddd5&amp;originHeight=671&amp;originWidth=1799&amp;originalType=binary&amp;ratio=1.25&amp;rotation=0&amp;showTitle=false&amp;size=203980&amp;status=done&amp;style=none&amp;taskId=u37c7c8d6-4ace-4f83-8ac6-45fd9d29481&amp;title=&amp;width=1799" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure>
+在这样的一个背景下，当在多线程并发的情况下，第一步假设线程T1和T2要对HashMap进行一个扩容操作看，此时T1和T2指向的都是链表的头节点A，并且T1和T2的下一个节点(T1.next和T2.next)指向的都是B节点。当线程T2时间片用完进入到休眠状态，而线程T1开始执行扩容操作一直到T1扩容完成后，线程T2才会被唤醒。这个时候最大的问题是线程T2的指向还没有变，因为是头插法，所以新的HashMap的顺序已经改变了。但对线程T2来说它是不知道的。所以它的指向元素没有发生改变。如图：
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1689753556694-8531f206-f7e1-4013-8fd7-47c165c2efae.png#averageHue=%23f8f6f5&amp;clientId=u6e7c6080-16a3-4&amp;from=paste&amp;height=688&amp;id=u656a1af5&amp;originHeight=688&amp;originWidth=1814&amp;originalType=binary&amp;ratio=1.25&amp;rotation=0&amp;showTitle=false&amp;size=184631&amp;status=done&amp;style=none&amp;taskId=ua9c4dbfa-f964-46b6-a48d-16ef3f765a5&amp;title=&amp;width=1814" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure>
+这个时候线程T2如果恢复，死循环就开始了。因为T1执行完扩容之后B节点的下一个节点是A，而线程T2的指向的首节点是A，下一个节点是B。这个顺序与新的HashMap节点顺序正好相反。T1执行完之后的顺序是B到A，而T2的顺序是A到B，这样A节点和B节点就形成了死循环
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1689753789762-868f8067-c5d2-4ff2-a1ba-1c912e678a13.png#averageHue=%23f9f6f5&amp;clientId=u6e7c6080-16a3-4&amp;from=paste&amp;height=516&amp;id=u7529f7b9&amp;originHeight=516&amp;originWidth=774&amp;originalType=binary&amp;ratio=1.25&amp;rotation=0&amp;showTitle=false&amp;size=48563&amp;status=done&amp;style=none&amp;taskId=u76ca7032-4c2f-4570-8a39-747b1586e48&amp;title=&amp;width=774" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure></p>
+<p>面试官：针对HashMap的死链问题有什么样的解决方案嘛？</p>
+<p>派大星：可以升级为JDK1.8，或者通过以下方式解决。</p>
+<ul>
+<li>使用线程安全容器ConcurrentHashMap替代（推荐使用此方案）。</li>
+<li>使用线程安全容器Hashtable替代（性能低，不建议使用）。</li>
+<li>使用synchronized或Lock加锁HashMap之后，再进行操作，相当于多线程排队执行（比较麻烦，也不建议使用）。</li>
+</ul>
+<p>面试官：JDK1.7到1.8HashMap有什么其它的变化嘛？或者说JDK1.8的HashMap做了哪些性能优化？</p>
+<p>派大星：Hash算法的优化概括来说</p>
+<ul>
+<li>就是主要表现在对每个Hash值，在它的低16位中，让高低16位进行了异或运算，让它的低16位融合了高低16位的特征。从而尽量避免一些可能会出现的hash冲突，会导致元素进入数组的同一个位置</li>
+<li>寻址算法的优化：使用与运算代替了取模，提升性能。</li>
+<li>同时为了提升链表的优化性能增加了红黑树的数据结构，来提高HashMap的综合性能。</li>
+</ul>
+<p>简单来说就是HashMap在put、get的时候进行了hash算法的优化，避免了hash冲突，同时寻址算法也进行了优化。</p>
+<p>面试官：你刚刚提到JDK1.8的HashMap增加了一个红黑树的数据结构。为什么采用红黑树，而不是其它的数据结构呢？</p>
+<p>派大星：以典型的AVL树为例，AVL树是一种高度平衡的二叉树，所以查找效率非常高，但是有就有弊，AVL树为了维持这种高度的平衡，就要付出很大的代价，就是每次插入、删除都要做调整，比较复杂且耗时，所以综合考虑虽然红黑树读取略逊于AVL树，但是维护强于AVL，空间开销与AVL类似，内容极多时略优于AVL，维护优于AVL，所以红黑树是有着良好的稳定性和完整的功能综合实力强，在诸如STL的场景中需要稳定的表现。</p>
+<p>面试官：不错不错。回答的很好。</p>
+<p>派大星：嗯呢，具体的关于HashMap的其它底层实现原理，比如HashMap如何扩容及以上问题的一些细节都可参考之前的文章：
+<strong>文章地址：</strong></p>
+
+    </div>
+
+    <div class="post-copyright">
+             
+            <p class="copyright-item">
+                <span>Author:</span>
+                <span>派大星 </span>
+                </p>
+            
+           
+            <p class="copyright-item">
+                    <span>Words:</span>
+                   <span>25</span>
+            </p>
+
+            <p class="copyright-item">
+                
+                <span>Share:</span>
+                <span>
+
+      
+        <a href="//twitter.com/share?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-hashmap%2f&amp;text=%f0%9f%94%a5%e5%af%b9%e7%ba%bf%e9%9d%a2%e8%af%95%e5%ae%98%20-%20HashMap&amp;via=" target="_blank" title="Share on Twitter">
+          <i class="iconfont icon-twitter"></i>
+        </a>
+        
+      
+      
+        <a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-hashmap%2f" target="_blank" title="Share on Facebook">
+          <i class="iconfont icon-facebook"></i>
+        </a>
+        
+      
+      
+      
+      
+        <a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-hashmap%2f&amp;title=%f0%9f%94%a5%e5%af%b9%e7%ba%bf%e9%9d%a2%e8%af%95%e5%ae%98%20-%20HashMap" target="_blank" title="Share on LinkedIn">
+          <i class="iconfont icon-linkedin"></i>
+        </a>
+        
+      
+      
+        
+      
+        
+      
+
+          
+
+          
+
+          
+
+          
+
+</span>
+                
+            </p>
+
+             
+            <p class="copyright-item">
+                Released under <a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a>
+            </p>
+            
+    </div>
+
+  
+    <div class="post-tags">
+        
+        <section>
+                <a href="javascript:window.history.back();">Back</a></span> · 
+                <span><a href="http://vipbbo.com/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav">
+        
+        <a href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-tcp%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%A2%98/" class="prev" rel="prev" title="🔥对线面试官 - TCP经典面试题"><i class="iconfont icon-dajiantou"></i>&nbsp;🔥对线面试官 - TCP经典面试题</a>
+         
+        
+    </div>
+
+    <div class="post-comment">
+          
+          <div id="disqus_thread"></div>
+  <script type="text/javascript">
+      (function() {
+          
+          
+          if (window.location.hostname == "localhost")
+              return;
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          var disqus_shortname = 'yourdiscussshortname';
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="https://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+ 
+
+          
+    </div>
+</article>
+          </div>
+		   </main>
+      <footer class="footer">
+    <div class="copyright">
+        &copy;
+        
+        <span itemprop="copyrightYear">2023 - 2023</span>
+        
+         
+            <span class="author" itemprop="copyrightHolder"><a href="http://vipbbo.com/">派大星</a> | </span>
+         
+
+		  <span>Crafted with ❤️ by <a href="https://github.com/Fastbyte01/KeepIt" target="_blank" rel="external nofollow noopener noreffer">KeepIt</a> & <a href="https://gohugo.io/" target="_blank" rel="external nofollow noopener noreffer">Hugo</a></span>
+    </div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    <link crossorigin="anonymous" integrity="sha384-yziQACfvCVwLqVFLqkWBYRO3XeA4EqzfXKGwaWnenYn5XzqfJFlFdKEmvutIQdKb" href="https://lib.baomitu.com/lightgallery/1.10.0/css/lightgallery.min.css" rel="stylesheet">
+      
+     <script src="/js/vendor_gallery.min.js" async="" ></script>
+    
+  
+
+
+
+
+
+
+
+     </div>
+  </body>
+</html>

@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noodp"/>
+  
+  
+  
+  
+  
+  <link rel="prev" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-java-io%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%97%AE%E9%A2%98%E7%AA%81%E5%87%BB%E7%AF%87/" />
+  <link rel="next" href="http://vipbbo.com/2023/spring-transaction-is-not-valid/" />
+  <link rel="canonical" href="http://vipbbo.com/2023/%E5%9F%BA%E4%BA%8E%E8%87%AA%E5%AE%9A%E4%B9%89%E6%95%B0%E6%8D%AE%E6%BA%90%E7%9A%84langchain%E7%9A%84%E8%81%8A%E5%A4%A9/" />
+  <link rel='shortcut icon' type='image/x-icon' href='/favicon.ico' />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <title>
+       
+       
+           基于自定义数据源的LangChain的聊天 | 码上遇见你
+       
+  </title>
+  <meta name="title" content="基于自定义数据源的LangChain的聊天 | 码上遇见你">
+    
+  
+  <link rel="stylesheet" href="/font/iconfont.css">
+  <link rel="stylesheet" href="/css/main.min.css">
+
+
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="基于自定义数据源的LangChain的聊天"/>
+<meta name="twitter:description" content="准备好node，pnpm环境。
+初始化项目 先创建一个空的文件夹langchain-demo，执行命令以下命令初始化一个项目。
+cd langchain-demo/ pnpm init 接下来，我们准备一个测试数据，然后将数据摄取到向量数据库中。具体步骤如下： 首先在根目录下创建一个 ingest-data.js 然后在项目根目录下执行如下命令：
+# 安装LangChain pnpm i langchain 安装完成后：修改package.json文件，如图所示，增加&quot;type&quot;: &quot;module&quot;。 读取数据 准备数据 先准备一个markdown格式的文件。可以直接在网上找一个，比如Vue3的官方文档。然后在页面文档选中一部分，打开F12通过输入命令$0.innerHTML并回车后即可获得数据。简单如图所示： 或者自行准备数据也可。 将网页中爬取的文本内容copy到 html-to-markdown网站上，转换成markdown。并将转换后的文件放在项目根目录下的vue3-document.md中，如图所示 读取数据 编辑我们在之前已经准备好的文件ingest-data.js，文件内容如下：
+// 读取markdown文件 import { UnstructuredLoader } from &#34;langchain/document_loaders/fs/unstructured&#34;; // 实例化 并传入数据的路径 const unstructuredLoader = new UnstructuredLoader(&#34;./vue3-document.md&#34;); // 读取文件，这是个promise 使用await const docs = await unstructuredLoader.load() console.log(docs) 然后通过如下命令进行验证：
+cd langchain-demo/ node ingest-data.js 执行成功结果如图所示： 切割数据 继续编写ingest-data.js具体如下：
+// 1. 读取markdown文件 import { UnstructuredLoader } from &#34;langchain/document_loaders/fs/unstructured&#34;; // 2. 文档拆分，将文档拆分成一块一块的 // 2."/>
+
+  <script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BlogPosting",
+  "headline": "基于自定义数据源的LangChain的聊天",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http:\/\/vipbbo.com\/2023\/%E5%9F%BA%E4%BA%8E%E8%87%AA%E5%AE%9A%E4%B9%89%E6%95%B0%E6%8D%AE%E6%BA%90%E7%9A%84langchain%E7%9A%84%E8%81%8A%E5%A4%A9\/"
+  },
+  "image": {
+    "@type": "ImageObject",
+    "url": "http:\/\/vipbbo.com\/cover.png",
+    "width":  800 ,
+    "height":  600 
+  },
+  "genre": "posts",
+  
+  "wordcount":  855 ,
+  "url": "http:\/\/vipbbo.com\/2023\/%E5%9F%BA%E4%BA%8E%E8%87%AA%E5%AE%9A%E4%B9%89%E6%95%B0%E6%8D%AE%E6%BA%90%E7%9A%84langchain%E7%9A%84%E8%81%8A%E5%A4%A9\/",
+  "datePublished": "2023-01-13T23:05:22\u002b08:00",
+  "dateModified": "2023-01-13T23:05:22\u002b08:00",
+  
+  "publisher": {
+    "@type": "Organization",
+    "name": "Fastbyte01",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http:\/\/vipbbo.com\/logo.png",
+      "width":  127 ,
+      "height":  40 
+    }
+  },
+  "author": {
+    "@type": "Person",
+    "name": "派大星"
+  },
+  "description": ""
+}
+</script>
+</head>
+
+  
+
+
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4585280196682059"
+     crossorigin="anonymous"></script>
+
+
+  <body class="">
+    <div class="wrapper">
+        <nav class="navbar">
+    <div class="container">
+        <div class="navbar-header header-logo">
+        	<a href="http://vipbbo.com/">码上遇见你</a>
+        </div>
+        <div class="menu navbar-right">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+                <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;
+        </div>
+    </div>
+</nav>
+<nav class="navbar-mobile" id="nav-mobile" style="display: none">
+     <div class="container">
+        <div class="navbar-header">
+            <div>  <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;<a href="http://vipbbo.com/">码上遇见你</a></div>
+            <div class="menu-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+     
+          <div class="menu" id="mobile-menu">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+        </div>
+    </div>
+</nav>
+
+    	 <main class="main">
+          <div class="container">
+      		
+<article class="post-warp">
+    <header class="post-header">
+        <h1 class="post-title">基于自定义数据源的LangChain的聊天</h1>
+        <div class="post-meta">
+            Written by <a href="http://vipbbo.com/" rel="author">派大星</a> with ♥ 
+                <span class="post-time">
+                    on <time datetime=2023-01-13 >13 January 2023</time>
+                </span>
+                in
+                
+                <i class="iconfont icon-timer"></i>
+                5 min
+        </div>
+    </header>
+    <div class="post-content">
+        
+
+        
+            
+        
+
+        
+        
+     
+          
+          
+          
+
+          
+          
+          
+
+          <p>准备好node，pnpm环境。</p>
+<h2 id="初始化项目">初始化项目</h2>
+<p>先创建一个空的文件夹<code>langchain-demo</code>，执行命令以下命令初始化一个项目。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>cd langchain<span style="color:#f92672">-</span>demo<span style="color:#f92672">/</span>
+</span></span><span style="display:flex;"><span>pnpm init
+</span></span></code></pre></div><p>接下来，我们准备一个测试数据，然后将数据摄取到向量数据库中。具体步骤如下：
+首先在根目录下创建一个 <code>ingest-data.js</code>
+然后在项目根目录下执行如下命令：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span><span style="color:#75715e"># 安装LangChain</span>
+</span></span><span style="display:flex;"><span>pnpm i langchain
+</span></span></code></pre></div><p>安装完成后：修改package.json文件，如图所示，增加<code>&quot;type&quot;: &quot;module&quot;</code>。
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1687929739831-c20b44ec-cc3c-4046-8ded-213eaa2cf43d.png#averageHue=%231f2125&amp;clientId=u3832b19a-ec4f-4&amp;from=paste&amp;height=437&amp;id=u043b6334&amp;originHeight=546&amp;originWidth=794&amp;originalType=binary&amp;ratio=1.25&amp;rotation=0&amp;showTitle=false&amp;size=49527&amp;status=done&amp;style=none&amp;taskId=u784140ee-7d55-45ca-9746-cb220cdee2b&amp;title=&amp;width=635.2" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure></p>
+<h2 id="读取数据">读取数据</h2>
+<h3 id="准备数据">准备数据</h3>
+<p>先准备一个<strong>markdown</strong>格式的文件。可以直接在网上找一个，比如Vue3的官方文档。然后在页面文档选中一部分，打开F12通过输入命令<code>$0.innerHTML</code>并回车后即可获得数据。简单如图所示：
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1687932321030-028a2345-f5b4-4522-b924-46e8c07254bd.png#averageHue=%23f1da9a&amp;clientId=u7b4fad4a-67e3-4&amp;from=paste&amp;height=698&amp;id=u5aab7fd2&amp;originHeight=872&amp;originWidth=1077&amp;originalType=binary&amp;ratio=1.25&amp;rotation=0&amp;showTitle=false&amp;size=146235&amp;status=done&amp;style=none&amp;taskId=u8a4e20b7-9665-4846-bb84-86e900464c7&amp;title=&amp;width=861.6" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure></p>
+<p><figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1687932370896-6380e787-eb63-4d80-9dbb-d84b8730503e.png#averageHue=%23ebbc79&amp;clientId=u7b4fad4a-67e3-4&amp;from=paste&amp;height=595&amp;id=u650962a3&amp;originHeight=744&amp;originWidth=1118&amp;originalType=binary&amp;ratio=1.25&amp;rotation=0&amp;showTitle=false&amp;size=198011&amp;status=done&amp;style=none&amp;taskId=uc6ee012f-310f-408c-810c-7040cc86aa9&amp;title=&amp;width=894.4" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure></p>
+<p>或者自行准备数据也可。
+将网页中爬取的文本内容copy到 <a href="https://codebeautify.org/html-to-markdown">html-to-markdown</a>网站上，转换成markdown。并将转换后的文件放在项目根目录下的<code>vue3-document.md</code>中，如图所示
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1687932602710-859d98eb-8ea1-47de-be56-7bff75bfd452.png#averageHue=%23232428&amp;clientId=u7b4fad4a-67e3-4&amp;from=paste&amp;height=769&amp;id=u25092a75&amp;originHeight=961&amp;originWidth=1732&amp;originalType=binary&amp;ratio=1.25&amp;rotation=0&amp;showTitle=false&amp;size=158693&amp;status=done&amp;style=none&amp;taskId=u581f4c77-92bc-4b80-8edd-71339a01b4d&amp;title=&amp;width=1385.6" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure></p>
+<h3 id="读取数据-1">读取数据</h3>
+<p>编辑我们在之前已经准备好的文件<code>ingest-data.js</code>，文件内容如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-javascript" data-lang="javascript"><span style="display:flex;"><span><span style="color:#75715e">// 读取markdown文件
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">UnstructuredLoader</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;langchain/document_loaders/fs/unstructured&#34;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 实例化  并传入数据的路径
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">unstructuredLoader</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">UnstructuredLoader</span>(<span style="color:#e6db74">&#34;./vue3-document.md&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 读取文件，这是个promise 使用await
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">docs</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> <span style="color:#a6e22e">unstructuredLoader</span>.<span style="color:#a6e22e">load</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">console</span>.<span style="color:#a6e22e">log</span>(<span style="color:#a6e22e">docs</span>)
+</span></span></code></pre></div><p>然后通过如下命令进行验证：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>cd langchain-demo/
+</span></span><span style="display:flex;"><span>node ingest-data.js
+</span></span></code></pre></div><p>执行成功结果如图所示：
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1687932770741-8aac8b6b-4301-4099-af62-6b3baa9c4623.png#averageHue=%23202225&amp;clientId=u7b4fad4a-67e3-4&amp;from=paste&amp;height=398&amp;id=u16e22478&amp;originHeight=497&amp;originWidth=1718&amp;originalType=binary&amp;ratio=1.25&amp;rotation=0&amp;showTitle=false&amp;size=51758&amp;status=done&amp;style=none&amp;taskId=ue98b3a64-1a2f-4eee-9295-0ad7c90444a&amp;title=&amp;width=1374.4" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure></p>
+<h2 id="切割数据">切割数据</h2>
+<p>继续编写<code>ingest-data.js</code>具体如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-javascript" data-lang="javascript"><span style="display:flex;"><span><span style="color:#75715e">// 1. 读取markdown文件
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">UnstructuredLoader</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;langchain/document_loaders/fs/unstructured&#34;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 2. 文档拆分，将文档拆分成一块一块的
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 2.1 导入langchain提供的拆分工具
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">RecursiveCharacterTextSplitter</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;langchain/text_splitter&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 1.1 实例化UnstructuredLoader  并传入数据的路径
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">unstructuredLoader</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">UnstructuredLoader</span>(<span style="color:#e6db74">&#34;./vue3-document.md&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 1.2 读取文件，这是个promise 使用await
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">rawDocs</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> <span style="color:#a6e22e">unstructuredLoader</span>.<span style="color:#a6e22e">load</span>()
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 1.3
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">console</span>.<span style="color:#a6e22e">log</span>(<span style="color:#a6e22e">rawDocs</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 2.2 实例化 RecursiveCharacterTextSplitter
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">splitter</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">RecursiveCharacterTextSplitter</span>({
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 一段文本按照1000的大小去拆分
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">chunkSize</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">1000</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 当前一段文本与上一段文本重叠的大小为200
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">chunkOverlap</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">200</span>
+</span></span><span style="display:flex;"><span>});
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 2.3 切分数据
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">docs</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> <span style="color:#a6e22e">splitter</span>.<span style="color:#a6e22e">splitDocuments</span>(<span style="color:#a6e22e">rawDocs</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 打印
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">console</span>.<span style="color:#a6e22e">log</span>(<span style="color:#a6e22e">docs</span>);
+</span></span></code></pre></div><p>然后通过如下命令进行验证：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>cd langchain-demo/
+</span></span><span style="display:flex;"><span>node ingest-data.js
+</span></span></code></pre></div><p>成功结果如图所示：<strong>对比之前多了一个 loc: [Object]</strong>
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1687945041298-c479dbec-6837-4e05-9815-ce75fedf3c79.png#averageHue=%23202225&amp;clientId=u5797f025-ae66-4&amp;from=paste&amp;height=342&amp;id=u89015632&amp;originHeight=428&amp;originWidth=1688&amp;originalType=binary&amp;ratio=1.25&amp;rotation=0&amp;showTitle=false&amp;size=49697&amp;status=done&amp;style=none&amp;taskId=ud6235688-865e-4697-90ee-42d06286333&amp;title=&amp;width=1350.4" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure></p>
+<h2 id="接入向量数据库">接入向量数据库</h2>
+<p>这里选择的向量数据库是：<code>pinecone</code>
+具体可参考官网文档自行选择：</p>
+<blockquote>
+<p><a href="https://python.langchain.com/docs/get_started/introduction.html">https://python.langchain.com/docs/get_started/introduction.html</a></p>
+</blockquote>
+<p><figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1687945274920-b9760c27-90ac-48c0-8440-53585c2e1533.png#averageHue=%23fdfdfd&amp;clientId=u5797f025-ae66-4&amp;from=paste&amp;height=667&amp;id=u0f9f73d5&amp;originHeight=834&amp;originWidth=371&amp;originalType=binary&amp;ratio=1.25&amp;rotation=0&amp;showTitle=false&amp;size=35148&amp;status=done&amp;style=none&amp;taskId=u21f5fb14-a76d-43c3-b754-507041004a8&amp;title=&amp;width=296.8" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure>
+根据官网安装手册进行安装</p>
+<blockquote>
+<p><a href="https://python.langchain.com/docs/modules/data_connection/vectorstores/integrations/pinecone">https://python.langchain.com/docs/modules/data_connection/vectorstores/integrations/pinecone</a></p>
+</blockquote>
+<p><figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1687945500822-581a1fff-b8ff-4159-a3a5-d36e6d39c213.png#averageHue=%23fdfdfd&amp;clientId=u5797f025-ae66-4&amp;from=paste&amp;height=778&amp;id=uc6b6f485&amp;originHeight=972&amp;originWidth=1860&amp;originalType=binary&amp;ratio=1.25&amp;rotation=0&amp;showTitle=false&amp;size=114397&amp;status=done&amp;style=none&amp;taskId=uedb66dcc-b608-412c-bbfc-ccdb38d525a&amp;title=&amp;width=1488" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>pip install pinecone-client openai tiktoken
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># dotenv用来读取环境变量 安装向量数据库</span>
+</span></span><span style="display:flex;"><span>pnpm install -S dotenv langchain @pinecone-database/pinecone
+</span></span></code></pre></div><h2 id="将数据写入向量数据库">将数据写入向量数据库</h2>
+<p>这里采用的是<code>Pinecone</code>向量数据库。
+首先我们要注册一个Pinecone的数据库。官网地址：</p>
+<blockquote>
+<p><a href="https://www.pinecone.io/">https://www.pinecone.io/</a></p>
+</blockquote>
+<p>注册完成后我们需要创建一个<code>Index</code>，如图所示操作：
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1687960681960-3e71ba4f-906d-4c47-8691-71cf652b9e1c.png#averageHue=%23f5c33a&amp;clientId=u24d8e7ca-046a-4&amp;from=paste&amp;height=820&amp;id=u0af23926&amp;originHeight=1640&amp;originWidth=2926&amp;originalType=binary&amp;ratio=2&amp;rotation=0&amp;showTitle=false&amp;size=374021&amp;status=done&amp;style=none&amp;taskId=u411e3db6-adc3-4082-83d2-6c580bfa4b9&amp;title=&amp;width=1463" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure>
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1687960694710-d5c60c9b-cbce-4931-852c-c38336fc7236.png#averageHue=%236b580a&amp;clientId=u24d8e7ca-046a-4&amp;from=paste&amp;height=832&amp;id=u788aab63&amp;originHeight=1664&amp;originWidth=2950&amp;originalType=binary&amp;ratio=2&amp;rotation=0&amp;showTitle=false&amp;size=364997&amp;status=done&amp;style=none&amp;taskId=u849977ce-b79b-4048-b214-d4476852117&amp;title=&amp;width=1475" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure></p>
+<blockquote>
+<p>注意文中的数字1536不要写错。</p>
+</blockquote>
+<p>同时我们要记住自己创建的<code>Index Name</code>并找到，<code>API Key</code>，以及<code>environment </code> 记下来，后面会用到。
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1687960845645-03222db9-ca54-4d3b-83dc-e2520204acd0.png#averageHue=%23e9e9e9&amp;clientId=u24d8e7ca-046a-4&amp;from=paste&amp;height=832&amp;id=ueb057909&amp;originHeight=1664&amp;originWidth=2950&amp;originalType=binary&amp;ratio=2&amp;rotation=0&amp;showTitle=false&amp;size=239595&amp;status=done&amp;style=none&amp;taskId=ub41f736c-4fdf-44b4-be70-f9dcc90491b&amp;title=&amp;width=1475" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure>
+完成上述操作后 接下来继续编辑<code>ingest-data.js</code>文件，如下所示：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-javascript" data-lang="javascript"><span style="display:flex;"><span><span style="color:#75715e">// 1. 读取markdown文件
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">UnstructuredLoader</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;langchain/document_loaders/fs/unstructured&#34;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 2. 文档拆分，将文档拆分成一块一块的
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 2.1 导入 langchain 提供的拆分工具
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">RecursiveCharacterTextSplitter</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;langchain/text_splitter&#34;</span>;
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 利用这个将数据放入向量数据库里面
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">PineconeStore</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;langchain/vectorstores/pinecone&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">OpenAIEmbeddings</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;langchain/embeddings/openai&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 3. 导入向量数据库
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">PineconeClient</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;@pinecone-database/pinecone&#34;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 读取环境变量
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">import</span> <span style="color:#a6e22e">dotenv</span> <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;dotenv&#34;</span>;
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">dotenv</span>.<span style="color:#a6e22e">config</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 1.1 实例化UnstructuredLoader  并传入数据的路径
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">unstructuredLoader</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">UnstructuredLoader</span>(<span style="color:#e6db74">&#34;./vue3-document.md&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 1.2 读取文件，这是个promise 使用await
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">rawDocs</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> <span style="color:#a6e22e">unstructuredLoader</span>.<span style="color:#a6e22e">load</span>();
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 1.3
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//console.log(rawDocs);
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 2.2 实例化 RecursiveCharacterTextSplitter
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">splitter</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">RecursiveCharacterTextSplitter</span>({
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 一段文本按照1000的大小去拆分
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">chunkSize</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">1000</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 当前一段文本与上一段文本重叠的大小为200
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">chunkOverlap</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">200</span>
+</span></span><span style="display:flex;"><span>});
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 2.3 切分数据
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">docs</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> <span style="color:#a6e22e">splitter</span>.<span style="color:#a6e22e">splitDocuments</span>(<span style="color:#a6e22e">rawDocs</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 打印
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//console.log(docs);
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 3.1 初始化 pinecone
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">pineconeClient</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">PineconeClient</span>();
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">await</span> <span style="color:#a6e22e">pineconeClient</span>.<span style="color:#a6e22e">init</span>({
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">apiKey</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">process</span>.<span style="color:#a6e22e">env</span>.<span style="color:#a6e22e">PINECONE_API_KEY</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">environment</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">process</span>.<span style="color:#a6e22e">env</span>.<span style="color:#a6e22e">PINECONE_ENV</span>,
+</span></span><span style="display:flex;"><span>});
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">pineconeIndex</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">pineconeClient</span>.<span style="color:#a6e22e">Index</span>(<span style="color:#a6e22e">process</span>.<span style="color:#a6e22e">env</span>.<span style="color:#a6e22e">PINECONE_INDEX</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">PineconeStore</span>.<span style="color:#a6e22e">fromDocuments</span>(<span style="color:#a6e22e">docs</span>, <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">OpenAIEmbeddings</span>(),{
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 向量数据库的信息
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#a6e22e">pineconeIndex</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">textKey</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;text&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">namespace</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;teach-vue3-document&#34;</span>,
+</span></span><span style="display:flex;"><span>    });
+</span></span><span style="display:flex;"><span>}<span style="color:#66d9ef">catch</span> (<span style="color:#a6e22e">e</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">console</span>.<span style="color:#a6e22e">log</span>(<span style="color:#a6e22e">e</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>同时在项目根目录下创建一个<code>.env</code>文件，文件内容如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>OPENAI_API_KEY<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;your openai key&#34;</span>
+</span></span><span style="display:flex;"><span>PINECONE_API_KEY<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;pinecone api key&#34;</span>
+</span></span><span style="display:flex;"><span>PINECONE_ENV<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;environment&#34;</span>
+</span></span><span style="display:flex;"><span>PINECONE_INDEX<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;index name&#34;</span>
+</span></span></code></pre></div><p>完成上述操作后，执行如下命令：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>cd langchain-demo/
+</span></span><span style="display:flex;"><span>node ingest-data.js
+</span></span></code></pre></div><p>运行成功结果如图所示：
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1687961106465-34b130ed-d664-4c84-a018-d9c03714025f.png#averageHue=%231d1d1d&amp;clientId=u24d8e7ca-046a-4&amp;from=paste&amp;height=294&amp;id=ue5ea8ac5&amp;originHeight=588&amp;originWidth=2892&amp;originalType=binary&amp;ratio=2&amp;rotation=0&amp;showTitle=false&amp;size=78653&amp;status=done&amp;style=none&amp;taskId=uf45cdc3e-ff92-402e-8c59-999e9b3f06d&amp;title=&amp;width=1446" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure>
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1687961138045-c335caa9-6637-4427-809f-d0138d25dcb8.png#averageHue=%23e8e7e7&amp;clientId=u24d8e7ca-046a-4&amp;from=paste&amp;height=829&amp;id=u895af103&amp;originHeight=1658&amp;originWidth=2944&amp;originalType=binary&amp;ratio=2&amp;rotation=0&amp;showTitle=false&amp;size=329653&amp;status=done&amp;style=none&amp;taskId=ub9192777-1c2a-42fa-8472-cb3a770e3ea&amp;title=&amp;width=1472" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure>
+通过Pinecone的控制台我们可以看到，文档数据已经成功的写入到了向量数据库中。</p>
+<h2 id="构建chains">构建chains</h2>
+<p>创建一个<code>chain.js</code>，内容如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-javascript" data-lang="javascript"><span style="display:flex;"><span><span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">ConversationalRetrievalQAChain</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;langchain/chains&#34;</span>;
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 导入大语言模型
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">import</span> {<span style="color:#a6e22e">OpenAI</span>} <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;langchain/llms/openai&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">PineconeClient</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;@pinecone-database/pinecone&#34;</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">PineconeStore</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;langchain/vectorstores/pinecone&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">OpenAIEmbeddings</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;langchain/embeddings/openai&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 读取环境变量
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">import</span> <span style="color:#a6e22e">dotenv</span> <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;dotenv&#34;</span>;
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">dotenv</span>.<span style="color:#a6e22e">config</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 创建大语言模型
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">model</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">OpenAI</span>({
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 准确度，越小越精准，越大越具有创造性
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">temperature</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">0</span>,
+</span></span><span style="display:flex;"><span>});
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 创建向量数据库
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">pineconeClient</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">PineconeClient</span>();
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">await</span> <span style="color:#a6e22e">pineconeClient</span>.<span style="color:#a6e22e">init</span>({
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">apiKey</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">process</span>.<span style="color:#a6e22e">env</span>.<span style="color:#a6e22e">PINECONE_API_KEY</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">environment</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">process</span>.<span style="color:#a6e22e">env</span>.<span style="color:#a6e22e">PINECONE_ENV</span>,
+</span></span><span style="display:flex;"><span>});
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">pineconeIndex</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">pineconeClient</span>.<span style="color:#a6e22e">Index</span>(<span style="color:#a6e22e">process</span>.<span style="color:#a6e22e">env</span>.<span style="color:#a6e22e">PINECONE_INDEX</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">pineconeStore</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> <span style="color:#a6e22e">PineconeStore</span>.<span style="color:#a6e22e">fromExistingIndex</span>(<span style="color:#66d9ef">new</span> <span style="color:#a6e22e">OpenAIEmbeddings</span>(), {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 向量数据库的信息
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">pineconeIndex</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">textKey</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;text&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">namespace</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;teach-vue3-document&#34;</span>,
+</span></span><span style="display:flex;"><span>});
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">chain</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">ConversationalRetrievalQAChain</span>.<span style="color:#a6e22e">fromLLM</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">model</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">pineconeStore</span>.<span style="color:#a6e22e">asRetriever</span>(),{
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 返回信息是参考了什么资料的开关 sourceDocuments:
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#a6e22e">returnSourceDocuments</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">true</span>,
+</span></span><span style="display:flex;"><span>    });
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">res</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> <span style="color:#a6e22e">chain</span>.<span style="color:#a6e22e">call</span>({
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">question</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;vue3 如何为为 reactive() 标注类型  请给我写一个demo&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 聊天历史，也就是记忆的功能
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">chat_history</span><span style="color:#f92672">:</span> [],
+</span></span><span style="display:flex;"><span>});
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">console</span>.<span style="color:#a6e22e">log</span>(<span style="color:#a6e22e">res</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// langchain 0.90版本这样写有问题，具体可参考：
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// const secondRes = await chain.call({
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//     question: &#34;能否提供更多的demo&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//     // 聊天历史，也就是记忆的功能
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//     chat_history: [
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//         &#34;vue3 如何为 ref() 标注类型 请给我写一个demo&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//         res.text
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//     ],
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// });
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">console</span>.<span style="color:#a6e22e">log</span>(<span style="color:#a6e22e">secondRes</span>);
+</span></span></code></pre></div><p>完成上述操作后，执行如下命令：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>cd langchain-demo/
+</span></span><span style="display:flex;"><span>node ingest-data.js
+</span></span></code></pre></div><p>运行结果如下：
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1687963482269-a15ab4c9-b84d-4ce8-8b99-0771944cf92d.png#averageHue=%231d1d1d&amp;clientId=u24d8e7ca-046a-4&amp;from=paste&amp;height=577&amp;id=ufcbae086&amp;originHeight=1154&amp;originWidth=2950&amp;originalType=binary&amp;ratio=2&amp;rotation=0&amp;showTitle=false&amp;size=270279&amp;status=done&amp;style=none&amp;taskId=ud061c957-1bae-424f-9c62-66ad2f427a5&amp;title=&amp;width=1475" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure>
+其实我个人认为这个结果不如人意，但是至少这样做的方向是正确的。</p>
+<h2 id="构建后端">构建后端</h2>
+<ol>
+<li>使用koa-setup构建后端</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-javascript" data-lang="javascript"><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#a6e22e">安装koa</span><span style="color:#f92672">-</span><span style="color:#a6e22e">setup</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">npm</span> <span style="color:#a6e22e">install</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">g</span> <span style="color:#a6e22e">koa</span><span style="color:#f92672">-</span><span style="color:#a6e22e">setup</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">koa</span><span style="color:#f92672">-</span><span style="color:#a6e22e">setup</span>
+</span></span></code></pre></div><p>如图：
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1688211908722-2fb5bdf6-19d7-4930-8321-effaa3135c05.png#averageHue=%23212020&amp;clientId=u51685da5-b2e5-4&amp;from=paste&amp;height=729&amp;id=ud1ac3275&amp;originHeight=1458&amp;originWidth=2904&amp;originalType=binary&amp;ratio=2&amp;rotation=0&amp;showTitle=false&amp;size=452293&amp;status=done&amp;style=none&amp;taskId=u15097a86-6867-4c69-86c8-95ece56f45e&amp;title=&amp;width=1452" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure></p>
+<ol start="2">
+<li>然后修改生成的<code>server</code>文件夹中的<code>package.json</code>文件中的type为module。并添加**&ldquo;dev&rdquo;: &ldquo;nodemon index.js&quot;�**如图：</li>
+</ol>
+<p><figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1688212416124-8565efb8-c7c7-4bce-a47a-4f347ab5f54c.png#averageHue=%23434434&amp;clientId=u51685da5-b2e5-4&amp;from=paste&amp;height=548&amp;id=uc2e92798&amp;originHeight=1096&amp;originWidth=2244&amp;originalType=binary&amp;ratio=2&amp;rotation=0&amp;showTitle=false&amp;size=277546&amp;status=done&amp;style=none&amp;taskId=u8f8fed17-083f-47ed-a0b1-8cbd083967d&amp;title=&amp;width=1122" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure></p>
+<ol start="3">
+<li>修改server文件夹下的<code>index.js</code>文件，如下：</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-javascript" data-lang="javascript"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">import</span> <span style="color:#a6e22e">Koa</span> <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;koa&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">import</span> <span style="color:#a6e22e">Router</span> <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;koa-router&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">koaBody</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;koa-body&#34;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// const Koa = require(&#34;koa&#34;)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// const Router = require(&#34;koa-router&#34;)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// const koaBody = require(&#34;koa-body&#34;)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">app</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">Koa</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">use</span>(<span style="color:#a6e22e">koaBody</span>({
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">multipart</span><span style="color:#f92672">:</span><span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>}))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">router</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">Router</span>()
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">router</span>.<span style="color:#a6e22e">get</span>(<span style="color:#e6db74">&#34;/&#34;</span>,(<span style="color:#a6e22e">ctx</span>)=&gt;{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">body</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;hello server&#34;</span>
+</span></span><span style="display:flex;"><span>})
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">use</span>(<span style="color:#a6e22e">router</span>.<span style="color:#a6e22e">routes</span>())
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">listen</span>(<span style="color:#ae81ff">8080</span>,()=&gt;{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">console</span>.<span style="color:#a6e22e">log</span>(<span style="color:#e6db74">&#34;open server localhost:8080&#34;</span>)
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><ol start="4">
+<li>安装nodemon</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>cd server/
+</span></span><span style="display:flex;"><span>pnpm i nodemon -D
+</span></span></code></pre></div><blockquote>
+<p>nodemon类似于热部署，修改代码无需重新启动。</p>
+</blockquote>
+<p><figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1688212566395-09faed8c-0747-4f40-8f80-f0af914743bd.png#averageHue=%23202020&amp;clientId=u51685da5-b2e5-4&amp;from=paste&amp;height=555&amp;id=ua3b94765&amp;originHeight=1110&amp;originWidth=2278&amp;originalType=binary&amp;ratio=2&amp;rotation=0&amp;showTitle=false&amp;size=197599&amp;status=done&amp;style=none&amp;taskId=u925b6f0c-826f-4d7e-855b-c310cca5639&amp;title=&amp;width=1139" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure></p>
+<ol start="5">
+<li>启动项目</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>pnpm dev
+</span></span></code></pre></div><p>启动成功:
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1688212676605-01ae1171-3fe8-43e1-bd36-cc8ed851df2f.png#averageHue=%231d1d1c&amp;clientId=u51685da5-b2e5-4&amp;from=paste&amp;height=304&amp;id=uf792d956&amp;originHeight=608&amp;originWidth=1872&amp;originalType=binary&amp;ratio=2&amp;rotation=0&amp;showTitle=false&amp;size=97161&amp;status=done&amp;style=none&amp;taskId=u6650ece4-e984-44cc-9d26-dbb743f6669&amp;title=&amp;width=936" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure>
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1688212743260-31f771f0-4820-4cb3-af25-89ad613cc9e9.png#averageHue=%23afafaf&amp;clientId=u51685da5-b2e5-4&amp;from=paste&amp;height=164&amp;id=u74d0d1c0&amp;originHeight=328&amp;originWidth=788&amp;originalType=binary&amp;ratio=2&amp;rotation=0&amp;showTitle=false&amp;size=26408&amp;status=done&amp;style=none&amp;taskId=u37d03532-c7d3-4c9f-b875-4f7e968dc25&amp;title=&amp;width=394" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure></p>
+<h2 id="构建api">构建API</h2>
+<p>将<code>chat.js</code> <code>ingest-data.js</code> <code>vue3-document.md</code> <code>.env</code>文件移动到server文件夹下，如图：
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1688213812480-d749b165-aee9-4863-81ac-f3bca589efa6.png#averageHue=%234e653c&amp;clientId=u51685da5-b2e5-4&amp;from=paste&amp;height=1210&amp;id=ubc4b0a25&amp;originHeight=1210&amp;originWidth=1758&amp;originalType=binary&amp;ratio=2&amp;rotation=0&amp;showTitle=false&amp;size=182205&amp;status=done&amp;style=none&amp;taskId=u777daf54-368f-4fac-97f3-753f67e8733&amp;title=&amp;width=1758" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure>
+然后修改index.js和chat.js，详情如下：
+index.js</p>
+<pre tabindex="0"><code>import Koa from &#34;koa&#34;
+import Router from &#34;koa-router&#34;
+import { koaBody } from &#34;koa-body&#34;;
+import { chat } from &#34;./chain.js&#34;;
+
+
+// const Koa = require(&#34;koa&#34;)
+// const Router = require(&#34;koa-router&#34;)
+// const koaBody = require(&#34;koa-body&#34;)
+
+
+const app = new Koa()
+
+app.use(koaBody({
+    multipart:true
+}))
+
+
+const router = new Router()
+router.get(&#34;/&#34;,(ctx)=&gt;{
+    ctx.body = &#34;hello server&#34;
+})
+
+// 编写接口
+router.post(&#34;/chat&#34;,async (ctx) =&gt; {
+    const { message } = ctx.request.body;
+    const result  = await chat(message)
+
+    ctx.body = {
+        data: result,
+        state: 1,
+    }
+})
+
+app.use(router.routes())
+
+
+app.listen(8080,()=&gt;{
+    console.log(&#34;open server localhost:8080&#34;)
+})
+</code></pre><p>�chat.js</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-javascript" data-lang="javascript"><span style="display:flex;"><span><span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">ConversationalRetrievalQAChain</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;langchain/chains&#34;</span>;
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 导入大语言模型
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">import</span> {<span style="color:#a6e22e">OpenAI</span>} <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;langchain/llms/openai&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">PineconeClient</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;@pinecone-database/pinecone&#34;</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">PineconeStore</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;langchain/vectorstores/pinecone&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">OpenAIEmbeddings</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;langchain/embeddings/openai&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 读取环境变量
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">import</span> <span style="color:#a6e22e">dotenv</span> <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;dotenv&#34;</span>;
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">dotenv</span>.<span style="color:#a6e22e">config</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 创建大语言模型
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">model</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">OpenAI</span>({
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 准确度，越小越精准，越大越具有创造性
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">temperature</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">0</span>,
+</span></span><span style="display:flex;"><span>});
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 创建向量数据库
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">pineconeClient</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">PineconeClient</span>();
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">await</span> <span style="color:#a6e22e">pineconeClient</span>.<span style="color:#a6e22e">init</span>({
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">apiKey</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">process</span>.<span style="color:#a6e22e">env</span>.<span style="color:#a6e22e">PINECONE_API_KEY</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">environment</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">process</span>.<span style="color:#a6e22e">env</span>.<span style="color:#a6e22e">PINECONE_ENV</span>,
+</span></span><span style="display:flex;"><span>});
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">pineconeIndex</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">pineconeClient</span>.<span style="color:#a6e22e">Index</span>(<span style="color:#a6e22e">process</span>.<span style="color:#a6e22e">env</span>.<span style="color:#a6e22e">PINECONE_INDEX</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">pineconeStore</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> <span style="color:#a6e22e">PineconeStore</span>.<span style="color:#a6e22e">fromExistingIndex</span>(<span style="color:#66d9ef">new</span> <span style="color:#a6e22e">OpenAIEmbeddings</span>(), {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 向量数据库的信息
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">pineconeIndex</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">textKey</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;text&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">namespace</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;teach-vue3-document&#34;</span>,
+</span></span><span style="display:flex;"><span>});
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">chain</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">ConversationalRetrievalQAChain</span>.<span style="color:#a6e22e">fromLLM</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">model</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">pineconeStore</span>.<span style="color:#a6e22e">asRetriever</span>(),{
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 返回信息是参考了什么资料的开关 sourceDocuments:
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#a6e22e">returnSourceDocuments</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">true</span>,
+</span></span><span style="display:flex;"><span>    });
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">export</span> <span style="color:#66d9ef">async</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">chat</span>(<span style="color:#a6e22e">message</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">res</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> <span style="color:#a6e22e">chain</span>.<span style="color:#a6e22e">call</span>({
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">question</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">message</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 聊天历史，也就是记忆的功能
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#a6e22e">chat_history</span><span style="color:#f92672">:</span> [],
+</span></span><span style="display:flex;"><span>    });
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">res</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>然后启动运行<code>pnpm dev</code>并使用postman访问接口 &ldquo;/chat&rdquo; 如图：</p>
+<h2 id="构建前端">构建前端</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>pnpm create vite
+</span></span></code></pre></div><p><figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1688214148693-645ab596-5f08-40ad-917e-18672b1e8bce.png#averageHue=%23252525&amp;clientId=u51685da5-b2e5-4&amp;from=paste&amp;height=936&amp;id=ua8859a57&amp;originHeight=936&amp;originWidth=2130&amp;originalType=binary&amp;ratio=2&amp;rotation=0&amp;showTitle=false&amp;size=118308&amp;status=done&amp;style=none&amp;taskId=u19433581-b11b-4d6e-bc41-2add1dbd263&amp;title=&amp;width=2130" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure>
+安装组件<code>tailwindcss</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>cd client/
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>pnpm install -D tailwindcss@latest postcss@latest autoprefixer@latest
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 执行init</span>
+</span></span><span style="display:flex;"><span>npx tailwindcss init -p
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 安装axios 后续使用</span>
+</span></span><span style="display:flex;"><span>pnpm i axios
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 安装 marked marked 是一个流行的 JavaScript 库，用于将 Markdown 文本转换为 HTML</span>
+</span></span><span style="display:flex;"><span>pnpm install marked
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>pnpm install --save-dev @types/marked
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>pnpm install typescript --save-dev
+</span></span></code></pre></div><p>在<code>tailwind.config.js</code>添加配置（参考官网：<a href="https://v2.tailwindcss.com/docs/guides/vue-3-vite">https://v2.tailwindcss.com/docs/guides/vue-3-vite</a>）</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>purge: <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;./index.html&#34;</span>, <span style="color:#e6db74">&#34;./src/**/*.{vue,js,ts,jsx,tsx}&#34;</span><span style="color:#f92672">]</span>,
+</span></span></code></pre></div><p>修改style.css 文件（参考官网：<a href="https://v2.tailwindcss.com/docs/guides/vue-3-vite">https://v2.tailwindcss.com/docs/guides/vue-3-vite</a>）</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-css" data-lang="css"><span style="display:flex;"><span>@<span style="color:#66d9ef">tailwind</span> <span style="color:#f92672">base</span>;
+</span></span><span style="display:flex;"><span>@<span style="color:#66d9ef">tailwind</span> <span style="color:#f92672">components</span>;
+</span></span><span style="display:flex;"><span>@<span style="color:#66d9ef">tailwind</span> <span style="color:#f92672">utilities</span>;
+</span></span></code></pre></div><p>然后在<code>App.vue</code>中编写Hello World。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-vue" data-lang="vue"><span style="display:flex;"><span>&lt;<span style="color:#f92672">script</span> <span style="color:#a6e22e">setup</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">script</span>&gt;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">template</span>&gt;
+</span></span><span style="display:flex;"><span>  &lt;<span style="color:#f92672">div</span> <span style="color:#a6e22e">class</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;text-blue-400&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Hello</span> <span style="color:#a6e22e">World</span>
+</span></span><span style="display:flex;"><span>  &lt;/<span style="color:#f92672">div</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">template</span>&gt;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">style</span> <span style="color:#a6e22e">scoped</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">style</span>&gt;
+</span></span></code></pre></div><p>启动</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>cd client/
+</span></span><span style="display:flex;"><span>pnpm dev
+</span></span></code></pre></div><p>页面如下：
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1688221217206-bd71a48b-81ad-486b-97cd-db316a9d0b41.png#averageHue=%23e0e0e0&amp;clientId=u51685da5-b2e5-4&amp;from=paste&amp;height=1202&amp;id=u37c0fd29&amp;originHeight=1202&amp;originWidth=1348&amp;originalType=binary&amp;ratio=2&amp;rotation=0&amp;showTitle=false&amp;size=51523&amp;status=done&amp;style=none&amp;taskId=u8ba12df8-95df-419c-8531-c855d80d843&amp;title=&amp;width=1348" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure>
+接下来编写视图，(前端组件、js等)
+viteproxy文档：<a href="https://cn.vitejs.dev/config/server-options.html">https://cn.vitejs.dev/config/server-options.html</a></p>
+<p>源码获取：微信搜索【码上遇见你】回复【langchain-demo】
+具体可参考一个博主的GitHub：<a href="https://github.com/cuixiaorui/vue3-ai-assistant">https://github.com/cuixiaorui/vue3-ai-assistant</a></p>
+<p>上述文章也是依据此作整理的。侵权删之。</p>
+
+    </div>
+
+    <div class="post-copyright">
+             
+            <p class="copyright-item">
+                <span>Author:</span>
+                <span>派大星 </span>
+                </p>
+            
+           
+            <p class="copyright-item">
+                    <span>Words:</span>
+                   <span>855</span>
+            </p>
+
+            <p class="copyright-item">
+                
+                <span>Share:</span>
+                <span>
+
+      
+        <a href="//twitter.com/share?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%259F%25BA%25E4%25BA%258E%25E8%2587%25AA%25E5%25AE%259A%25E4%25B9%2589%25E6%2595%25B0%25E6%258D%25AE%25E6%25BA%2590%25E7%259A%2584langchain%25E7%259A%2584%25E8%2581%258A%25E5%25A4%25A9%2f&amp;text=%e5%9f%ba%e4%ba%8e%e8%87%aa%e5%ae%9a%e4%b9%89%e6%95%b0%e6%8d%ae%e6%ba%90%e7%9a%84LangChain%e7%9a%84%e8%81%8a%e5%a4%a9&amp;via=" target="_blank" title="Share on Twitter">
+          <i class="iconfont icon-twitter"></i>
+        </a>
+        
+      
+      
+        <a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%259F%25BA%25E4%25BA%258E%25E8%2587%25AA%25E5%25AE%259A%25E4%25B9%2589%25E6%2595%25B0%25E6%258D%25AE%25E6%25BA%2590%25E7%259A%2584langchain%25E7%259A%2584%25E8%2581%258A%25E5%25A4%25A9%2f" target="_blank" title="Share on Facebook">
+          <i class="iconfont icon-facebook"></i>
+        </a>
+        
+      
+      
+      
+      
+        <a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%259F%25BA%25E4%25BA%258E%25E8%2587%25AA%25E5%25AE%259A%25E4%25B9%2589%25E6%2595%25B0%25E6%258D%25AE%25E6%25BA%2590%25E7%259A%2584langchain%25E7%259A%2584%25E8%2581%258A%25E5%25A4%25A9%2f&amp;title=%e5%9f%ba%e4%ba%8e%e8%87%aa%e5%ae%9a%e4%b9%89%e6%95%b0%e6%8d%ae%e6%ba%90%e7%9a%84LangChain%e7%9a%84%e8%81%8a%e5%a4%a9" target="_blank" title="Share on LinkedIn">
+          <i class="iconfont icon-linkedin"></i>
+        </a>
+        
+      
+      
+        
+      
+        
+      
+
+          
+
+          
+
+          
+
+          
+
+</span>
+                
+            </p>
+
+             
+            <p class="copyright-item">
+                Released under <a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a>
+            </p>
+            
+    </div>
+
+  
+    <div class="post-tags">
+        
+        <section>
+                <a href="javascript:window.history.back();">Back</a></span> · 
+                <span><a href="http://vipbbo.com/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav">
+        
+        <a href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-java-io%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%97%AE%E9%A2%98%E7%AA%81%E5%87%BB%E7%AF%87/" class="prev" rel="prev" title="对线面试官 - Java IO经典面试问题突击篇"><i class="iconfont icon-dajiantou"></i>&nbsp;对线面试官 - Java IO经典面试问题突击篇</a>
+         
+        
+        <a href="http://vipbbo.com/2023/spring-transaction-is-not-valid/" class="next" rel="next" title="关于Spring中事务未生效的场景">关于Spring中事务未生效的场景&nbsp;<i class="iconfont icon-xiaojiantou"></i></a>
+        
+    </div>
+
+    <div class="post-comment">
+          
+          <div id="disqus_thread"></div>
+  <script type="text/javascript">
+      (function() {
+          
+          
+          if (window.location.hostname == "localhost")
+              return;
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          var disqus_shortname = 'yourdiscussshortname';
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="https://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+ 
+
+          
+    </div>
+</article>
+          </div>
+		   </main>
+      <footer class="footer">
+    <div class="copyright">
+        &copy;
+        
+        <span itemprop="copyrightYear">2023 - 2023</span>
+        
+         
+            <span class="author" itemprop="copyrightHolder"><a href="http://vipbbo.com/">派大星</a> | </span>
+         
+
+		  <span>Crafted with ❤️ by <a href="https://github.com/Fastbyte01/KeepIt" target="_blank" rel="external nofollow noopener noreffer">KeepIt</a> & <a href="https://gohugo.io/" target="_blank" rel="external nofollow noopener noreffer">Hugo</a></span>
+    </div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    <link crossorigin="anonymous" integrity="sha384-yziQACfvCVwLqVFLqkWBYRO3XeA4EqzfXKGwaWnenYn5XzqfJFlFdKEmvutIQdKb" href="https://lib.baomitu.com/lightgallery/1.10.0/css/lightgallery.min.css" rel="stylesheet">
+      
+     <script src="/js/vendor_gallery.min.js" async="" ></script>
+    
+  
+
+
+
+
+
+
+
+     </div>
+  </body>
+</html>

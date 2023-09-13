@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noodp"/>
+  
+  
+  
+  
+  
+  <link rel="prev" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%A1%AC%E4%BB%B6%E7%BA%A7%E5%88%AB%E4%B9%8B%E5%86%8D%E8%B0%88volatile%E5%85%B3%E9%94%AE%E5%AD%97%E7%9A%84%E5%8F%AF%E8%A7%81%E6%80%A7/" />
+  <link rel="next" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-tcp_ip%E5%9B%9B%E5%B1%82%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%9E%8B%E7%BB%8F%E5%85%B8%E8%BF%9E%E7%8E%AF%E9%97%AE/" />
+  <link rel="canonical" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E5%90%84%E4%B8%AAmq%E7%9A%84%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%A2%98/" />
+  <link rel='shortcut icon' type='image/x-icon' href='/favicon.ico' />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <title>
+       
+       
+           对线面试官 - 各个MQ的经典面试题 | 码上遇见你
+       
+  </title>
+  <meta name="title" content="对线面试官 - 各个MQ的经典面试题 | 码上遇见你">
+    
+  
+  <link rel="stylesheet" href="/font/iconfont.css">
+  <link rel="stylesheet" href="/css/main.min.css">
+
+
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="对线面试官 - 各个MQ的经典面试题"/>
+<meta name="twitter:description" content="书接上文继续聊聊MQ的问题吧。
+面试官：继上次聊的MQ的问题，想再问问有了解过MQ如何保证其高可用行吗？这个可以简单聊聊吗
+派大星：当然可以。
+首先说一说Rabbit MQ的高可用性 Rabbit MQ有三种模式**：单机模式-（demo级别的，生产很少使用，这里就无需再说啦）、**普通集群模式以及镜像集群模式
+简单说一下普通集群模式：它是非分布式非高可用。意思就是在多个机器上启动多个Rabbit MQ实例，每个机器启动一个，但是你创建的queue只会放在一个Rabbit MQ实例上，但是每个实例都去同步queue的元数据。这样在你消费的时候实际上如果连接到了另外一个实例，那么这个实例会去queue所在的实例上将数据拉取过来。这种方式很麻烦并且没有做到所谓的分布式，就是普通的集群。这样会导致要么消费者每次随机连接一个实例然后拉取数据，要么就固定连接那个queue的实例消费数据，前者有数据拉取的开销，后者导致单实例的瓶颈。 它的优点是这种模式只是提高了消费者消费的吞吐量。缺点也显而易见：其一就是可能会在Rabbit MQ集群内部产生大量的数据传输，再者就是可用性没有什么保障，如果queue所在的节点宕机了，数据就丢失了，因为那个queue所在的实例包含元数据和实际数据。
+接着说一下镜像集群模式简单如图所示： 这种模式才是所谓的Rabbit MQ真正的高可用模式，与普通集群模式不同的是：你创建的queue无论是元数据还是queue的消息会存在于多个实例上，每次写消息到queue的时候，都会自动把消息与多个实例的queue进行消息同步。 它的优点就是其中某个机器宕机了，别的机器还可以继续提供服务。缺点：这个性能相比较而言开销较大，消息需要同步所有消息。导致网络带宽压力和消耗很重。还有一点就是所谓的扩展性几乎没有，因为假设某个queue的数据负载很重，加机器无法线性去扩展queue。
+面试官：嗯，不错。那你知道如何开启Rabbit MQ的镜像模式吗？
+派大星：其实就是在管理控制台新增一个镜像集群的策略，要求所有节点同步数据。
+面试官：嗯，可以。那你知道Kafka的高可用性如何保证吗？
+派大星：首先我们要有个基本的认识，简单如图所示： 我们都知道Kafka是多个broker组成，每个broker是一个节点，你创建一个topic，这个topic可以划分为多个partition，每个partition可以存在不同的broker上，每个partition就放一部分数据。天然的分布式消息队列。因为一个topic数据是分散在多个机器上的。每个机器之存放一部分数据。
+Tip：
+Kafka0.8之前是没有HA（高可用）机制的。就是任何一个broker宕机了，那么这个broker上的partition就废了，没法写也没有办法读。 Kafka0.8以后，提供了HA机制，就是replica副本机制，每个partition的数据都会同步到其它机器上，形成自己的多个replica副本。然后所有replica会选举出一个leader出来，那么生产和消费都和这个leader打交道，然后其它的replica就是follower。写的时候leader只负责把数据同步到follwer上，读的时候直接读leader。如果leader宕机follwer会变成leader，follwer变成leader过程无法提供对外服务。
+面试官：很好，那在生产环境中如何保证消息不被重复消费呢？或者说如何保证消息的幂等性。
+派大星：首先针对于Kafka来说，出现这种情况的原因是：消费者offset没来得及提交导致重复消费。 大致可参考下图： 面试官：那你能说说针对幂等性问题有什么解决方案吗？
+派大星：方案需要根据不同的场景做不同的应对。 情况一：如何生产者不重复发送消息到MQ。可以通过让mq内部可以为每条消息生成一个全局唯一、与业务无关的消息id，当mq接收到消息时，会先根据该id判断消息是否重复发送，mq再决定是否接收该消息。 情况二：如何保证消费者不重复消费。其重点在于如何让消费者保证不重复消费的关键在于消费者端做控制，因为MQ不能保证不重复发送消息，所以应该在消费者端控制：即使MQ重复发送了消息，消费者拿到了消息之后，要判断是否已经消费过，如果已经消费，直接丢弃。所以根据实际业务情况，有下面几种方式：
+如果从MQ拿到数据是要存到数据库，那么可以根据数据创建唯一约束，这样的话，同样的数据从MQ发送过来之后，当插入数据库的时候，会报违反唯一约束，不会插入成功的。（或者可以先查一次，是否在数据库中已经保存了，如果能查到，那就直接丢弃就好了）。 让生产者发送消息时，每条消息加一个全局的唯一id，然后消费时，将该id保存到redis里面。消费时先去redis里面查一下有么有，没有再消费。（其实原理跟第一点差不多）。 如果拿到的数据是直接放到redis的set中的话，那就不用考虑了，因为set集合就是自动有去重的。 面试官：不错。可不可以再聊聊不同MQ如何保证消息传输的可靠性呢？或者说如何处理消息丢失的问题。
+派大星：额&hellip; .要不下次说吧。这次有点累啦。"/>
+
+  <script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BlogPosting",
+  "headline": "对线面试官 - 各个MQ的经典面试题",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http:\/\/vipbbo.com\/2023\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E5%90%84%E4%B8%AAmq%E7%9A%84%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%A2%98\/"
+  },
+  "image": {
+    "@type": "ImageObject",
+    "url": "http:\/\/vipbbo.com\/cover.png",
+    "width":  800 ,
+    "height":  600 
+  },
+  "genre": "posts",
+  
+  "wordcount":  38 ,
+  "url": "http:\/\/vipbbo.com\/2023\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E5%90%84%E4%B8%AAmq%E7%9A%84%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%A2%98\/",
+  "datePublished": "2023-01-13T23:05:22\u002b08:00",
+  "dateModified": "2023-01-13T23:05:22\u002b08:00",
+  
+  "publisher": {
+    "@type": "Organization",
+    "name": "Fastbyte01",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http:\/\/vipbbo.com\/logo.png",
+      "width":  127 ,
+      "height":  40 
+    }
+  },
+  "author": {
+    "@type": "Person",
+    "name": "派大星"
+  },
+  "description": ""
+}
+</script>
+</head>
+
+  
+
+
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4585280196682059"
+     crossorigin="anonymous"></script>
+
+
+  <body class="">
+    <div class="wrapper">
+        <nav class="navbar">
+    <div class="container">
+        <div class="navbar-header header-logo">
+        	<a href="http://vipbbo.com/">码上遇见你</a>
+        </div>
+        <div class="menu navbar-right">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+                <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;
+        </div>
+    </div>
+</nav>
+<nav class="navbar-mobile" id="nav-mobile" style="display: none">
+     <div class="container">
+        <div class="navbar-header">
+            <div>  <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;<a href="http://vipbbo.com/">码上遇见你</a></div>
+            <div class="menu-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+     
+          <div class="menu" id="mobile-menu">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+        </div>
+    </div>
+</nav>
+
+    	 <main class="main">
+          <div class="container">
+      		
+<article class="post-warp">
+    <header class="post-header">
+        <h1 class="post-title">对线面试官 - 各个MQ的经典面试题</h1>
+        <div class="post-meta">
+            Written by <a href="http://vipbbo.com/" rel="author">派大星</a> with ♥ 
+                <span class="post-time">
+                    on <time datetime=2023-01-13 >13 January 2023</time>
+                </span>
+                in
+                
+                <i class="iconfont icon-timer"></i>
+                1 min
+        </div>
+    </header>
+    <div class="post-content">
+        
+
+        
+            
+        
+
+        
+        
+     
+          
+          
+          
+
+          
+          
+          
+
+          <p>书接上文继续聊聊MQ的问题吧。</p>
+<p><strong>面试官：继上次聊的MQ的问题，想再问问有了解过MQ如何保证其高可用行吗？这个可以简单聊聊吗</strong></p>
+<p>派大星：当然可以。</p>
+<ol>
+<li>首先说一说Rabbit MQ的高可用性</li>
+</ol>
+<p>Rabbit MQ有三种模式**：<strong><code>单机模式</code></strong>-（d<strong>emo级别的，生产很少使用，这里就无需再说啦</strong>）、**<code>普通集群模式</code>以及<code>镜像集群模式</code></p>
+<ul>
+<li>简单说一下<code>普通集群模式</code>：它是<code>非分布式非高可用</code>。意思就是在多个机器上启动多个Rabbit MQ实例，每个机器启动一个，但是你创建的queue只会放在一个Rabbit MQ实例上，但是每个实例都去同步queue的元数据。这样在你消费的时候实际上如果连接到了另外一个实例，那么这个实例会去queue所在的实例上将数据拉取过来。这种方式很麻烦并且没有做到所谓的分布式，就是普通的集群。这样会导致<strong>要么消费者每次随机连接一个实例然后拉取数据</strong>，<strong>要么就固定连接那个queue的实例消费数据，前者有数据拉取的开销，后者导致单实例的瓶颈。</strong></li>
+</ul>
+<p>它的优点是这种模式只是<strong>提高了消费者消费的吞吐量。<strong>缺点也显而易见</strong>：<strong>其一就是</strong>可能会在Rabbit MQ集群内部产生大量的数据传输，<strong>再者就是</strong>可用性没有什么保障，如果queue所在的节点宕机了，数据就丢失了，因为那个queue所在的实例包含元数据和实际数据。</strong></p>
+<ul>
+<li>接着说一下<code>镜像集群模式</code><strong>简单如图所示：</strong></li>
+</ul>
+<p><figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1684938182299-da71fb9a-c645-477f-8272-dd675e5d721d.png#averageHue=%23dadada&amp;clientId=u5d5ea9f9-25c5-4&amp;from=paste&amp;height=490&amp;id=anb6e&amp;originHeight=980&amp;originWidth=2304&amp;originalType=binary&amp;ratio=2&amp;rotation=0&amp;showTitle=false&amp;size=579299&amp;status=done&amp;style=none&amp;taskId=u8c6d6a44-2f76-4dc4-bddf-decc7c90a97&amp;title=&amp;width=1152" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure>
+这种模式才是所谓的Rabbit MQ真正的高可用模式，与普通集群模式不同的是：你创建的queue无论是元数据还是queue的消息会存在于多个实例上，每次写消息到queue的时候，都会自动把消息与多个实例的queue进行消息同步。
+它的优点就是<strong>其中某个机器宕机了，别的机器还可以继续提供服务。缺点：这个性能相比较而言开销较大，消息需要同步所有消息。导致网络带宽压力和消耗很重。<strong>还有一点</strong>就是所谓的扩展性几乎没有，因为假设某个queue的数据负载很重，加机器无法线性去扩展queue。</strong></p>
+<p><strong>面试官：嗯，不错。那你知道如何开启Rabbit MQ的镜像模式吗？</strong></p>
+<p>派大星：其实就是在管理控制台新增一个镜像集群的策略，要求所有节点同步数据。</p>
+<p><strong>面试官：嗯，可以。那你知道Kafka的高可用性如何保证吗？</strong></p>
+<p>派大星：首先我们要有个基本的认识，简单如图所示：
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1684938643263-9fa83acf-89c6-43ac-afb5-55c8de2e8bff.png#averageHue=%23cbcbcb&amp;clientId=u5d5ea9f9-25c5-4&amp;from=paste&amp;height=567&amp;id=JMurE&amp;originHeight=1134&amp;originWidth=1760&amp;originalType=binary&amp;ratio=2&amp;rotation=0&amp;showTitle=false&amp;size=92612&amp;status=done&amp;style=none&amp;taskId=uf79228f0-5a7a-466a-8f92-5f22bae7aba&amp;title=&amp;width=880" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure>
+我们都知道Kafka是多个broker组成，每个broker是一个节点，你创建一个topic，这个topic可以划分为多个partition，每个partition可以存在不同的broker上，每个partition就放一部分数据。<code>天然的分布式消息队列。因为一个topic数据是分散在多个机器上的。每个机器之存放一部分数据</code><strong>。</strong></p>
+<p>Tip：</p>
+<blockquote>
+<p>Kafka0.8之前是没有HA（高可用）机制的。就是任何一个broker宕机了，那么这个broker上的partition就废了，没法写也没有办法读。
+Kafka0.8以后，提供了HA机制，就是replica副本机制，每个partition的数据都会同步到其它机器上，形成自己的多个replica副本。然后所有replica会选举出一个leader出来，那么生产和消费都和这个leader打交道，然后其它的replica就是follower。写的时候leader只负责把数据同步到follwer上，读的时候直接读leader。如果leader宕机follwer会变成leader，follwer变成leader过程无法提供对外服务。</p>
+</blockquote>
+<p><strong>面试官：很好，那在生产环境中如何保证消息不被重复消费呢？或者说如何保证消息的幂等性。</strong></p>
+<p>派大星：首先针对于Kafka来说，出现这种情况的原因是：消费者offset没来得及提交导致重复消费。
+大致可参考下图：
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1684940593953-be784965-9402-412a-a2b9-f5923591739c.png#averageHue=%23dad7d1&amp;clientId=u5d5ea9f9-25c5-4&amp;from=paste&amp;height=488&amp;id=jrR7E&amp;originHeight=976&amp;originWidth=2324&amp;originalType=binary&amp;ratio=2&amp;rotation=0&amp;showTitle=false&amp;size=966160&amp;status=done&amp;style=none&amp;taskId=ufabfa961-2869-4f59-8bb2-0397e247c3d&amp;title=&amp;width=1162" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure></p>
+<p><strong>面试官：那你能说说针对幂等性问题有什么解决方案吗？</strong></p>
+<p>派大星：方案需要根据不同的场景做不同的应对。
+情况一：如何生产者不重复发送消息到MQ。可以通过让mq内部可以为每条消息生成一个全局唯一、与业务无关的消息id，当mq接收到消息时，会先根据该id判断消息是否重复发送，mq再决定是否接收该消息。
+情况二：如何保证消费者不重复消费。其重点在于如何让消费者保证不重复消费的关键在于消费者端做控制，因为MQ不能保证不重复发送消息，所以应该在消费者端控制：即使MQ重复发送了消息，消费者拿到了消息之后，要判断是否已经消费过，如果已经消费，直接丢弃。所以根据实际业务情况，有下面几种方式：</p>
+<ul>
+<li>如果从MQ拿到数据是要存到数据库，那么可以根据数据创建唯一约束，这样的话，同样的数据从MQ发送过来之后，当插入数据库的时候，会报违反唯一约束，不会插入成功的。（或者可以先查一次，是否在数据库中已经保存了，如果能查到，那就直接丢弃就好了）。</li>
+<li>让生产者发送消息时，每条消息加一个全局的唯一id，然后消费时，将该id保存到redis里面。消费时先去redis里面查一下有么有，没有再消费。（其实原理跟第一点差不多）。</li>
+<li>如果拿到的数据是直接放到redis的set中的话，那就不用考虑了，因为set集合就是自动有去重的。</li>
+</ul>
+<p><strong>面试官：不错。可不可以再聊聊不同MQ如何保证消息传输的可靠性呢？或者说如何处理消息丢失的问题。</strong></p>
+<p>派大星：额&hellip; .要不下次说吧。这次有点累啦。</p>
+
+    </div>
+
+    <div class="post-copyright">
+             
+            <p class="copyright-item">
+                <span>Author:</span>
+                <span>派大星 </span>
+                </p>
+            
+           
+            <p class="copyright-item">
+                    <span>Words:</span>
+                   <span>38</span>
+            </p>
+
+            <p class="copyright-item">
+                
+                <span>Share:</span>
+                <span>
+
+      
+        <a href="//twitter.com/share?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-%25E5%2590%2584%25E4%25B8%25AAmq%25E7%259A%2584%25E7%25BB%258F%25E5%2585%25B8%25E9%259D%25A2%25E8%25AF%2595%25E9%25A2%2598%2f&amp;text=%e5%af%b9%e7%ba%bf%e9%9d%a2%e8%af%95%e5%ae%98%20-%20%e5%90%84%e4%b8%aaMQ%e7%9a%84%e7%bb%8f%e5%85%b8%e9%9d%a2%e8%af%95%e9%a2%98&amp;via=" target="_blank" title="Share on Twitter">
+          <i class="iconfont icon-twitter"></i>
+        </a>
+        
+      
+      
+        <a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-%25E5%2590%2584%25E4%25B8%25AAmq%25E7%259A%2584%25E7%25BB%258F%25E5%2585%25B8%25E9%259D%25A2%25E8%25AF%2595%25E9%25A2%2598%2f" target="_blank" title="Share on Facebook">
+          <i class="iconfont icon-facebook"></i>
+        </a>
+        
+      
+      
+      
+      
+        <a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-%25E5%2590%2584%25E4%25B8%25AAmq%25E7%259A%2584%25E7%25BB%258F%25E5%2585%25B8%25E9%259D%25A2%25E8%25AF%2595%25E9%25A2%2598%2f&amp;title=%e5%af%b9%e7%ba%bf%e9%9d%a2%e8%af%95%e5%ae%98%20-%20%e5%90%84%e4%b8%aaMQ%e7%9a%84%e7%bb%8f%e5%85%b8%e9%9d%a2%e8%af%95%e9%a2%98" target="_blank" title="Share on LinkedIn">
+          <i class="iconfont icon-linkedin"></i>
+        </a>
+        
+      
+      
+        
+      
+        
+      
+
+          
+
+          
+
+          
+
+          
+
+</span>
+                
+            </p>
+
+             
+            <p class="copyright-item">
+                Released under <a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a>
+            </p>
+            
+    </div>
+
+  
+    <div class="post-tags">
+        
+        <section>
+                <a href="javascript:window.history.back();">Back</a></span> · 
+                <span><a href="http://vipbbo.com/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav">
+        
+        <a href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%A1%AC%E4%BB%B6%E7%BA%A7%E5%88%AB%E4%B9%8B%E5%86%8D%E8%B0%88volatile%E5%85%B3%E9%94%AE%E5%AD%97%E7%9A%84%E5%8F%AF%E8%A7%81%E6%80%A7/" class="prev" rel="prev" title="对线面试官 - 硬件级别之再谈Volatile关键字的可见性"><i class="iconfont icon-dajiantou"></i>&nbsp;对线面试官 - 硬件级别之再谈Volatile关键字的可见性</a>
+         
+        
+        <a href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-tcp_ip%E5%9B%9B%E5%B1%82%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%9E%8B%E7%BB%8F%E5%85%B8%E8%BF%9E%E7%8E%AF%E9%97%AE/" class="next" rel="next" title="对线面试官 - TCP_IP四层网络模型经典连环问">对线面试官 - TCP_IP四层网络模型经典连环问&nbsp;<i class="iconfont icon-xiaojiantou"></i></a>
+        
+    </div>
+
+    <div class="post-comment">
+          
+          <div id="disqus_thread"></div>
+  <script type="text/javascript">
+      (function() {
+          
+          
+          if (window.location.hostname == "localhost")
+              return;
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          var disqus_shortname = 'yourdiscussshortname';
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="https://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+ 
+
+          
+    </div>
+</article>
+          </div>
+		   </main>
+      <footer class="footer">
+    <div class="copyright">
+        &copy;
+        
+        <span itemprop="copyrightYear">2023 - 2023</span>
+        
+         
+            <span class="author" itemprop="copyrightHolder"><a href="http://vipbbo.com/">派大星</a> | </span>
+         
+
+		  <span>Crafted with ❤️ by <a href="https://github.com/Fastbyte01/KeepIt" target="_blank" rel="external nofollow noopener noreffer">KeepIt</a> & <a href="https://gohugo.io/" target="_blank" rel="external nofollow noopener noreffer">Hugo</a></span>
+    </div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    <link crossorigin="anonymous" integrity="sha384-yziQACfvCVwLqVFLqkWBYRO3XeA4EqzfXKGwaWnenYn5XzqfJFlFdKEmvutIQdKb" href="https://lib.baomitu.com/lightgallery/1.10.0/css/lightgallery.min.css" rel="stylesheet">
+      
+     <script src="/js/vendor_gallery.min.js" async="" ></script>
+    
+  
+
+
+
+
+
+
+
+     </div>
+  </body>
+</html>

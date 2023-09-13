@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noodp"/>
+  
+  
+  
+  
+  
+  <link rel="prev" href="http://vipbbo.com/2023/helloworld/" />
+  <link rel="next" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%BD%91%E7%BB%9C%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%A2%98/" />
+  <link rel="canonical" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%BA%BF%E7%A8%8B%E5%85%A5%E9%97%A8%E7%AC%AC%E4%B8%80%E8%AF%BE/" />
+  <link rel='shortcut icon' type='image/x-icon' href='/favicon.ico' />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <title>
+       
+       
+           🔥对线面试官-线程入门第一课 | 码上遇见你
+       
+  </title>
+  <meta name="title" content="🔥对线面试官-线程入门第一课 | 码上遇见你">
+    
+  
+  <link rel="stylesheet" href="/font/iconfont.css">
+  <link rel="stylesheet" href="/css/main.min.css">
+
+
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="🔥对线面试官-线程入门第一课"/>
+<meta name="twitter:description" content="面试官：能聊一聊线程吗？什么是线程？它和进程有什么区别吗？
+派大星：假设一个程序例如：weChat.exe这是一个程序，一个静态的概念，双击运行。而进程是相对于程序来说是一个动态的概念。作为进程里面最小的执行单元便是线程。通俗的讲一个程序里不同的执行路径就是线程
+面试官：run方法和start方法有什么区别？
+派大星：run()方法是一个方法调用。start()方法是Thread类里的一个方法。start()方法会产生一个分支和主方法一同执行。
+面试官：线程的几种状态可以简单说一说吗？
+派大星：好的
+New（新创建） Runnable（可运行）里面有ready和running两个状态 Blocked（被阻塞）未获得锁的时候 Waiting（等待）调用join()、wait()、part()方法 Timed Waiting（计时等待）时间结束的时候。比如：sleep(1000) Terminated（被终止） 面试官：创建线程的几种方式？有了解吗？可以详细聊一聊吗？
+派大星：好的。主要有以下几种方式：
+继承Thread类，重写run方法。 实现Runnable接口，重写run方法。 当然，还有类似的变种方法：JDK8的lambda表达式的写法。当然还可以通过线程池来启动Executors.newCachedThread当然这种底层也是采用上述两种方式实现的。
+面试官：了解线程里的sleep()、yield()、join()``interrupt方法吗？
+派大星：sleep()方法会让出CPU让其它线程执行，yield()会让线程重新回到等待队列中让出CPU但是也有可能下次执行的还是当前线程，也就是让线程回到就绪状态。join()方法：假设t1线程执行到中途调用了t2.join()这是t1需要等待t2执行完成之后才会继续执行下去，经常用来等待另外一个线程的结束。
+这里就引出了一个经典的线程题：如何保证线程t1、t2、t3依次顺序执行完成。 很简单：只需要在主线程中填加t1.join() t2.join() t3.join() 。或者在t1线程中填加t2.join()，在t2线程中填加t3.join()即可实现。
+interrupt方法线程调用interrupt方法打断线程，然后通过方法interrupted方法，可以获取到打断信号。通过这个信号，可以在代码逻辑中停止线程。 通过开关的方式打断异常时，需要定义一个volatile标识的变量，通过判断这个变量来打断线程
+面试官：sleep、yield、wait、notify、notifyAll是否释放锁？
+派大星：
+sleep 和 yield 方法都是不会释放锁的 调用 sleep() 方法使线程进入等待状态，等待休眠时间达到，而调用我们的 yield() 方法，线程会进入就绪状态，也就是sleep()需要等待设置的时间后才会进行就绪状态，而yield会立即进入就绪状态
+wait、notify和notifyAll都会释放锁 wait 方法执行后会立即释放锁，等待被唤醒的时候会重新持有锁 notify和notifyAll也会释放锁，但是不是立即释放锁，执行完notify/notifyAll方法后会立即通知其它正在等待的线程，但不是立即释放锁，而是会等到其synchronized内中的代码全部执行完之后，才会释放锁。所以我们一般都时在我们synchronized内的最后才会调用 notify/notifyAll
+面试官：wait 与 notify 为什么是 Object 的成员方法？
+派大星：
+我们都知道，synchronized 关键字可以加在任何对象的成员函数上，任何对象也都可以成为锁。那么，wait() 和 notify() 这样普及，Object 又是所有类的基类，那么 wait() 和 notify() 放在Object 里面最合适不过。wait和nofity不是常见的普通java方法或同步工具，在Java中它们更多的是实现两个线程之间的通信机制。如果不能通过类似synchronized这样的Java关键字来实现这种机制，那么Object类中就是定义它们最好的地方，以此来使任何Java对象都可以拥有实现线程通信机制的能力。 记住synchronized和wait,notify是两个不同的问题域，并且不要混淆它们的相似或相关性。 同步类似竞态条件，是提供线程间互斥和确保Java类的线程安全性的，而wait和notify是两个线程之间的通信机制。 另一个原因：每个对象都可以作为锁 在Java中，为了进入临界区代码段，线程需要获得锁并且它们等待锁可用，它们不知道哪些线程持有锁而它们只知道锁是由某个线程保持，它们应该等待锁而不是知道哪个线程在同步块内并要求它们释放锁。 这个比喻适合等待和通知在object类而不是Java中的线程。"/>
+
+  <script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BlogPosting",
+  "headline": "🔥对线面试官-线程入门第一课",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http:\/\/vipbbo.com\/2023\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%BA%BF%E7%A8%8B%E5%85%A5%E9%97%A8%E7%AC%AC%E4%B8%80%E8%AF%BE\/"
+  },
+  "image": {
+    "@type": "ImageObject",
+    "url": "http:\/\/vipbbo.com\/cover.png",
+    "width":  800 ,
+    "height":  600 
+  },
+  "genre": "posts",
+  
+  "wordcount":  66 ,
+  "url": "http:\/\/vipbbo.com\/2023\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%BA%BF%E7%A8%8B%E5%85%A5%E9%97%A8%E7%AC%AC%E4%B8%80%E8%AF%BE\/",
+  "datePublished": "2023-01-13T23:05:22\u002b08:00",
+  "dateModified": "2023-01-13T23:05:22\u002b08:00",
+  
+  "publisher": {
+    "@type": "Organization",
+    "name": "Fastbyte01",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http:\/\/vipbbo.com\/logo.png",
+      "width":  127 ,
+      "height":  40 
+    }
+  },
+  "author": {
+    "@type": "Person",
+    "name": "派大星"
+  },
+  "description": ""
+}
+</script>
+</head>
+
+  
+
+
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4585280196682059"
+     crossorigin="anonymous"></script>
+
+
+  <body class="">
+    <div class="wrapper">
+        <nav class="navbar">
+    <div class="container">
+        <div class="navbar-header header-logo">
+        	<a href="http://vipbbo.com/">码上遇见你</a>
+        </div>
+        <div class="menu navbar-right">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+                <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;
+        </div>
+    </div>
+</nav>
+<nav class="navbar-mobile" id="nav-mobile" style="display: none">
+     <div class="container">
+        <div class="navbar-header">
+            <div>  <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;<a href="http://vipbbo.com/">码上遇见你</a></div>
+            <div class="menu-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+     
+          <div class="menu" id="mobile-menu">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+        </div>
+    </div>
+</nav>
+
+    	 <main class="main">
+          <div class="container">
+      		
+<article class="post-warp">
+    <header class="post-header">
+        <h1 class="post-title">🔥对线面试官-线程入门第一课</h1>
+        <div class="post-meta">
+            Written by <a href="http://vipbbo.com/" rel="author">派大星</a> with ♥ 
+                <span class="post-time">
+                    on <time datetime=2023-01-13 >13 January 2023</time>
+                </span>
+                in
+                
+                <i class="iconfont icon-timer"></i>
+                1 min
+        </div>
+    </header>
+    <div class="post-content">
+        
+
+        
+
+        
+        
+     
+          
+          
+          
+
+          
+          
+          
+
+          <p>面试官：能聊一聊线程吗？什么是线程？它和进程有什么区别吗？</p>
+<p>派大星：假设一个程序例如：<code>weChat.exe</code>这是一个程序，一个静态的概念，双击运行。而进程是相对于程序来说是一个动态的概念。作为进程里面最小的执行单元便是线程。<code>通俗的讲一个程序里不同的执行路径就是线程</code></p>
+<p>面试官：run方法和start方法有什么区别？</p>
+<p>派大星：<code>run()</code>方法是一个方法调用。<code>start()</code>方法是Thread类里的一个方法。start()方法会产生一个分支和主方法一同执行。</p>
+<p>面试官：线程的几种状态可以简单说一说吗？</p>
+<p>派大星：好的</p>
+<ul>
+<li>New（新创建）</li>
+<li>Runnable（可运行）里面有ready和running两个状态</li>
+<li>Blocked（被阻塞）未获得锁的时候</li>
+<li>Waiting（等待）调用<code>join()</code>、<code>wait()</code>、<code>part()</code>方法</li>
+<li>Timed Waiting（计时等待）时间结束的时候。比如：sleep(1000)</li>
+<li>Terminated（被终止）</li>
+</ul>
+<p>面试官：创建线程的几种方式？有了解吗？可以详细聊一聊吗？</p>
+<p>派大星：好的。主要有以下几种方式：</p>
+<ol>
+<li>继承<code>Thread</code>类，重写<code>run</code>方法。</li>
+<li>实现<code>Runnable</code>接口，重写<code>run</code>方法。</li>
+</ol>
+<blockquote>
+<p>当然，还有类似的变种方法：JDK8的lambda表达式的写法。当然还可以通过线程池来启动<code>Executors.newCachedThread</code>当然这种底层也是采用上述两种方式实现的。</p>
+</blockquote>
+<p>面试官：了解线程里的<code>sleep()</code>、<code>yield()</code>、<code>join()``interrupt</code>方法吗？</p>
+<p>派大星：<code>sleep()</code>方法会让出CPU让其它线程执行，<code>yield()</code>会让线程重新回到等待队列中让出CPU但是也有可能下次执行的还是当前线程，也就是让线程回到<code>就绪状态</code>。<code>join()</code>方法：假设t1线程执行到中途调用了<code>t2.join()</code>这是t1需要等待t2执行完成之后才会继续执行下去，经常用来等待另外一个线程的结束。</p>
+<blockquote>
+<p>这里就引出了一个经典的线程题：如何保证线程t1、t2、t3依次顺序执行完成。
+很简单：只需要在主线程中填加t1.join() t2.join() t3.join() 。或者在t1线程中填加t2.join()，在t2线程中填加t3.join()即可实现。</p>
+</blockquote>
+<p><code>interrupt</code>方法线程调用interrupt方法打断线程，然后通过方法interrupted方法，可以获取到打断信号。通过这个信号，可以在代码逻辑中停止线程。
+通过开关的方式打断异常时，需要定义一个volatile标识的变量，通过判断这个变量来打断线程</p>
+<p>面试官：sleep、yield、wait、notify、notifyAll是否释放锁？</p>
+<p>派大星：</p>
+<ul>
+<li>sleep 和 yield 方法都是不会释放锁的</li>
+</ul>
+<blockquote>
+<p>调用 sleep() 方法使线程进入等待状态，等待休眠时间达到，而调用我们的 yield() 方法，线程会进入就绪状态，也就是sleep()需要等待设置的时间后才会进行就绪状态，而yield会立即进入就绪状态</p>
+</blockquote>
+<ul>
+<li>wait、notify和notifyAll都会释放锁</li>
+</ul>
+<blockquote>
+<p>wait 方法执行后会立即释放锁，等待被唤醒的时候会重新持有锁
+notify和notifyAll也会释放锁，但是不是立即释放锁，执行完notify/notifyAll方法后会立即通知其它正在等待的线程，但不是立即释放锁，而是会等到其synchronized内中的代码全部执行完之后，才会释放锁。所以我们一般都时在我们synchronized内的最后才会调用 notify/notifyAll</p>
+</blockquote>
+<p>面试官：wait 与 notify 为什么是 Object 的成员方法？</p>
+<p>派大星：</p>
+<ul>
+<li>我们都知道，synchronized 关键字可以加在任何对象的成员函数上，任何对象也都可以成为锁。那么，wait() 和 notify() 这样普及，Object 又是所有类的基类，那么 wait() 和 notify() 放在Object 里面最合适不过。wait和nofity不是常见的普通java方法或同步工具，在Java中它们更多的是实现两个线程之间的通信机制。如果不能通过类似synchronized这样的Java关键字来实现这种机制，那么Object类中就是定义它们最好的地方，以此来使任何Java对象都可以拥有实现线程通信机制的能力。</li>
+<li>记住synchronized和wait,notify是两个不同的问题域，并且不要混淆它们的相似或相关性。 同步类似竞态条件，是提供线程间互斥和确保Java类的线程安全性的，而wait和notify是两个线程之间的通信机制。</li>
+<li>另一个原因：每个对象都可以作为锁</li>
+</ul>
+<blockquote>
+<p>在Java中，为了进入临界区代码段，线程需要获得锁并且它们等待锁可用，它们不知道哪些线程持有锁而它们只知道锁是由某个线程保持，它们应该等待锁而不是知道哪个线程在同步块内并要求它们释放锁。 这个比喻适合等待和通知在object类而不是Java中的线程。</p>
+</blockquote>
+
+    </div>
+
+    <div class="post-copyright">
+             
+            <p class="copyright-item">
+                <span>Author:</span>
+                <span>派大星 </span>
+                </p>
+            
+           
+            <p class="copyright-item">
+                    <span>Words:</span>
+                   <span>66</span>
+            </p>
+
+            <p class="copyright-item">
+                
+                <span>Share:</span>
+                <span>
+
+      
+        <a href="//twitter.com/share?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-%25E7%25BA%25BF%25E7%25A8%258B%25E5%2585%25A5%25E9%2597%25A8%25E7%25AC%25AC%25E4%25B8%2580%25E8%25AF%25BE%2f&amp;text=%f0%9f%94%a5%e5%af%b9%e7%ba%bf%e9%9d%a2%e8%af%95%e5%ae%98-%e7%ba%bf%e7%a8%8b%e5%85%a5%e9%97%a8%e7%ac%ac%e4%b8%80%e8%af%be&amp;via=" target="_blank" title="Share on Twitter">
+          <i class="iconfont icon-twitter"></i>
+        </a>
+        
+      
+      
+        <a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-%25E7%25BA%25BF%25E7%25A8%258B%25E5%2585%25A5%25E9%2597%25A8%25E7%25AC%25AC%25E4%25B8%2580%25E8%25AF%25BE%2f" target="_blank" title="Share on Facebook">
+          <i class="iconfont icon-facebook"></i>
+        </a>
+        
+      
+      
+      
+      
+        <a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-%25E7%25BA%25BF%25E7%25A8%258B%25E5%2585%25A5%25E9%2597%25A8%25E7%25AC%25AC%25E4%25B8%2580%25E8%25AF%25BE%2f&amp;title=%f0%9f%94%a5%e5%af%b9%e7%ba%bf%e9%9d%a2%e8%af%95%e5%ae%98-%e7%ba%bf%e7%a8%8b%e5%85%a5%e9%97%a8%e7%ac%ac%e4%b8%80%e8%af%be" target="_blank" title="Share on LinkedIn">
+          <i class="iconfont icon-linkedin"></i>
+        </a>
+        
+      
+      
+        
+      
+        
+      
+
+          
+
+          
+
+          
+
+          
+
+</span>
+                
+            </p>
+
+             
+            <p class="copyright-item">
+                Released under <a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a>
+            </p>
+            
+    </div>
+
+  
+    <div class="post-tags">
+        
+        <section>
+                <a href="javascript:window.history.back();">Back</a></span> · 
+                <span><a href="http://vipbbo.com/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav">
+        
+        <a href="http://vipbbo.com/2023/helloworld/" class="prev" rel="prev" title="Helloworld"><i class="iconfont icon-dajiantou"></i>&nbsp;Helloworld</a>
+         
+        
+        <a href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%BD%91%E7%BB%9C%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%A2%98/" class="next" rel="next" title="🔥对线面试官 - 网络经典面试题">🔥对线面试官 - 网络经典面试题&nbsp;<i class="iconfont icon-xiaojiantou"></i></a>
+        
+    </div>
+
+    <div class="post-comment">
+          
+          <div id="disqus_thread"></div>
+  <script type="text/javascript">
+      (function() {
+          
+          
+          if (window.location.hostname == "localhost")
+              return;
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          var disqus_shortname = 'yourdiscussshortname';
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="https://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+ 
+
+          
+    </div>
+</article>
+          </div>
+		   </main>
+      <footer class="footer">
+    <div class="copyright">
+        &copy;
+        
+        <span itemprop="copyrightYear">2023 - 2023</span>
+        
+         
+            <span class="author" itemprop="copyrightHolder"><a href="http://vipbbo.com/">派大星</a> | </span>
+         
+
+		  <span>Crafted with ❤️ by <a href="https://github.com/Fastbyte01/KeepIt" target="_blank" rel="external nofollow noopener noreffer">KeepIt</a> & <a href="https://gohugo.io/" target="_blank" rel="external nofollow noopener noreffer">Hugo</a></span>
+    </div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
+    <script src="/js/vendor_no_gallery.min.js" async=""></script>
+    
+  
+
+
+
+
+
+
+
+     </div>
+  </body>
+</html>

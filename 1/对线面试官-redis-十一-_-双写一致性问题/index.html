@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noodp"/>
+  
+  
+  
+  
+  
+  <link rel="prev" href="http://vipbbo.com/1/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E4%B8%80/" />
+  <link rel="next" href="http://vipbbo.com/1/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E8%BF%9B%E7%A8%8B%E9%97%B4%E7%9A%84%E9%80%9A%E4%BF%A1/" />
+  <link rel="canonical" href="http://vipbbo.com/1/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-redis-%E5%8D%81%E4%B8%80-_-%E5%8F%8C%E5%86%99%E4%B8%80%E8%87%B4%E6%80%A7%E9%97%AE%E9%A2%98/" />
+  <link rel='shortcut icon' type='image/x-icon' href='/favicon.ico' />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <title>
+       
+       
+            | 码上遇见你
+       
+  </title>
+  <meta name="title" content=" | 码上遇见你">
+    
+  
+  <link rel="stylesheet" href="/font/iconfont.css">
+  <link rel="stylesheet" href="/css/main.min.css">
+
+
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content=""/>
+<meta name="twitter:description" content="Redis双写一致性问题解决方案的终结篇
+在之前的文章中有介绍过关于缓存一致性的问题，那么为什么还要出一篇文章来再次说明呢？是因为之前的文章主要讲述了高并发架构下缓存一致性问题可以通``延时双删进行解决，高可用架构(读写分离)采用的是先更新数据库，然后再删除缓存，并最后采用重试机制进行避免。之前文章的高可用解决方案后续优化的点侧重于结合binglog的方式去解决。这篇文章又结合了JVM队列的方式。具体有细节可以阅读本篇文章。相信对你在实际应用中会有很大帮助，至于实际应用采用什么方式。还需要结合实际的业务场景。
+这片文章更侧重于高可用架构也就是读写分离架构的解决方案是如何实施的。
+面试官：在实际的工作中，你们Redis是如何保证缓存与数据库的双写一致性呢？
+面试官心里分析：主要考察实际工作中到底是使用没使用过Redis，因为使用过Redis的话一定会遇到双写一致性的问题。那么如何解决的呢？需要简单描述一下当时的方案，这样才能确保你确实是使用过而不是简单的背背八股文，没有实战经验的小白。
+派大星：对于这个问题其实在实际应用中，Redis最经典的方式就是Cache Aside Pattern，也就是缓存&#43;数据库读写模式。
+读的时候，先读缓存缓存没有的话，就读数据库然后把数据库的数据再次放入到缓存中。同时返回响应。 更新的时候，先更新数据库，然后再删除缓存。 面试官：那为什么是先更新数据库，而不是先更新缓存/删除缓存呢？
+派大星：其实这样操作的原因很简单，在实际的业务场景中，缓存应用是有相对比较复杂的情况的，因为缓存有可能不单单是数据库中取出来的值，而是通过查询数据库某些值然后运算后才放入的缓存中，这样来说如果不是热点数据的话，每次更新数据库都去更新缓存，这样其实对于这种比较复杂的缓存数据的情景下更新缓存的代价还是比较高的。 还有另外一点就是为什么删除缓存而不是更新缓存？这里其实就是一个lazy计算的思想。不管它是否用到每次都去重新做复杂的计算，建议采用当其被需要使用的时候再去重新计算。想MyBatis``Hibenate他们都是有懒加载的思想的。
+派大星：其次其实为什么是先更新数据库，而不是先更新缓存/删除缓存的原因也很简单。这种方式只能是解决掉简单的缓存架构(高并发架构)的双写一致性的问题(当然这种解决法方式在高并发的情况下也是有线程安全问题，真正的解决方案是延时双删) 。具体思路在之前的文章有提到过:
+面试官：ok，那你具体说说双写一致性的问题到底应该如何解决？即具体的实施方案。
+派大星：好的，其实采用之前文章的延时双删的方案在流量并不是很多的情况下已经可以解决。但是如果是亿万级流量或者流量真的很高的情况下。采用那种方案是远远不够的。具体如何解决其实可以参考一下之前的文章: 这一次提供一个不一样的解决方案：
+派大星：首先更新数据的时候，可以根据数据的唯一标识，将操作路由之后，发送到一个JVM内部队列中。读取数据的时候，如果发现数据不在缓存中，那么此时应该采用重新读区数据&#43;更新缓存的操作，根据唯一标识路由之后，也发送到同一个JVM队列中。 一个队列对应一个工作线程，每个工作线程串行拿到对应的操作之后一条一条的执行。这样操作，一个数据的变更就会按章先删除缓存然后再去更新数据库，然后在更新缓存。即使在更新数据库没完成的时候来了一个请求没有读到缓存，那么也可以将它的更新缓存的操作发送到队列中，此时JVM队列就会有积压，直到同步等待缓存更新完成。
+当然这样操作也是有一个优化点的：一个队列中，其实多个更新缓存请求串联在一起是没有意义的，因此我们可以在这里做一些过滤。如果发现队列中已经有一个更新缓存的请求了，那么就不用再放个更新缓存的请求进去了。只需要等待前面的缓存更新请求完成即可。 等待那个对应的队列的工作线程完成了上一个操作的数据的修改之后，才会执行下一个操作。也就是更新缓存的操作。此时把数据库中最新的值读取出来写入缓存即可。 当然如果请求在等待的时间范围内，我们可以不断的轮询直到取到值返回即可，但是如果等待时间超过了一定时长我们可以直接将数据库中的旧值读取并返回。
+面试官：这样设计的话在高并发场景下不会有问题吗？
+派大星：是会有一些问题的。比如：
+读请求长时间阻塞 读请求长时间阻塞。由于读请求进行了非常轻度的异步化，所以一定要注意读超时的问题。每个读请求一定要控制在超时时间范围内返回。其次的问题就是该解决方案，最大的风险点在于：可能数据更新很频繁，导致队列中积压了大量的更新操作在里面，然后读请求会发生大量的超时，最后导致大量的读请求直接请求到数据库上。针对这种情况需要针对真实的业务场景模拟真实的测试环境，来查看具体的更新频率如何。 还有一点就是，因为在一个队列中，可能会积压针对多个数据项的更新操作，因此这就需要根据实际业务场景来进行测试。比如可能需要部署多个服务，每个服务分摊一些数据的更新操作。如果一个队列中积压了100个商品的库存修改操作，每个库存修改操作耗费10ms，那么最后一个商品的去请求，可能会等待10*100=100ms=1s后，才能得到这个数据，这个时候就导致了去请求的长时间阻塞(这里一定要注意模拟实际生产环境到底可能会积压多少个更新请求在队列中，越多hang的时间则就越长)。如果真的是一个内存队列中积压的更新操作特别多，此时就需要考虑加机器了让每个机器部署的服务实力处理更少的请求。这样每个内存队列中积压的更新操作才会更少。
+读请求并发量过高。 另外一种风险就是：读请求并发量过高。就是突然之间大量读请求会在短时间内(比如几十毫秒)的延时hang在服务上。看看服务能不能扛得住。需要多少机器才能抗住最大的极限情况的峰值。但是因为并不是所有的数据都在同一时间段内更新，缓存也不会在同一时间内失效，所以每次可坑就是更新少数的缓存。并发量不会特别大。
+多服务实例部署的请求路由 如果说你的服务部署了多个实例，那么必须要保证的是，执行数据更新操作，以及执行缓存的更新操作的请求都需要通过Nginx服务器路由到相同的服务实例上
+热点商品的路由问题，导致请求的倾斜 比较特殊的情况是，万一某个商品的读写请求都是特别高，全部打到相同的机器和相同的队列里面去了，可能会造成某台机器的负载压力过大。因为只有在商品数据更新的时候才会清空缓存，然后才会导致读写并发。所以其实要根据实际业务系统查看，如果更新频率不是很高的话这个问题就不是什么大的问题。但还是会有可能造成某些机器的负载压力高一些。
+面试官：不错不错。看来实际中确实应用场景比较丰富。
+派大星：是的呢。就是简单概括来说： 如果允许缓存可以稍微的跟数据库偶尔有不一致的情况，也就是说如果你的系统不是严格要求 “缓存&#43;数据库” 必须保持一致性的话，最好不要做这个方案，即：读请求和写请求串行化，串到一个内存队列里去。 串行化可以保证一定不会出现不一致的情况，但是它也会导致系统的吞吐量大幅度降低，用比正常情况下多几倍的机器去支撑线上的一个请求。
+如有问题，欢迎加微信交流：w714771310，或关注微信公众号【码上遇见你】。"/>
+
+  <script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BlogPosting",
+  "headline": "",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http:\/\/vipbbo.com\/1\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-redis-%E5%8D%81%E4%B8%80-_-%E5%8F%8C%E5%86%99%E4%B8%80%E8%87%B4%E6%80%A7%E9%97%AE%E9%A2%98\/"
+  },
+  "image": {
+    "@type": "ImageObject",
+    "url": "http:\/\/vipbbo.com\/cover.png",
+    "width":  800 ,
+    "height":  600 
+  },
+  "genre": "posts",
+  
+  "wordcount":  41 ,
+  "url": "http:\/\/vipbbo.com\/1\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-redis-%E5%8D%81%E4%B8%80-_-%E5%8F%8C%E5%86%99%E4%B8%80%E8%87%B4%E6%80%A7%E9%97%AE%E9%A2%98\/",
+  
+  
+  
+  "publisher": {
+    "@type": "Organization",
+    "name": "Fastbyte01",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http:\/\/vipbbo.com\/logo.png",
+      "width":  127 ,
+      "height":  40 
+    }
+  },
+  "author": {
+    "@type": "Person",
+    "name": "派大星"
+  },
+  "description": ""
+}
+</script>
+</head>
+
+  
+
+
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4585280196682059"
+     crossorigin="anonymous"></script>
+
+
+  <body class="">
+    <div class="wrapper">
+        <nav class="navbar">
+    <div class="container">
+        <div class="navbar-header header-logo">
+        	<a href="http://vipbbo.com/">码上遇见你</a>
+        </div>
+        <div class="menu navbar-right">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+                <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;
+        </div>
+    </div>
+</nav>
+<nav class="navbar-mobile" id="nav-mobile" style="display: none">
+     <div class="container">
+        <div class="navbar-header">
+            <div>  <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;<a href="http://vipbbo.com/">码上遇见你</a></div>
+            <div class="menu-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+     
+          <div class="menu" id="mobile-menu">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+        </div>
+    </div>
+</nav>
+
+    	 <main class="main">
+          <div class="container">
+      		
+<article class="post-warp">
+    <header class="post-header">
+        <h1 class="post-title"></h1>
+        <div class="post-meta">
+            Written by <a href="http://vipbbo.com/" rel="author">派大星</a> with ♥ 
+                <span class="post-time">
+                    on <time datetime=0001-01-01 >1 January 0001</time>
+                </span>
+                in
+                
+                <i class="iconfont icon-timer"></i>
+                1 min
+        </div>
+    </header>
+    <div class="post-content">
+        
+
+        
+
+        
+        
+     
+          
+          
+          
+
+          
+          
+          
+
+          <p><strong>Redis双写一致性问题解决方案的终结篇</strong></p>
+<p>在之前的文章中有介绍过关于缓存一致性的问题，那么为什么还要出一篇文章来再次说明呢？是因为之前的文章主要讲述了<code>高并发架构下缓存一致性问题可以通``延时双删</code>进行解决，<code>高可用架构(读写分离)采用的是先更新数据库，然后再删除缓存，并最后采用重试机制</code>进行避免。之前文章的高可用解决方案后续优化的点侧重于结合<code>binglog</code>的方式去解决。这篇文章又结合了JVM队列的方式。具体有细节可以阅读本篇文章。相信对你在实际应用中会有很大帮助，至于实际应用采用什么方式。还需要结合实际的业务场景。</p>
+<blockquote>
+<p>这片文章更侧重于高可用架构也就是读写分离架构的解决方案是如何实施的。</p>
+</blockquote>
+<p><strong>面试官：在实际的工作中，你们Redis是如何保证缓存与数据库的双写一致性呢？</strong></p>
+<blockquote>
+<p>面试官心里分析：主要考察实际工作中到底是使用没使用过Redis，因为使用过Redis的话一定会遇到双写一致性的问题。那么如何解决的呢？需要简单描述一下当时的方案，这样才能确保你确实是使用过而不是简单的背背八股文，没有实战经验的小白。</p>
+</blockquote>
+<p>派大星：对于这个问题其实在实际应用中，Redis最经典的方式就是<code>Cache Aside Pattern</code>，也就是缓存+数据库读写模式。</p>
+<ul>
+<li>读的时候，先读缓存缓存没有的话，就读数据库然后把数据库的数据再次放入到缓存中。同时返回响应。</li>
+<li>更新的时候，先<code>更新数据库，然后再删除缓存</code>。</li>
+</ul>
+<p><strong>面试官：那为什么是先更新数据库，而不是先更新缓存/删除缓存呢？</strong></p>
+<p>派大星：其实这样操作的原因很简单，在实际的业务场景中，缓存应用是有相对比较复杂的情况的，因为缓存有可能不单单是数据库中取出来的值，而是通过查询数据库某些值然后运算后才放入的缓存中，这样来说如果不是热点数据的话，每次更新数据库都去更新缓存，这样其实对于这种比较复杂的缓存数据的情景下更新缓存的代价还是比较高的。
+还有另外一点就是<code>为什么删除缓存而不是更新缓存？</code>这里其实就是一个<code>lazy</code>计算的思想。不管它是否用到每次都去重新做复杂的计算，建议采用当其被需要使用的时候再去重新计算。想<code>MyBatis``Hibenate</code>他们都是有懒加载的思想的。</p>
+<p>派大星：其次其实为什么是先更新数据库，而不是先更新缓存/删除缓存的原因也很简单。这种方式只能是解决掉简单的缓存架构(高并发架构)的双写一致性的问题(当然这种解决法方式在高并发的情况下也是有线程安全问题，真正的解决方案是<code>延时双删</code>) 。具体思路在之前的文章有提到过:</p>
+<p><strong>面试官：ok，那你具体说说双写一致性的问题到底应该如何解决？即具体的实施方案。</strong></p>
+<p>派大星：好的，其实采用之前文章的<code>延时双删的方案</code>在流量并不是很多的情况下已经可以解决。但是如果是亿万级流量或者流量真的很高的情况下。采用那种方案是远远不够的。具体如何解决其实可以参考一下之前的文章:
+这一次提供一个不一样的解决方案：</p>
+<p>派大星：首先更新数据的时候，可以根据<code>数据的唯一标识</code>，将操作路由之后，发送到一个JVM内部队列中。读取数据的时候，如果发现数据不在缓存中，那么此时应该采用重新读区数据+更新缓存的操作，根据唯一标识路由之后，也发送到同一个JVM队列中。
+一个队列对应一个工作线程，每个工作线程<code>串行</code>拿到对应的操作之后一条一条的执行。这样操作，一个数据的变更就会按章先删除缓存然后再去更新数据库，然后在更新缓存。即使在更新数据库没完成的时候来了一个请求没有读到缓存，那么也可以将它的更新缓存的操作发送到队列中，此时JVM队列就会有积压，直到同步等待缓存更新完成。</p>
+<p>当然这样操作也是有一个优化点的：一个队列中，其实多个更新缓存请求串联在一起是没有意义的，因此我们可以在这里做一些过滤。如果发现队列中已经有一个更新缓存的请求了，那么就不用再放个更新缓存的请求进去了。只需要等待前面的缓存更新请求完成即可。
+等待那个对应的队列的工作线程完成了上一个操作的数据的修改之后，才会执行下一个操作。也就是更新缓存的操作。此时把数据库中最新的值读取出来写入缓存即可。
+当然如果请求在等待的时间范围内，我们可以不断的轮询直到取到值返回即可，但是如果等待时间超过了一定时长我们可以直接将数据库中的旧值读取并返回。</p>
+<p><strong>面试官：这样设计的话在高并发场景下不会有问题吗？</strong></p>
+<p>派大星：是会有一些问题的。比如：</p>
+<ul>
+<li>读请求长时间阻塞</li>
+</ul>
+<p><code>读请求长时间阻塞</code>。由于读请求进行了非常轻度的异步化，所以一定要注意<code>读超时</code>的问题。每个读请求一定要控制在超时时间范围内返回。其次的问题就是该解决方案，最大的风险点在于：<code>可能数据更新很频繁</code>，导致队列中积压了大量的更新操作在里面，然后<code>读请求会发生大量的超时</code>，最后导致大量的读请求直接请求到数据库上。针对这种情况需要针对真实的业务场景模拟真实的测试环境，来查看具体的更新频率如何。
+还有一点就是，因为在一个队列中，可能会积压针对多个数据项的更新操作，因此这就需要根据实际业务场景来进行测试。比如可能<code>需要部署多个服务</code>，每个服务分摊一些数据的更新操作。如果一个队列中积压了100个商品的库存修改操作，每个库存修改操作耗费10ms，那么最后一个商品的去请求，可能会等待10*100=100ms=1s后，才能得到这个数据，这个时候就导致了<code>去请求的长时间阻塞</code>(这里一定要注意模拟实际生产环境到底可能会积压多少个更新请求在队列中，越多hang的时间则就越长)。<code>如果真的是一个内存队列中积压的更新操作特别多，此时就需要考虑加机器了</code>让每个机器部署的服务实力处理更少的请求。这样每个内存队列中积压的更新操作才会更少。</p>
+<ul>
+<li>读请求并发量过高。</li>
+</ul>
+<p>另外一种风险就是：读请求并发量过高。就是突然之间大量读请求会在短时间内(比如几十毫秒)的延时hang在服务上。看看服务能不能扛得住。需要多少机器才能抗住最大的极限情况的峰值。但是因为并不是所有的数据都在同一时间段内更新，缓存也不会在同一时间内失效，所以每次可坑就是更新少数的缓存。并发量不会特别大。</p>
+<ul>
+<li>多服务实例部署的请求路由</li>
+</ul>
+<p><strong>如果说你的服务部署了多个实例，那么必须要保证的是，执行数据更新操作，以及执行缓存的更新操作的请求都需要通过Nginx服务器路由到相同的服务实例上</strong></p>
+<ul>
+<li>热点商品的路由问题，导致请求的倾斜</li>
+</ul>
+<p>比较特殊的情况是，万一某个商品的读写请求都是特别高，全部打到相同的机器和相同的队列里面去了，可能会造成某台机器的负载压力过大。因为只有在商品数据更新的时候才会清空缓存，然后才会导致读写并发。所以其实要根据实际业务系统查看，如果更新频率不是很高的话这个问题就不是什么大的问题。但还是会有可能造成某些机器的负载压力高一些。</p>
+<p><strong>面试官：不错不错。看来实际中确实应用场景比较丰富。</strong></p>
+<p>派大星：是的呢。就是简单概括来说：
+如果允许缓存可以稍微的跟数据库偶尔有不一致的情况，也就是说如果你的系统不是严格要求 “缓存+数据库” 必须保持一致性的话，最好不要做这个方案，即：读请求和写请求串行化，串到一个内存队列里去。
+串行化可以保证一定不会出现不一致的情况，但是它也会导致系统的吞吐量大幅度降低，用比正常情况下多几倍的机器去支撑线上的一个请求。</p>
+<blockquote>
+<p>如有问题，欢迎加微信交流：w714771310，或关注微信公众号【码上遇见你】。</p>
+</blockquote>
+
+    </div>
+
+    <div class="post-copyright">
+             
+            <p class="copyright-item">
+                <span>Author:</span>
+                <span>派大星 </span>
+                </p>
+            
+           
+            <p class="copyright-item">
+                    <span>Words:</span>
+                   <span>41</span>
+            </p>
+
+            <p class="copyright-item">
+                
+                <span>Share:</span>
+                <span>
+
+      
+        <a href="//twitter.com/share?url=http%3a%2f%2fvipbbo.com%2f1%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-redis-%25E5%258D%2581%25E4%25B8%2580-_-%25E5%258F%258C%25E5%2586%2599%25E4%25B8%2580%25E8%2587%25B4%25E6%2580%25A7%25E9%2597%25AE%25E9%25A2%2598%2f&amp;text=&amp;via=" target="_blank" title="Share on Twitter">
+          <i class="iconfont icon-twitter"></i>
+        </a>
+        
+      
+      
+        <a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fvipbbo.com%2f1%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-redis-%25E5%258D%2581%25E4%25B8%2580-_-%25E5%258F%258C%25E5%2586%2599%25E4%25B8%2580%25E8%2587%25B4%25E6%2580%25A7%25E9%2597%25AE%25E9%25A2%2598%2f" target="_blank" title="Share on Facebook">
+          <i class="iconfont icon-facebook"></i>
+        </a>
+        
+      
+      
+      
+      
+        <a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fvipbbo.com%2f1%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-redis-%25E5%258D%2581%25E4%25B8%2580-_-%25E5%258F%258C%25E5%2586%2599%25E4%25B8%2580%25E8%2587%25B4%25E6%2580%25A7%25E9%2597%25AE%25E9%25A2%2598%2f&amp;title=" target="_blank" title="Share on LinkedIn">
+          <i class="iconfont icon-linkedin"></i>
+        </a>
+        
+      
+      
+        
+      
+        
+      
+
+          
+
+          
+
+          
+
+          
+
+</span>
+                
+            </p>
+
+             
+            <p class="copyright-item">
+                Released under <a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a>
+            </p>
+            
+    </div>
+
+  
+    <div class="post-tags">
+        
+        <section>
+                <a href="javascript:window.history.back();">Back</a></span> · 
+                <span><a href="http://vipbbo.com/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav">
+        
+        <a href="http://vipbbo.com/1/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E4%B8%80/" class="prev" rel="prev" title=""><i class="iconfont icon-dajiantou"></i>&nbsp;</a>
+         
+        
+        <a href="http://vipbbo.com/1/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E8%BF%9B%E7%A8%8B%E9%97%B4%E7%9A%84%E9%80%9A%E4%BF%A1/" class="next" rel="next" title="">&nbsp;<i class="iconfont icon-xiaojiantou"></i></a>
+        
+    </div>
+
+    <div class="post-comment">
+          
+          <div id="disqus_thread"></div>
+  <script type="text/javascript">
+      (function() {
+          
+          
+          if (window.location.hostname == "localhost")
+              return;
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          var disqus_shortname = 'yourdiscussshortname';
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="https://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+ 
+
+          
+    </div>
+</article>
+          </div>
+		   </main>
+      <footer class="footer">
+    <div class="copyright">
+        &copy;
+        
+        <span itemprop="copyrightYear">2023 - 2023</span>
+        
+         
+            <span class="author" itemprop="copyrightHolder"><a href="http://vipbbo.com/">派大星</a> | </span>
+         
+
+		  <span>Crafted with ❤️ by <a href="https://github.com/Fastbyte01/KeepIt" target="_blank" rel="external nofollow noopener noreffer">KeepIt</a> & <a href="https://gohugo.io/" target="_blank" rel="external nofollow noopener noreffer">Hugo</a></span>
+    </div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
+    <script src="/js/vendor_no_gallery.min.js" async=""></script>
+    
+  
+
+
+
+
+
+
+
+     </div>
+  </body>
+</html>

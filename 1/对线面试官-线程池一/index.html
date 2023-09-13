@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noodp"/>
+  
+  
+  
+  
+  
+  
+  <link rel="next" href="http://vipbbo.com/1/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-redis-%E5%8D%81%E4%B8%80-_-%E5%8F%8C%E5%86%99%E4%B8%80%E8%87%B4%E6%80%A7%E9%97%AE%E9%A2%98/" />
+  <link rel="canonical" href="http://vipbbo.com/1/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E4%B8%80/" />
+  <link rel='shortcut icon' type='image/x-icon' href='/favicon.ico' />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <title>
+       
+       
+            | 码上遇见你
+       
+  </title>
+  <meta name="title" content=" | 码上遇见你">
+    
+  
+  <link rel="stylesheet" href="/font/iconfont.css">
+  <link rel="stylesheet" href="/css/main.min.css">
+
+
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content=""/>
+<meta name="twitter:description" content="面试官：你知道创建线程的方式有哪些吗？派大星：主要有两种方式，一种是通过 Executors 创建，另一种是通过 ThreadPoolExecutorPools 创建。面试官：很好。那你能介绍一下 Executors 提供的 6 种创建方式吗？派大星：当然。Executors 提供了 newFixedThreadPool、newCachedThreadPool、newSingleThreadExecutor、newScheduledThreadPool 等 6 种创建方式。其中 newFixedThreadPool 创建一个固定大小的线程池，可以控制并发的线程数，超出的线程会在队列中等待；newCachedThreadPool 创建一个可以缓存的线程池，若线程数超过处理所需，则会缓存一段时间后回收；newSingleThreadExecutor 创建单个线程数的线程池，它可以保证先进先出的执行顺序；newScheduledThreadPool 创建一个可以执行延迟任务的线程池。面试官：很好。你能说一下这些创建方式的优缺点吗？派大星：当然。但是我要先提醒一下，不建议使用 Executors 创建线程。
+FixedThreadPool 和 SingleThreadPool 允许的请求队列长度为 Integer.MAX_VALUE，从而可能会堆积大量请求，造成 OOM； CachedThreadPool 和 ScheduledThreadPool 允许的创建线程数量为 Integer.MAX_VALUE，可能会创建大量的线程，从而导致 OOM。除此之外，Executors 创建的线程池无法自定义配置，不够灵活。建议使用 ThreadPoolExecutorPools创建方式进行自定义配置 面试官：你能介绍一下 Executors 吗？派大星：Executors 是一个工具类，提供了创建线程池的方法。它提供了 6 种创建线程池的方式，包括 newFixedThreadPool、newCachedThreadPool、newSingleThreadExecutor、newScheduledThreadPool 等。面试官：那你能介绍一下 newFixedThreadPool 的使用方法吗？派大星：当然可以。newFixedThreadPool 可以创建一个固定大小的线程池，可控制并发的线程数，超出的线程会在队列中等待。我们可以通过以下代码来创建一个固定大小的线程池：
+ExecutorService threadPool = Executors.newFixedThreadPool(2); 面试官：那你能介绍一下 Executors 提供的其他创建方式吗？派大星：当然可以。除了 newFixedThreadPool，Executors 还提供了其他 5 种创建方式，分别是 newCachedThreadPool、newSingleThreadExecutor、newScheduledThreadPool、newSingleThreadScheduledExecutor 和 newWorkStealingPool。
+newCachedThreadPool 可以创建一个可以缓存的线程池，若线程数超过处理所需，则会缓存一段时间后回收。若线程数不够，则新建线程。 newSingleThreadExecutor 可以创建单个线程数的线程池，它可以保证先进先出的执行顺序。 newScheduledThreadPool 可以创建一个可以执行延迟任务的线程池。 newSingleThreadScheduledExecutor 可以创建一个单线程的可以执行延迟任务的线程池。 newWorkStealingPool 可以创建一个抢占式执行的线程池（任务执行顺序不确定），注意此方法只有在 JDK 1."/>
+
+  <script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BlogPosting",
+  "headline": "",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http:\/\/vipbbo.com\/1\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E4%B8%80\/"
+  },
+  "image": {
+    "@type": "ImageObject",
+    "url": "http:\/\/vipbbo.com\/cover.png",
+    "width":  800 ,
+    "height":  600 
+  },
+  "genre": "posts",
+  
+  "wordcount":  107 ,
+  "url": "http:\/\/vipbbo.com\/1\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E4%B8%80\/",
+  
+  
+  
+  "publisher": {
+    "@type": "Organization",
+    "name": "Fastbyte01",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http:\/\/vipbbo.com\/logo.png",
+      "width":  127 ,
+      "height":  40 
+    }
+  },
+  "author": {
+    "@type": "Person",
+    "name": "派大星"
+  },
+  "description": ""
+}
+</script>
+</head>
+
+  
+
+
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4585280196682059"
+     crossorigin="anonymous"></script>
+
+
+  <body class="">
+    <div class="wrapper">
+        <nav class="navbar">
+    <div class="container">
+        <div class="navbar-header header-logo">
+        	<a href="http://vipbbo.com/">码上遇见你</a>
+        </div>
+        <div class="menu navbar-right">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+                <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;
+        </div>
+    </div>
+</nav>
+<nav class="navbar-mobile" id="nav-mobile" style="display: none">
+     <div class="container">
+        <div class="navbar-header">
+            <div>  <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;<a href="http://vipbbo.com/">码上遇见你</a></div>
+            <div class="menu-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+     
+          <div class="menu" id="mobile-menu">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+        </div>
+    </div>
+</nav>
+
+    	 <main class="main">
+          <div class="container">
+      		
+<article class="post-warp">
+    <header class="post-header">
+        <h1 class="post-title"></h1>
+        <div class="post-meta">
+            Written by <a href="http://vipbbo.com/" rel="author">派大星</a> with ♥ 
+                <span class="post-time">
+                    on <time datetime=0001-01-01 >1 January 0001</time>
+                </span>
+                in
+                
+                <i class="iconfont icon-timer"></i>
+                1 min
+        </div>
+    </header>
+    <div class="post-content">
+        
+
+        
+
+        
+        
+     
+          
+          
+          
+
+          
+          
+          
+
+          <p><strong>面试官：你知道创建线程的方式有哪些吗？</strong><!-- raw HTML omitted -->派大星：主要有两种方式，一种是通过 Executors 创建，另一种是通过 ThreadPoolExecutorPools 创建。<!-- raw HTML omitted --><strong>面试官：很好。那你能介绍一下 Executors 提供的 6 种创建方式吗？</strong><!-- raw HTML omitted -->派大星：当然。Executors 提供了 newFixedThreadPool、newCachedThreadPool、newSingleThreadExecutor、newScheduledThreadPool 等 6 种创建方式。其中 newFixedThreadPool 创建一个固定大小的线程池，可以控制并发的线程数，超出的线程会在队列中等待；newCachedThreadPool 创建一个可以缓存的线程池，若线程数超过处理所需，则会缓存一段时间后回收；newSingleThreadExecutor 创建单个线程数的线程池，它可以保证先进先出的执行顺序；newScheduledThreadPool 创建一个可以执行延迟任务的线程池。<!-- raw HTML omitted --><strong>面试官：很好。你能说一下这些创建方式的优缺点吗？</strong><!-- raw HTML omitted -->派大星：当然。但是我要先提醒一下，不建议使用 Executors 创建线程。</p>
+<ul>
+<li><code>FixedThreadPool</code> 和 <code>SingleThreadPool</code> 允许的请求队列长度为<code> Integer.MAX_VALUE</code>，从而可能会堆积大量请求，造成 OOM；</li>
+<li><code>CachedThreadPool</code> 和 <code>ScheduledThreadPool</code> 允许的创建线程数量为 <code>Integer.MAX_VALUE</code>，可能会创建大量的线程，从而导致 OOM。除此之外，Executors 创建的线程池无法自定义配置，不够灵活。建议使用 <code>ThreadPoolExecutorPools</code>创建方式进行自定义配置</li>
+</ul>
+<p><strong>面试官</strong>：<strong>你能介绍一下 Executors 吗？</strong><!-- raw HTML omitted -->派大星：Executors 是一个工具类，提供了创建线程池的方法。它提供了 6 种创建线程池的方式，包括 newFixedThreadPool、newCachedThreadPool、newSingleThreadExecutor、newScheduledThreadPool 等。<!-- raw HTML omitted --><strong>面试官</strong>：<strong>那你能介绍一下 newFixedThreadPool 的使用方法吗？</strong><!-- raw HTML omitted -->派大星：当然可以。newFixedThreadPool 可以创建一个固定大小的线程池，可控制并发的线程数，超出的线程会在队列中等待。我们可以通过以下代码来创建一个固定大小的线程池：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>ExecutorService threadPool <span style="color:#f92672">=</span> Executors<span style="color:#f92672">.</span><span style="color:#a6e22e">newFixedThreadPool</span><span style="color:#f92672">(</span><span style="color:#ae81ff">2</span><span style="color:#f92672">);</span>
+</span></span></code></pre></div><p><strong>面试官</strong>：<strong>那你能介绍一下 Executors 提供的其他创建方式吗？</strong><!-- raw HTML omitted -->派大星：当然可以。除了 newFixedThreadPool，Executors 还提供了其他 5 种创建方式，分别是 <code>newCachedThreadPool</code>、<code>newSingleThreadExecutor</code>、<code>newScheduledThreadPool</code>、<code>newSingleThreadScheduledExecutor</code> 和 <code>newWorkStealingPool</code>。</p>
+<ul>
+<li>newCachedThreadPool 可以创建一个可以缓存的线程池，若线程数超过处理所需，则会缓存一段时间后回收。若线程数不够，则新建线程。</li>
+<li>newSingleThreadExecutor 可以创建单个线程数的线程池，它可以保证先进先出的执行顺序。</li>
+<li>newScheduledThreadPool 可以创建一个可以执行延迟任务的线程池。</li>
+<li>newSingleThreadScheduledExecutor 可以创建一个单线程的可以执行延迟任务的线程池。</li>
+<li>newWorkStealingPool 可以创建一个抢占式执行的线程池（任务执行顺序不确定），注意此方法只有在 JDK 1.8+ 版本中才能使用。</li>
+</ul>
+<p><strong>面试官</strong>：<strong>这些创建方式有什么优缺点呢</strong>？<!-- raw HTML omitted -->派大星：这些创建方式各有优缺点。例如</p>
+<ul>
+<li>newCachedThreadPool 可以根据任务数量自动调整线程池的大小，但是如果任务数量过多，会导致线程数过多，从而导致系统资源不足。</li>
+<li>而 newFixedThreadPool 可以限制线程的数量，避免线程数过多，但是如果任务数量过多，会导致任务在队列中等待，从而导致响应时间变慢。</li>
+</ul>
+<p><strong>面试官</strong>：<strong>那你建议我们使用哪种创建方式呢？</strong><!-- raw HTML omitted -->派大星：我建议使用 ThreadPoolExecutorPools 创建方式进行自定义配置。因为 Executors 创建方式的缺点是无法进行自定义配置，而 ThreadPoolExecutorPools 可以通过自定义配置来满足不同的需求。<!-- raw HTML omitted --><strong>面试官</strong>：<strong>你知道线程池的参数有哪些吗？</strong><!-- raw HTML omitted -->派大星：一共有七个参数。</p>
+<ul>
+<li>第一个是核心线程数(corePoolSize)，表示线程池中始终存在的线程数；</li>
+<li>第二个是最大线程数(maximumPoolSize)，表示线程池中允许的最大线程数，当线程池中的任务队列满了之后可以创建的最大线程数；</li>
+<li>第三个是最大线程数可以存活的时间(maximumPoolSize)，当线程中没有任务执行时，最大线程就会销毁一部分，最终保持核心线程数量的线程；</li>
+<li>第四个是时间单位(unit)，用于设定线程的存活时间，有七种可以选择，包括天、小时、分、秒、毫秒、微妙和纳秒；</li>
+<li>第五个是一个阻塞队列(unit)，用来存储线程池等待执行的任务，包含七种类型
+<ul>
+<li>ArrayBlockingQueue：一个由数组结构组成的有界阻塞队列。</li>
+<li>LinkedBlockingQueue：一个由链表结构组成的有界阻塞队列。</li>
+<li>SynchronousQueue：一个不存储元素的阻塞队列，即直接提交给线程不保持它们。</li>
+<li>PriorityBlockingQueue：一个支持优先级排序的无界阻塞队列。</li>
+<li>DelayQueue：一个使用优先级队列实现的无界阻塞队列，只有在延迟期满时才能从中提取元素。</li>
+<li>LinkedTransferQueue：一个由链表结构组成的无界阻塞队列。与SynchronousQueue类似，还含有非阻塞方法。</li>
+<li>LinkedBlockingDeque：一个由链表结构组成的双向阻塞队列。</li>
+</ul>
+</li>
+<li>第六个是线程工厂(threadFactory)，主要用来创建线程，默认为正常优先级，非守护线程；</li>
+<li>第七个是拒绝策略(handler)，用于拒绝处理任务时的策略，系统有四种可选。默认的策略为抛出异常。
+<ul>
+<li>AbortPolicy：拒绝并抛出异常</li>
+<li>CallerRunsPolicy：使用当前调用的线程来执行任务</li>
+<li>DiscardOldestPolicy：抛弃队列头部(最旧)的一个任务，并执行当前任务</li>
+<li>DiscardPolicy：忽略并抛弃当前任务</li>
+</ul>
+</li>
+</ul>
+<p>所以综上情况所述，我们推荐使用 ThreadPoolExecutor 的方式进行线程池的创建，因为这种创建方式更可控，并且更加明确了线程池的运行规则，可以规避一些未知的风险。</p>
+
+    </div>
+
+    <div class="post-copyright">
+             
+            <p class="copyright-item">
+                <span>Author:</span>
+                <span>派大星 </span>
+                </p>
+            
+           
+            <p class="copyright-item">
+                    <span>Words:</span>
+                   <span>107</span>
+            </p>
+
+            <p class="copyright-item">
+                
+                <span>Share:</span>
+                <span>
+
+      
+        <a href="//twitter.com/share?url=http%3a%2f%2fvipbbo.com%2f1%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-%25E7%25BA%25BF%25E7%25A8%258B%25E6%25B1%25A0%25E4%25B8%2580%2f&amp;text=&amp;via=" target="_blank" title="Share on Twitter">
+          <i class="iconfont icon-twitter"></i>
+        </a>
+        
+      
+      
+        <a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fvipbbo.com%2f1%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-%25E7%25BA%25BF%25E7%25A8%258B%25E6%25B1%25A0%25E4%25B8%2580%2f" target="_blank" title="Share on Facebook">
+          <i class="iconfont icon-facebook"></i>
+        </a>
+        
+      
+      
+      
+      
+        <a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fvipbbo.com%2f1%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-%25E7%25BA%25BF%25E7%25A8%258B%25E6%25B1%25A0%25E4%25B8%2580%2f&amp;title=" target="_blank" title="Share on LinkedIn">
+          <i class="iconfont icon-linkedin"></i>
+        </a>
+        
+      
+      
+        
+      
+        
+      
+
+          
+
+          
+
+          
+
+          
+
+</span>
+                
+            </p>
+
+             
+            <p class="copyright-item">
+                Released under <a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a>
+            </p>
+            
+    </div>
+
+  
+    <div class="post-tags">
+        
+        <section>
+                <a href="javascript:window.history.back();">Back</a></span> · 
+                <span><a href="http://vipbbo.com/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav">
+         
+        
+        <a href="http://vipbbo.com/1/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-redis-%E5%8D%81%E4%B8%80-_-%E5%8F%8C%E5%86%99%E4%B8%80%E8%87%B4%E6%80%A7%E9%97%AE%E9%A2%98/" class="next" rel="next" title="">&nbsp;<i class="iconfont icon-xiaojiantou"></i></a>
+        
+    </div>
+
+    <div class="post-comment">
+          
+          <div id="disqus_thread"></div>
+  <script type="text/javascript">
+      (function() {
+          
+          
+          if (window.location.hostname == "localhost")
+              return;
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          var disqus_shortname = 'yourdiscussshortname';
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="https://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+ 
+
+          
+    </div>
+</article>
+          </div>
+		   </main>
+      <footer class="footer">
+    <div class="copyright">
+        &copy;
+        
+        <span itemprop="copyrightYear">2023 - 2023</span>
+        
+         
+            <span class="author" itemprop="copyrightHolder"><a href="http://vipbbo.com/">派大星</a> | </span>
+         
+
+		  <span>Crafted with ❤️ by <a href="https://github.com/Fastbyte01/KeepIt" target="_blank" rel="external nofollow noopener noreffer">KeepIt</a> & <a href="https://gohugo.io/" target="_blank" rel="external nofollow noopener noreffer">Hugo</a></span>
+    </div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
+    <script src="/js/vendor_no_gallery.min.js" async=""></script>
+    
+  
+
+
+
+
+
+
+
+     </div>
+  </body>
+</html>

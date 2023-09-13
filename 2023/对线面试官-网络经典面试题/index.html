@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noodp"/>
+  
+  
+  
+  
+  
+  <link rel="prev" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%BA%BF%E7%A8%8B%E5%85%A5%E9%97%A8%E7%AC%AC%E4%B8%80%E8%AF%BE/" />
+  <link rel="next" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-tcp%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%A2%98/" />
+  <link rel="canonical" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%BD%91%E7%BB%9C%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%A2%98/" />
+  <link rel='shortcut icon' type='image/x-icon' href='/favicon.ico' />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <title>
+       
+       
+           🔥对线面试官 - 网络经典面试题 | 码上遇见你
+       
+  </title>
+  <meta name="title" content="🔥对线面试官 - 网络经典面试题 | 码上遇见你">
+    
+  
+  <link rel="stylesheet" href="/font/iconfont.css">
+  <link rel="stylesheet" href="/css/main.min.css">
+
+
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="🔥对线面试官 - 网络经典面试题"/>
+<meta name="twitter:description" content="面试官：如果不在一个子网应该如何传播？
+派大星：可以通过路由器/网关。网关就是路由器的一种，运作在网络层。通过交换机走以太网协议进行一个传输数据包。如图：
+派大星：交换机主要用来在一个子网/局域网内进行广播。路由器的作用是把不同的子网连接起来。疑问点来了：不同子网的设备通过路由器/网关只知道同一子网的IP地址，不知道对应IP地址的MAC地址啊； 其实这里还有重要的一点是每台机器都有自己的ARP cache，这个ARP就是用来在一个局域网内让各个设备都知道自己每个设备的IP地址和Mac地址的对应关系。这样一广播大家都知道了。
+面试官：用浏览器请求一个链接的时候，经历了哪些过程(DNS解析过程) 面试官心里分析：
+主要考察的是网络基本功，看看有没有掌握基本的网络通信知识。这个问题相对比较经典。
+派大星：假设我们现在有如下配置：
+IP地址：192.168.10.110 子网掩码：255.255.255.0 网关地址：192.168.10.1 DNS地址：8.8.8.8
+派大星：当我们在浏览器中数据www.baidu.com并回车的时候：1如果在本地的 hosts 文件没有能够找到对应的 ip 地址；会通过DNS服务器将www.baidu.com解析一个IP地址(172.168.10.110)并返回，返回之后本机电脑会判断返回的IP地址与当前IP地址是不是一个子网的(通过将两个IP地址的二进制与子网掩码的二进制进行与运算，并判断前面的3部分二进制是否一样)，得出的结果指定不在一个子网下。
+因为两个IP地址不在一个子网内，所以此时只能将数据包先通过以太网协议广播到网关上去，通过网关再发送出去。
+2浏览器会请求这个地址，先是按照应用层的http协议封装一个应用层的数据包，数据包里放了http请求报文。3接着会走到传输层，假设这层设置的是TCP协议，此时会把应用层的数据包封装到TCP数据包中去，并携带TCP头，TCP头中包含收发端口号信息。4接下来会走到网络层，这层是IP协议，此时会把TCP头和TCP数据包放到IP数据包里面去，并携带IP头(包含本机192.168.10.110和目标机器的IP地址172.168.10.110)。5下一步走到数据链路层(以太网协议)，并将数据打包成以太网数据包，并携带以太网标头(包含发送者网卡Mac地址、接收者网卡Mac地址-&gt; 对应的是网关192.168.10.1的Mac地址)
+注意：以太网的数据包是有大小限制的，最大只能是1500字节。如果一个数据包过大则会进行切分并标记好顺序。 最后会将切割好的以太网数据包发送到网关上去(192.168.10.1)，网关可能会发送到别的网关上去，经过N次这样的转发会转发到目标服务器上
+目标服务器接收到切割好的以太网数据包后，会根据IP头的序号将切割分裂的数据包进行拼接并还原出一个完整的数据包，接着一层一层的进行提取知道提取到http请求报文，http请求会直接到应用的Tomcat上去，然后就是Spring MVC，MyBatis这样一个常规的处理流程。
+比较好的文章:https://zhuanlan.zhihu.com/p/415022755"/>
+
+  <script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BlogPosting",
+  "headline": "🔥对线面试官 - 网络经典面试题",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http:\/\/vipbbo.com\/2023\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%BD%91%E7%BB%9C%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%A2%98\/"
+  },
+  "image": {
+    "@type": "ImageObject",
+    "url": "http:\/\/vipbbo.com\/cover.png",
+    "width":  800 ,
+    "height":  600 
+  },
+  "genre": "posts",
+  
+  "wordcount":  26 ,
+  "url": "http:\/\/vipbbo.com\/2023\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%BD%91%E7%BB%9C%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%A2%98\/",
+  "datePublished": "2023-01-13T23:05:22\u002b08:00",
+  "dateModified": "2023-01-13T23:05:22\u002b08:00",
+  
+  "publisher": {
+    "@type": "Organization",
+    "name": "Fastbyte01",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http:\/\/vipbbo.com\/logo.png",
+      "width":  127 ,
+      "height":  40 
+    }
+  },
+  "author": {
+    "@type": "Person",
+    "name": "派大星"
+  },
+  "description": ""
+}
+</script>
+</head>
+
+  
+
+
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4585280196682059"
+     crossorigin="anonymous"></script>
+
+
+  <body class="">
+    <div class="wrapper">
+        <nav class="navbar">
+    <div class="container">
+        <div class="navbar-header header-logo">
+        	<a href="http://vipbbo.com/">码上遇见你</a>
+        </div>
+        <div class="menu navbar-right">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+                <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;
+        </div>
+    </div>
+</nav>
+<nav class="navbar-mobile" id="nav-mobile" style="display: none">
+     <div class="container">
+        <div class="navbar-header">
+            <div>  <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;<a href="http://vipbbo.com/">码上遇见你</a></div>
+            <div class="menu-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+     
+          <div class="menu" id="mobile-menu">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+        </div>
+    </div>
+</nav>
+
+    	 <main class="main">
+          <div class="container">
+      		
+<article class="post-warp">
+    <header class="post-header">
+        <h1 class="post-title">🔥对线面试官 - 网络经典面试题</h1>
+        <div class="post-meta">
+            Written by <a href="http://vipbbo.com/" rel="author">派大星</a> with ♥ 
+                <span class="post-time">
+                    on <time datetime=2023-01-13 >13 January 2023</time>
+                </span>
+                in
+                
+                <i class="iconfont icon-timer"></i>
+                1 min
+        </div>
+    </header>
+    <div class="post-content">
+        
+
+        
+            
+        
+
+        
+        
+     
+          
+          
+          
+
+          
+          
+          
+
+          <p><strong>面试官：如果不在一个子网应该如何传播？</strong></p>
+<p>派大星：可以通过路由器/网关。网关就是路由器的一种，运作在网络层。通过交换机走以太网协议进行一个传输数据包。如图：</p>
+<p><figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/gif/22063571/1691414129364-bf1a9b35-0efb-4268-b4f1-ddbf6a93efda.gif#averageHue=%23f1f1f8&amp;clientId=ue5e36df8-ac89-4&amp;from=drop&amp;id=ALBPN&amp;originHeight=500&amp;originWidth=418&amp;originalType=binary&amp;ratio=2&amp;rotation=0&amp;showTitle=false&amp;size=524288&amp;status=done&amp;style=none&amp;taskId=uacba223a-bd06-480d-8cf3-5a8be0faf7f&amp;title=" alt="2c3e38b8-5580-11eb-85a8-32133851dc49.gif" class="lazyload"><figcaption class="image-caption">2c3e38b8-5580-11eb-85a8-32133851dc49.gif</figcaption></figure></p>
+<p>派大星：交换机主要用来在一个子网/局域网内进行广播。路由器的作用是把不同的子网连接起来。疑问点来了：不同子网的设备通过路由器/网关只知道同一子网的IP地址，不知道对应IP地址的MAC地址啊； 其实这里还有重要的一点是每台机器都有自己的ARP cache，这个ARP就是用来在一个局域网内让各个设备都知道自己每个设备的IP地址和Mac地址的对应关系。这样一广播大家都知道了。</p>
+<p><strong>面试官：用浏览器请求一个链接的时候，经历了哪些过程(DNS解析过程)</strong>
+面试官心里分析：</p>
+<blockquote>
+<p>主要考察的是网络基本功，看看有没有掌握基本的网络通信知识。这个问题相对比较经典。</p>
+</blockquote>
+<p>派大星：假设我们现在有如下配置：</p>
+<blockquote>
+<p>IP地址：192.168.10.110
+子网掩码：255.255.255.0
+网关地址：192.168.10.1
+DNS地址：8.8.8.8</p>
+</blockquote>
+<p>派大星：当我们在浏览器中数据<strong><a href="https://www.baidu.com">www.baidu.com</a></strong>并回车的时候：<code>1</code>如果在本地的 hosts 文件没有能够找到对应的 ip 地址；会通过DNS服务器将www.baidu.com解析一个IP地址(172.168.10.110)并返回，返回之后本机电脑会判断返回的IP地址与当前IP地址是不是一个子网的(通过将两个IP地址的二进制与子网掩码的二进制进行与运算，并判断前面的3部分二进制是否一样)，得出的结果指定不在一个子网下。</p>
+<blockquote>
+<p>因为两个IP地址不在一个子网内，所以此时只能将数据包先通过以太网协议广播到网关上去，通过网关再发送出去。</p>
+</blockquote>
+<p><code>2</code>浏览器会请求这个地址，先是按照应用层的http协议封装一个<strong>应用层</strong>的数据包，数据包里放了http请求报文。<code>3</code>接着会走到传输层，假设这层设置的是TCP协议，此时会把应用层的数据包封装到TCP数据包中去，并携带TCP头，TCP头中包含收发端口号信息。<code>4</code>接下来会走到网络层，这层是IP协议，此时会把TCP头和TCP数据包放到IP数据包里面去，并携带IP头(包含本机<strong>192.168.10.110</strong>和目标机器的IP地址<strong>172.168.10.110</strong>)。<code>5</code>下一步走到数据链路层(以太网协议)，并将数据打包成以太网数据包，并携带以太网标头(包含发送者网卡Mac地址、接收者网卡Mac地址-&gt; 对应的是网关192.168.10.1的Mac地址)</p>
+<ul>
+<li>注意：以太网的数据包是有大小限制的，最大只能是1500字节。如果一个数据包过大则会进行切分并标记好顺序。</li>
+</ul>
+<p>最后会将切割好的以太网数据包发送到网关上去(<strong>192.168.10.1</strong>)，网关可能会发送到别的网关上去，经过N次这样的转发会转发到目标服务器上</p>
+<p>目标服务器接收到切割好的以太网数据包后，会根据IP头的序号将切割分裂的数据包进行拼接并还原出一个完整的数据包，接着一层一层的进行提取知道提取到http请求报文，http请求会直接到应用的Tomcat上去，然后就是Spring MVC，MyBatis这样一个常规的处理流程。</p>
+<p><figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://cdn.nlark.com/yuque/0/2023/png/22063571/1691333254546-8e47161c-bf4c-43e2-a521-304d55bc63a9.png#averageHue=%23fcfcfb&amp;clientId=ue5e36df8-ac89-4&amp;from=paste&amp;height=514&amp;id=u4da549cf&amp;originHeight=1027&amp;originWidth=1007&amp;originalType=binary&amp;ratio=2&amp;rotation=0&amp;showTitle=false&amp;size=301194&amp;status=done&amp;style=none&amp;taskId=uafed5def-70aa-42de-a2b2-d8cf3937696&amp;title=&amp;width=503.5" alt="image.png" class="lazyload"><figcaption class="image-caption">image.png</figcaption></figure></p>
+<p>比较好的文章:<a href="https://zhuanlan.zhihu.com/p/415022755"><strong>https://zhuanlan.zhihu.com/p/415022755</strong></a></p>
+
+    </div>
+
+    <div class="post-copyright">
+             
+            <p class="copyright-item">
+                <span>Author:</span>
+                <span>派大星 </span>
+                </p>
+            
+           
+            <p class="copyright-item">
+                    <span>Words:</span>
+                   <span>26</span>
+            </p>
+
+            <p class="copyright-item">
+                
+                <span>Share:</span>
+                <span>
+
+      
+        <a href="//twitter.com/share?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-%25E7%25BD%2591%25E7%25BB%259C%25E7%25BB%258F%25E5%2585%25B8%25E9%259D%25A2%25E8%25AF%2595%25E9%25A2%2598%2f&amp;text=%f0%9f%94%a5%e5%af%b9%e7%ba%bf%e9%9d%a2%e8%af%95%e5%ae%98%20-%20%e7%bd%91%e7%bb%9c%e7%bb%8f%e5%85%b8%e9%9d%a2%e8%af%95%e9%a2%98&amp;via=" target="_blank" title="Share on Twitter">
+          <i class="iconfont icon-twitter"></i>
+        </a>
+        
+      
+      
+        <a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-%25E7%25BD%2591%25E7%25BB%259C%25E7%25BB%258F%25E5%2585%25B8%25E9%259D%25A2%25E8%25AF%2595%25E9%25A2%2598%2f" target="_blank" title="Share on Facebook">
+          <i class="iconfont icon-facebook"></i>
+        </a>
+        
+      
+      
+      
+      
+        <a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-%25E7%25BD%2591%25E7%25BB%259C%25E7%25BB%258F%25E5%2585%25B8%25E9%259D%25A2%25E8%25AF%2595%25E9%25A2%2598%2f&amp;title=%f0%9f%94%a5%e5%af%b9%e7%ba%bf%e9%9d%a2%e8%af%95%e5%ae%98%20-%20%e7%bd%91%e7%bb%9c%e7%bb%8f%e5%85%b8%e9%9d%a2%e8%af%95%e9%a2%98" target="_blank" title="Share on LinkedIn">
+          <i class="iconfont icon-linkedin"></i>
+        </a>
+        
+      
+      
+        
+      
+        
+      
+
+          
+
+          
+
+          
+
+          
+
+</span>
+                
+            </p>
+
+             
+            <p class="copyright-item">
+                Released under <a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a>
+            </p>
+            
+    </div>
+
+  
+    <div class="post-tags">
+        
+        <section>
+                <a href="javascript:window.history.back();">Back</a></span> · 
+                <span><a href="http://vipbbo.com/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav">
+        
+        <a href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E7%BA%BF%E7%A8%8B%E5%85%A5%E9%97%A8%E7%AC%AC%E4%B8%80%E8%AF%BE/" class="prev" rel="prev" title="🔥对线面试官-线程入门第一课"><i class="iconfont icon-dajiantou"></i>&nbsp;🔥对线面试官-线程入门第一课</a>
+         
+        
+        <a href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-tcp%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%A2%98/" class="next" rel="next" title="🔥对线面试官 - TCP经典面试题">🔥对线面试官 - TCP经典面试题&nbsp;<i class="iconfont icon-xiaojiantou"></i></a>
+        
+    </div>
+
+    <div class="post-comment">
+          
+          <div id="disqus_thread"></div>
+  <script type="text/javascript">
+      (function() {
+          
+          
+          if (window.location.hostname == "localhost")
+              return;
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          var disqus_shortname = 'yourdiscussshortname';
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="https://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+ 
+
+          
+    </div>
+</article>
+          </div>
+		   </main>
+      <footer class="footer">
+    <div class="copyright">
+        &copy;
+        
+        <span itemprop="copyrightYear">2023 - 2023</span>
+        
+         
+            <span class="author" itemprop="copyrightHolder"><a href="http://vipbbo.com/">派大星</a> | </span>
+         
+
+		  <span>Crafted with ❤️ by <a href="https://github.com/Fastbyte01/KeepIt" target="_blank" rel="external nofollow noopener noreffer">KeepIt</a> & <a href="https://gohugo.io/" target="_blank" rel="external nofollow noopener noreffer">Hugo</a></span>
+    </div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    <link crossorigin="anonymous" integrity="sha384-yziQACfvCVwLqVFLqkWBYRO3XeA4EqzfXKGwaWnenYn5XzqfJFlFdKEmvutIQdKb" href="https://lib.baomitu.com/lightgallery/1.10.0/css/lightgallery.min.css" rel="stylesheet">
+      
+     <script src="/js/vendor_gallery.min.js" async="" ></script>
+    
+  
+
+
+
+
+
+
+
+     </div>
+  </body>
+</html>

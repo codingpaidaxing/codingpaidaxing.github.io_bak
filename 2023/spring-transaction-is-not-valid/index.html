@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noodp"/>
+  
+  
+  
+  
+  
+  <link rel="prev" href="http://vipbbo.com/2023/%E5%9F%BA%E4%BA%8E%E8%87%AA%E5%AE%9A%E4%B9%89%E6%95%B0%E6%8D%AE%E6%BA%90%E7%9A%84langchain%E7%9A%84%E8%81%8A%E5%A4%A9/" />
+  <link rel="next" href="http://vipbbo.com/2023/spring-boot%E8%87%AA%E5%8A%A8%E8%A3%85%E9%85%8D%E5%8E%9F%E7%90%86/" />
+  <link rel="canonical" href="http://vipbbo.com/2023/spring-transaction-is-not-valid/" />
+  <link rel='shortcut icon' type='image/x-icon' href='/favicon.ico' />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <title>
+       
+       
+           关于Spring中事务未生效的场景 | 码上遇见你
+       
+  </title>
+  <meta name="title" content="关于Spring中事务未生效的场景 | 码上遇见你">
+    
+  
+  <link rel="stylesheet" href="/font/iconfont.css">
+  <link rel="stylesheet" href="/css/main.min.css">
+
+
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="关于Spring中事务未生效的场景"/>
+<meta name="twitter:description" content="关于Spring中事务未生效的场景 对于Java开发的同学，相信对于Spring的事务在熟悉不过了。但是相信各位小伙伴们在工作中一定有类似于这样的需要： 需要同时写入多张表的数据，为了保证操作的原子性(也就是所谓的要么同时成功，要么同时失败)，避免产生数据不一致的情况，我们都会使用Spring事务，但是对于Spring事务相信大家也遇到过比较诡异的问题，会出现那种事务失效，或者就是不满足自己的业务场景，其实归根结底还是我们针对于Spring事务的某些特殊场景掌握的不够牢靠。接下来我总结了一下关于Spring事务在某些情况下失效的场景，不出意外的话相信你也遇到过。
+Spring事务失效的12种场景总结图 Spring 事务不生效 1.访问权限问题 所谓的访问权限问题也就是开发中再熟悉不过的private，default，protected，public，它们的访问权限从左到右，依次变大。如果我们在开发过程中国呢，把某些事务方法定义了错误的访问权限，就会导致事务功能出现问题，甚至失效。例如：
+@Service public class UserService { @Transactionsl private void add(User user){ saveUser(user); updateUser(user); } } 上面代码中我们可以看到对于方法add的访问修饰符被定义成了private，这样会导致事务失效，原因是Spring 要求被代理的方法必须是 **public** 的。简单粗暴来看源码是怎么搞的。如下：
+/** * Same signature as {@link #getTransactionAttribute}, but doesn&#39;t cache the result. * {@link #getTransactionAttribute} is effectively a caching decorator for this method. * &lt;p&gt;As of 4.1.8, this method can be overridden. * @since 4.1.8 * @see #getTransactionAttribute */ @Nullable protected TransactionAttribute computeTransactionAttribute(Method method, @Nullable Class&lt;?"/>
+
+  <script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BlogPosting",
+  "headline": "关于Spring中事务未生效的场景",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http:\/\/vipbbo.com\/2023\/spring-transaction-is-not-valid\/"
+  },
+  "image": {
+    "@type": "ImageObject",
+    "url": "http:\/\/vipbbo.com\/cover.png",
+    "width":  800 ,
+    "height":  600 
+  },
+  "genre": "posts",
+  
+  "wordcount":  746 ,
+  "url": "http:\/\/vipbbo.com\/2023\/spring-transaction-is-not-valid\/",
+  "datePublished": "2023-01-13T23:05:22\u002b08:00",
+  "dateModified": "2023-01-13T23:05:22\u002b08:00",
+  
+  "publisher": {
+    "@type": "Organization",
+    "name": "Fastbyte01",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http:\/\/vipbbo.com\/logo.png",
+      "width":  127 ,
+      "height":  40 
+    }
+  },
+  "author": {
+    "@type": "Person",
+    "name": "派大星"
+  },
+  "description": ""
+}
+</script>
+</head>
+
+  
+
+
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4585280196682059"
+     crossorigin="anonymous"></script>
+
+
+  <body class="">
+    <div class="wrapper">
+        <nav class="navbar">
+    <div class="container">
+        <div class="navbar-header header-logo">
+        	<a href="http://vipbbo.com/">码上遇见你</a>
+        </div>
+        <div class="menu navbar-right">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+                <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;
+        </div>
+    </div>
+</nav>
+<nav class="navbar-mobile" id="nav-mobile" style="display: none">
+     <div class="container">
+        <div class="navbar-header">
+            <div>  <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;<a href="http://vipbbo.com/">码上遇见你</a></div>
+            <div class="menu-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+     
+          <div class="menu" id="mobile-menu">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+        </div>
+    </div>
+</nav>
+
+    	 <main class="main">
+          <div class="container">
+      		
+<article class="post-warp">
+    <header class="post-header">
+        <h1 class="post-title">关于Spring中事务未生效的场景</h1>
+        <div class="post-meta">
+            Written by <a href="http://vipbbo.com/" rel="author">派大星</a> with ♥ 
+                <span class="post-time">
+                    on <time datetime=2023-01-13 >13 January 2023</time>
+                </span>
+                in
+                
+                <i class="iconfont icon-timer"></i>
+                4 min
+        </div>
+    </header>
+    <div class="post-content">
+        
+
+        
+            
+        
+
+        
+        
+     
+          
+          
+          
+
+          
+          
+          
+
+          <h1 id="关于spring中事务未生效的场景">关于Spring中事务未生效的场景</h1>
+<blockquote>
+<p>对于Java开发的同学，相信对于Spring的事务在熟悉不过了。但是相信各位小伙伴们在工作中一定有类似于这样的需要：
+需要同时写入多张表的数据，为了保证操作的原子性(也就是所谓的要么同时成功，要么同时失败)，避免产生数据不一致的情况，我们都会使用<code>Spring事务</code>，但是对于Spring事务相信大家也遇到过比较诡异的问题，会出现那种事务失效，或者就是不满足自己的业务场景，其实归根结底还是我们针对于Spring事务的某些特殊场景掌握的不够牢靠。接下来我总结了一下关于Spring事务在某些情况下失效的场景，不出意外的话相信你也遇到过。</p>
+</blockquote>
+<h2 id="spring事务失效的12种场景总结图">Spring事务失效的12种场景总结图</h2>
+<p><figure><img src="/images/ring.svg" data-sizes="auto" data-src="images/Spring_transaction_is_not_valid/20230224110422.png" alt="pasted-image" class="lazyload"><figcaption class="image-caption">pasted-image</figcaption></figure></p>
+<h2 id="spring-事务不生效">Spring 事务不生效</h2>
+<h3 id="1访问权限问题">1.访问权限问题</h3>
+<blockquote>
+<p>所谓的访问权限问题也就是开发中再熟悉不过的<code>private</code>，<code>default</code>，<code>protected</code>，<code>public</code>，它们的访问权限从左到右，依次变大。如果我们在开发过程中国呢，把某些事务方法定义了错误的访问权限，就会导致事务功能出现问题，甚至失效。例如：</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Service</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">UserService</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">@Transactionsl</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">private</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">add</span><span style="color:#f92672">(</span>User user<span style="color:#f92672">){</span>
+</span></span><span style="display:flex;"><span>		saveUser<span style="color:#f92672">(</span>user<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>		updateUser<span style="color:#f92672">(</span>user<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><p>上面代码中我们可以看到对于方法<code>add</code>的访问修饰符被定义成了<code>private</code>，这样会导致事务失效，原因是<code>Spring 要求被代理的方法必须是 **public** 的</code>。简单粗暴来看源码是怎么搞的。如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">	 * Same signature as {@link #getTransactionAttribute}, but doesn&#39;t cache the result.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">	 * {@link #getTransactionAttribute} is effectively a caching decorator for this method.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">	 * &lt;p&gt;As of 4.1.8, this method can be overridden.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">	 * @since 4.1.8
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">	 * @see #getTransactionAttribute
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">	 */</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">@Nullable</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">protected</span> TransactionAttribute <span style="color:#a6e22e">computeTransactionAttribute</span><span style="color:#f92672">(</span>Method method<span style="color:#f92672">,</span> <span style="color:#a6e22e">@Nullable</span> Class<span style="color:#f92672">&lt;?&gt;</span> targetClass<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// Don&#39;t allow non-public methods, as configured.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>allowPublicMethodsOnly<span style="color:#f92672">()</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#f92672">!</span>Modifier<span style="color:#f92672">.</span><span style="color:#a6e22e">isPublic</span><span style="color:#f92672">(</span>method<span style="color:#f92672">.</span><span style="color:#a6e22e">getModifiers</span><span style="color:#f92672">()))</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">;</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// The method may be on an interface, but we need attributes from the target class.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#75715e">// If the target class is null, the method will be unchanged.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		Method specificMethod <span style="color:#f92672">=</span> AopUtils<span style="color:#f92672">.</span><span style="color:#a6e22e">getMostSpecificMethod</span><span style="color:#f92672">(</span>method<span style="color:#f92672">,</span> targetClass<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// First try is the method in the target class.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		TransactionAttribute txAttr <span style="color:#f92672">=</span> findTransactionAttribute<span style="color:#f92672">(</span>specificMethod<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>txAttr <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> txAttr<span style="color:#f92672">;</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// Second try is the transaction attribute on the target class.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		txAttr <span style="color:#f92672">=</span> findTransactionAttribute<span style="color:#f92672">(</span>specificMethod<span style="color:#f92672">.</span><span style="color:#a6e22e">getDeclaringClass</span><span style="color:#f92672">());</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>txAttr <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span> <span style="color:#f92672">&amp;&amp;</span> ClassUtils<span style="color:#f92672">.</span><span style="color:#a6e22e">isUserLevelMethod</span><span style="color:#f92672">(</span>method<span style="color:#f92672">))</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> txAttr<span style="color:#f92672">;</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>specificMethod <span style="color:#f92672">!=</span> method<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">// Fallback is to look at the original method.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			txAttr <span style="color:#f92672">=</span> findTransactionAttribute<span style="color:#f92672">(</span>method<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>txAttr <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">return</span> txAttr<span style="color:#f92672">;</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">// Last fallback is the class of the original method.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			txAttr <span style="color:#f92672">=</span> findTransactionAttribute<span style="color:#f92672">(</span>method<span style="color:#f92672">.</span><span style="color:#a6e22e">getDeclaringClass</span><span style="color:#f92672">());</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>txAttr <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span> <span style="color:#f92672">&amp;&amp;</span> ClassUtils<span style="color:#f92672">.</span><span style="color:#a6e22e">isUserLevelMethod</span><span style="color:#f92672">(</span>method<span style="color:#f92672">))</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">return</span> txAttr<span style="color:#f92672">;</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">}</span>
+</span></span></code></pre></div><p>从上述源码中可以看到<code>AbstractFallbackTransactionAttributeSource</code>类的<code>computeTransactionAttribute</code>方法中有一个判断，如果方法的修饰符不是<code>public</code>的话，则返回null，并且不支持事务。</p>
+<p>也就是说如果我们自定义的事务方法(即目标方法)它的访问权限不是<code>public</code>，而是<code>private</code>，<code>defalut</code>，<code>protected</code>修饰符的话，Spring都不会提供事务。</p>
+<h3 id="2方法使用final修饰">2.方法使用final修饰</h3>
+<blockquote>
+<p>在某些场景我们可能需要使用<code>final</code>修饰方法，为了不让子类重写等原因，但是针对普通方法而言这是没有任何问题的，但是针对需要加事务的方法则会导致事务失效。如下代码：</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Service</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">UserService</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">@Transactionsl</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">add</span><span style="color:#f92672">(</span>User user<span style="color:#f92672">){</span>
+</span></span><span style="display:flex;"><span>		saveUser<span style="color:#f92672">(</span>user<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>		updateUser<span style="color:#f92672">(</span>user<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><p>上述代码中的<code>add</code>方法被<code>final</code>修饰了，从而导致了事务失效。具体原因是什么的。这就要从Spring的源码开始说起了。相比应该是都知道Spring事务的底层其实是使用了AOP，也就是通过<code>jdk动态代理</code>或者<code>cglib</code>，帮我们生成了代理类，在代理类中实现的事务功能。</p>
+<p>但是某个方法被<code>final</code>修饰了，那么在它的代理类中，就无法重写该方法，而添加事务功能</p>
+<blockquote>
+<p>注意：如果某个方法是<code>static</code>修饰的，同样无法通过动态代理，变成事务方法。</p>
+</blockquote>
+<h3 id="3方法内部调用">3.方法内部调用</h3>
+<blockquote>
+<p>在某些场景下，我们需要在某个service类中的某个方法中调用另外一个事务方法。比如：</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Service</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">UserService</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">@Autowired</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">private</span> UserMapper usermapper<span style="color:#f92672">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">add</span><span style="color:#f92672">(</span>User user<span style="color:#f92672">){</span>
+</span></span><span style="display:flex;"><span>		userMappper<span style="color:#f92672">.</span><span style="color:#a6e22e">insertUser</span><span style="color:#f92672">(</span>user<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>		updateStatus<span style="color:#f92672">(</span>user<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Transactional</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">updateStatus</span><span style="color:#f92672">(</span>User user<span style="color:#f92672">){</span>
+</span></span><span style="display:flex;"><span>	doSomeThing<span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><p>从上面的方法中我们可以看到add()方法中直接调用了事务方法updateStatus()；从前面的介绍可以直达，updateStatus()方法拥有事务的能力是因为Spring AOP生成了代理对象，但是这种方法直接调用了this对象的方法，所以updateStatus()方法不会生成事务。</p>
+<p>由此可见，在同一类中的方法直接调用，会导致事务失效。</p>
+<p>那么我们如何解决在同一方法中调用自己类中的另外一个方法呢？方案如下</p>
+<h4 id="31新加一个service方法">3.1新加一个Service方法</h4>
+<p>这个方法相对简单就是将同一类中调用与被调用的两个方法拆分为两个Service。代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Service</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ServiceA</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">@Autowired</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">private</span> ServiceB serviceB<span style="color:#f92672">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">save</span><span style="color:#f92672">(</span>User user<span style="color:#f92672">){</span>
+</span></span><span style="display:flex;"><span>		queryData1<span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>		queryData2<span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>		serviceB<span style="color:#f92672">.</span><span style="color:#a6e22e">doSave</span><span style="color:#f92672">(</span>user<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Service</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ServiceB</span><span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">@Transactional</span><span style="color:#f92672">(</span>rollbackFor <span style="color:#f92672">=</span> Exception<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">doSave</span><span style="color:#f92672">(</span>User user<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>		addData1<span style="color:#f92672">(</span>user<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>		updateData2<span style="color:#f92672">(</span>user<span style="color:#f92672">):</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><h4 id="32在该service中注入自己">3.2在该Service中注入自己</h4>
+<p>如果不想加一个新的类，其实也可以通过在该类中注入自己也可解决事务失效的问题。代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Service</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ServiceA</span><span style="color:#f92672">(){</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">@Autowired</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">private</span> ServiceA serviceA<span style="color:#f92672">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">save</span><span style="color:#f92672">(</span>User user<span style="color:#f92672">){</span>
+</span></span><span style="display:flex;"><span>		queryData1<span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>		queryData2<span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>		serviceA<span style="color:#f92672">.</span><span style="color:#a6e22e">doSave</span><span style="color:#f92672">(</span>user<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">@Transactional</span><span style="color:#f92672">(</span>rollbackFor <span style="color:#f92672">=</span> Excetion<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">doSave</span><span style="color:#f92672">(</span>User user<span style="color:#f92672">){</span>
+</span></span><span style="display:flex;"><span>		addData1<span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>		updateData2<span style="color:#f92672">(</span>user<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><p>可能有人看到这里便会有这样一个疑问，这种做法不会导致循环依赖的问题吗：
+答案是:不会。</p>
+<h4 id="33-通过aopcontent类">3.3 通过AopContent类</h4>
+<p>在该Service类中使用<code>AopContent.currentProxy()</code>获取对象。虽然上述的方法2也是解决了该问题，但是代码看起来晦涩难懂。接下来我们可以通过<code>AopContent</code>来获取代理对象从而实现相同的功能，代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Service</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ServiceA</span><span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">save</span><span style="color:#f92672">(</span>User user<span style="color:#f92672">){</span>
+</span></span><span style="display:flex;"><span>		queryData1<span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>		queryData2<span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#f92672">(</span> <span style="color:#f92672">(</span>ServiceA<span style="color:#f92672">)</span>AopContent<span style="color:#f92672">.</span><span style="color:#a6e22e">currentProxy</span><span style="color:#f92672">()</span> <span style="color:#f92672">).</span><span style="color:#a6e22e">doSave</span><span style="color:#f92672">(</span>user<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">@Transactional</span><span style="color:#f92672">(</span>rollbackFor <span style="color:#f92672">=</span> Excetion<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">doSave</span><span style="color:#f92672">(</span>User user<span style="color:#f92672">){</span>
+</span></span><span style="display:flex;"><span>		addData1<span style="color:#f92672">(</span>user<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>		updateData2<span style="color:#f92672">(</span>user<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><h3 id="4未被spring管理">4.未被Spring管理</h3>
+<p>在我们市场开发中，还有一个细节很容易被忽略。就是如果需要使用Spring事务，是有一个前置条件，那就是对象需要交给Spring进行管理，需要创建bean实例。</p>
+<p>通常情况下，我们通过<code>@Contrlller</code> <code>@Service</code> <code>@Component</code> <code>@Repository</code>等注解，实现将bean实例化喝依赖注入的功能。假设某个时候你再Service上没有添加<code>@Service</code>注解，比如</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#75715e">//@Service
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">UserService</span><span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">@Transactional</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">add</span><span style="color:#f92672">(</span>User user<span style="color:#f92672">){</span>
+</span></span><span style="display:flex;"><span>		saveData<span style="color:#f92672">(</span>user<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>		updateData<span style="color:#f92672">(</span>user<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><p>上述代码的UserService类没有添加<code>@Service</code>注解，那么该类就不会交给Spring进行统一管理，同时它的add()方法也不会生成事务。</p>
+<h3 id="5多线程调用">5.多线程调用</h3>
+<p>在实际的应用开发中。我们通常使用多线程的场景还是很多的。如果Spring事务用在多线程场景下。同样会有问题。代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Slf4j</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Service</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">UserService</span><span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">@Autowired</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">private</span> UserMapper userMapper<span style="color:#f92672">;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">@Autowired</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">private</span> RoleService roleService<span style="color:#f92672">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">@Transactional</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">add</span><span style="color:#f92672">(</span>User user<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> Exception<span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>		userMapper<span style="color:#f92672">.</span><span style="color:#a6e22e">insertUser</span><span style="color:#f92672">(</span>user<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">new</span> Thread<span style="color:#f92672">(</span> <span style="color:#f92672">()-&gt;</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>			roleService<span style="color:#f92672">.</span><span style="color:#a6e22e">doOtherThing</span><span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#f92672">}).</span><span style="color:#a6e22e">start</span><span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Service</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">RoleService</span><span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">@Transactional</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">doOtherThing</span><span style="color:#f92672">(){</span>
+</span></span><span style="display:flex;"><span>		System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;保存roles数据&#34;</span><span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><p>从上面的例子，我们可以看到事务方法add()中，调用了事务方法doOtherThing()，但是事务方法doOtherThing()是在另外一个线程中调用的。这样会导致两个方法不在一个线程中。获取的数据库连接也就不一致，从而是两个不同的事务。如果doOtherThing()方法中抛出了异常，add()方法是不可能回滚的。</p>
+<p>如果看过Spring源码的小伙伴应该知道Spring的事务是通过数据库的连接来实现的。当前线程中保存了一个map，key是数据源，value是数据库连接。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> ThreadLocal<span style="color:#f92672">&lt;</span>Map<span style="color:#f92672">&lt;</span>Object<span style="color:#f92672">,</span>Object<span style="color:#f92672">&gt;&gt;</span> resources <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> NamedThreadLocal<span style="color:#f92672">&lt;&gt;(</span><span style="color:#e6db74">&#34;Transactional resources&#34;</span><span style="color:#f92672">);</span>
+</span></span></code></pre></div><p>我们说的同一个事务，其实指同一个数据库连接，只有拥有同一个数据库连接才能同事提交和回滚。如果在不同的线程中，拿到的数据库连接肯定是不一样的。所以事务也是不同的。</p>
+<h3 id="6表不支持事务">6.表不支持事务</h3>
+<p>众所周知，在MySQL 5.x之前，默认的数据库引擎是<code>myisam</code>。</p>
+<p>它的优缺点就不说了：索引文件和数据文件是分开存储的，对于查多写少的表操作，性能要比InnoDB要更好。在一些老的项目中用它的有很多。</p>
+<p>创建一个MyIsam引擎的表:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">TABLE</span> <span style="color:#f92672">`</span>category<span style="color:#f92672">`</span> (
+</span></span><span style="display:flex;"><span> <span style="color:#f92672">`</span>id<span style="color:#f92672">`</span> bigint <span style="color:#66d9ef">NOT</span> <span style="color:#66d9ef">NULL</span> AUTO_INCREMENT,
+</span></span><span style="display:flex;"><span> <span style="color:#f92672">`</span>one_category<span style="color:#f92672">`</span> varchar(<span style="color:#ae81ff">20</span>) <span style="color:#66d9ef">COLLATE</span> utf8mb4_bin <span style="color:#66d9ef">DEFAULT</span> <span style="color:#66d9ef">NULL</span>,
+</span></span><span style="display:flex;"><span> <span style="color:#f92672">`</span>two_category<span style="color:#f92672">`</span> varchar(<span style="color:#ae81ff">20</span>) <span style="color:#66d9ef">COLLATE</span> utf8mb4_bin <span style="color:#66d9ef">DEFAULT</span> <span style="color:#66d9ef">NULL</span>,
+</span></span><span style="display:flex;"><span> <span style="color:#f92672">`</span>three_category<span style="color:#f92672">`</span> varchar(<span style="color:#ae81ff">20</span>) <span style="color:#66d9ef">COLLATE</span> utf8mb4_bin <span style="color:#66d9ef">DEFAULT</span> <span style="color:#66d9ef">NULL</span>,
+</span></span><span style="display:flex;"><span> <span style="color:#f92672">`</span>four_category<span style="color:#f92672">`</span> varchar(<span style="color:#ae81ff">20</span>) <span style="color:#66d9ef">COLLATE</span> utf8mb4_bin <span style="color:#66d9ef">DEFAULT</span> <span style="color:#66d9ef">NULL</span>,
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">PRIMARY</span> <span style="color:#66d9ef">KEY</span> (<span style="color:#f92672">`</span>id<span style="color:#f92672">`</span>)
+</span></span><span style="display:flex;"><span>) ENGINE<span style="color:#f92672">=</span>MyISAM AUTO_INCREMENT<span style="color:#f92672">=</span><span style="color:#ae81ff">4</span> <span style="color:#66d9ef">DEFAULT</span> CHARSET<span style="color:#f92672">=</span>utf8mb4 <span style="color:#66d9ef">COLLATE</span><span style="color:#f92672">=</span>utf8mb4_bin
+</span></span></code></pre></div><p>虽然<code>MyIsam</code>引擎好用，但是有一个致命的缺点，那就是不支持事务。
+如果是单表操作还好，不会出现太大的问题，但是如果是跨表操作，由于其不支持事务，数据极有可能出现不完整的情况。</p>
+<p>此外<code>MyIsam</code>还不支持 <code>行锁</code> 和 <code>外键</code>。</p>
+<p>所以时间的业务场景中，<code>MyIsam</code>的使用场景不多，在MySQL 5.x之后，<code>MyIsam</code>已经逐渐的退出了历史舞台，取而代之的是引擎<code>InnoDB</code></p>
+<p>所以在实际的开发中如果事务没有生效，有可能就是因为你的表的引擎不支持事务。</p>
+<h3 id="7未开启事务">7.未开启事务</h3>
+<p>有些时候，事务没有生效的根本原因是没有开启事务。</p>
+<p>如果你使用的是Spring Boot项目，那么很幸运，因为Spring Boot已经通过<code>DataSoureTransactionManagerAutoConfiguration</code>类，默认开启了事务，你只需要配置<code>spring.datasource</code>的相关参数即可。</p>
+<p>如果是Spring项目则需要一下配置信息：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#75715e">&lt;!-- 配置事务管理器 --&gt;</span> 
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;bean</span> <span style="color:#a6e22e">class=</span><span style="color:#e6db74">&#34;org.springframework.jdbc.datasource.DataSourceTransactionManager&#34;</span> <span style="color:#a6e22e">id=</span><span style="color:#e6db74">&#34;transactionManager&#34;</span><span style="color:#f92672">&gt;</span> 
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;property</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;dataSource&#34;</span> <span style="color:#a6e22e">ref=</span><span style="color:#e6db74">&#34;dataSource&#34;</span><span style="color:#f92672">&gt;&lt;/property&gt;</span> 
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/bean&gt;</span> 
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;tx:advice</span> <span style="color:#a6e22e">id=</span><span style="color:#e6db74">&#34;advice&#34;</span> <span style="color:#a6e22e">transaction-manager=</span><span style="color:#e6db74">&#34;transactionManager&#34;</span><span style="color:#f92672">&gt;</span> 
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;tx:attributes&gt;</span> 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;tx:method</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;*&#34;</span> <span style="color:#a6e22e">propagation=</span><span style="color:#e6db74">&#34;REQUIRED&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/tx:attributes&gt;</span> 
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/tx:advice&gt;</span> 
+</span></span><span style="display:flex;"><span><span style="color:#75715e">&lt;!-- 用切点把事务切进去 --&gt;</span> 
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;aop:config&gt;</span> 
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;aop:pointcut</span> <span style="color:#a6e22e">expression=</span><span style="color:#e6db74">&#34;execution(* com.susan.*.*(..))&#34;</span> <span style="color:#a6e22e">id=</span><span style="color:#e6db74">&#34;pointcut&#34;</span><span style="color:#f92672">/&gt;</span> 
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;aop:advisor</span> <span style="color:#a6e22e">advice-ref=</span><span style="color:#e6db74">&#34;advice&#34;</span> <span style="color:#a6e22e">pointcut-ref=</span><span style="color:#e6db74">&#34;pointcut&#34;</span><span style="color:#f92672">/&gt;</span> 
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/aop:config&gt;</span> 
+</span></span></code></pre></div><blockquote>
+<p>注意：如果在pointcut标签中的切入点匹配规则，配错了的话，有些类的事务也不会生效。</p>
+</blockquote>
+<p>以上说的都是单纯的事务没有生效。但是在实际的开发过程中还存在另外一种情况，就是事务生效了，但是没有回滚，或者说事务执行没有达到预期。</p>
+<h1 id="spring中事务未生效的场景之事务未回滚">Spring中事务未生效的场景之事务未回滚</h1>
+<h2 id="spring的事务不回滚">Spring的事务不回滚</h2>
+<h3 id="1错误的传播特性">1.错误的传播特性</h3>
+<p>说到事务的传播特性，首先应该知道事务的传播特性有哪些：</p>
+<table>
+<thead>
+<tr>
+<th>事务的传播行为类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PROPAGATION_REQUIRED</td>
+<td>如果当前没有事务，就新建一个事务，如果已经存在一个事务，加入到这个事务中，这是最常见的选择。</td>
+</tr>
+<tr>
+<td>PROPAGATION_SUPPORTS</td>
+<td>支持当前事务，如果当前没有事务，则以非事务的方式运行</td>
+</tr>
+<tr>
+<td>PROPAGATION_MANDATORY</td>
+<td>使用当前事务，如果当前没有事务，就抛出异常</td>
+</tr>
+<tr>
+<td>PROPAGATION_REQUIRED_NEW</td>
+<td>新建事务，如果当前存在事务，把当前事务挂起</td>
+</tr>
+<tr>
+<td>PROPAGATION_NOT_SUPPORTED</td>
+<td>以非事务的方式执行操作，如果当前存在事务，则把事务挂起</td>
+</tr>
+<tr>
+<td>PROPAGATION_NEVER</td>
+<td>以非事务的方式执行，如果当前存在事务，则抛出异常</td>
+</tr>
+<tr>
+<td>PROPAGATION_NESTED</td>
+<td>如果当前存在事务，则在嵌套事务内执行；如果当前没有事务，执行与PROPAGATION_REQUIRED类似的操作</td>
+</tr>
+</tbody>
+</table>
+<p>如果在编写代码时将事务的传播特性编写出错。比如：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Service</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">UserService</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">@Transactional</span><span style="color:#f92672">(</span>propagation <span style="color:#f92672">=</span> Propagation<span style="color:#f92672">.</span><span style="color:#a6e22e">NEVER</span><span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">doSave</span><span style="color:#f92672">(</span>User user<span style="color:#f92672">){</span>
+</span></span><span style="display:flex;"><span>		saveData<span style="color:#f92672">(</span>user<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>		updateData<span style="color:#f92672">(</span>user<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><p>我们可以看到add方法的事务传播特性定义成了Propagation.NEVER，这种类型的传播特性不支持事务，如果有事务则会抛异常。</p>
+<p>目前只有三种事务传播特性才会新建事务<code>REQUIRED</code> <code>REQUIRED_NEW</code> <code>NESTED</code></p>
+<h3 id="2自己吞了异常">2.自己吞了异常</h3>
+<p>在开发过程中，有可能我们在事务中使用了try{}catch()了异常。比如：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Slf4j</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Service</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">UserService</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">@Transactional</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">add</span><span style="color:#f92672">(</span>User user<span style="color:#f92672">){</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">try</span><span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>			saveData<span style="color:#f92672">(</span>user<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>			updateData<span style="color:#f92672">(</span>user<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>Exception e<span style="color:#f92672">){</span>
+</span></span><span style="display:flex;"><span>			log<span style="color:#f92672">.</span><span style="color:#a6e22e">error</span><span style="color:#f92672">(</span>e<span style="color:#f92672">.</span><span style="color:#a6e22e">getMessage</span><span style="color:#f92672">(),</span>e<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><p>如果你的代码也是按照上述代码编写的，那么Spring事务是不会回滚的，因为开发者自己捕获了异常，同时没有手动抛出，欢聚还说就是自己把异常吞掉了。
+如果想要Spring能够正常回滚，则必须要抛出它能够处理的异常，如果没有抛出异常，Spring则会认为程序是正常的。</p>
+<h3 id="3手动抛出了别的异常">3.手动抛出了别的异常</h3>
+<p>即使开发者在编写过程中，没有手动抛出异常；但是如果出现的异常不正确，Spring事务也不会回滚。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Slf4j</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Service</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">UserService</span><span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">@Transactional</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">add</span><span style="color:#f92672">(</span>User user<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> Exception <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>			saveData<span style="color:#f92672">(</span>user<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>			updateData<span style="color:#f92672">(</span>user<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span><span style="color:#f92672">(</span>Exception e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>			log<span style="color:#f92672">.</span><span style="color:#a6e22e">error</span><span style="color:#f92672">(</span>e<span style="color:#f92672">.</span><span style="color:#a6e22e">getMessage</span><span style="color:#f92672">(),</span> e<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> Exception<span style="color:#f92672">(</span>e<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><p>上述这种情况，开发人员自己捕获了异常，又手动抛出了异常：Exception，事务同样不会回滚。因为Spring事务，默认情况下只会回滚<code>RunTimeException</code>，和<code>Error</code>(错误)，对于普通的Exception(非运行时异常)，它是不会回滚的。</p>
+<h3 id="4自定义了回滚异常">4.自定义了回滚异常</h3>
+<blockquote>
+<p>在使用@Transactional注解声明事务时，有时我们想自定义回滚的异常，spring也是支持的。可以通过设置<code>rollbackFor</code>参数，来完成这个功能。
+但如果这个参数的值设置错了，就会引出一些莫名其妙的问题，例如：</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Slf4j</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Service</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">UserService</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Transactional</span><span style="color:#f92672">(</span>rollbackFor <span style="color:#f92672">=</span> BusinessException<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">add</span><span style="color:#f92672">(</span>User user<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> Exception <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>       saveData<span style="color:#f92672">(</span>user<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>       updateData<span style="color:#f92672">(</span>user<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><p>如果在执行上面这段代码，保存和更新数据时，程序报错了，抛了SqlException、DuplicateKeyException等异常。而BusinessException是我们自定义的异常，报错的异常不属于BusinessException，所以事务也不会回滚。</p>
+<p>即使rollbackFor有默认值，但阿里巴巴开发者规范中，还是要求开发者重新指定该参数。</p>
+<p><code>rollbackFor</code>默认值为UncheckedException，包括了RuntimeException和Error.
+当我们直接使用<code>@Transactional</code>不指定<code>rollbackFor</code>时，Exception及其子类都不会触发回滚。</p>
+<p>所以，建议一般情况下，将该参数设置成：Exception或Throwable。</p>
+<h3 id="5嵌套事务回滚多了">5.嵌套事务回滚多了</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">UserService</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Autowired</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> UserMapper userMapper<span style="color:#f92672">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Autowired</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> RoleService roleService<span style="color:#f92672">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Transactional</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">add</span><span style="color:#f92672">(</span>UserModel user<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> Exception <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>        userMapper<span style="color:#f92672">.</span><span style="color:#a6e22e">insertUser</span><span style="color:#f92672">(</span>user<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>        roleService<span style="color:#f92672">.</span><span style="color:#a6e22e">doOtherThing</span><span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Service</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">RoleService</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Transactional</span><span style="color:#f92672">(</span>propagation <span style="color:#f92672">=</span> Propagation<span style="color:#f92672">.</span><span style="color:#a6e22e">NESTED</span><span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">doOtherThing</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;保存role表数据&#34;</span><span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><p>这种情况使用了嵌套的内部事务，原本是希望调用roleService.doOtherThing()方法时，如果出现了异常，只回滚doOtherThing方法里的内容，不回滚 userMapper.insertUser里的内容，即回滚保存点。但事实是，insertUser也回滚了。</p>
+<p>这是为什么呢？</p>
+<blockquote>
+<p>因为doOtherThing()方法出现了异常，没有手动捕获，会继续往上抛，到外层add方法的代理方法中捕获了异常。所以，这种情况是直接回滚了整个事务，不只回滚单个保存点。</p>
+</blockquote>
+<p>如何才能只回滚保存点呢？</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Slf4j</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Service</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">UserService</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Autowired</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> UserMapper userMapper<span style="color:#f92672">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Autowired</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> RoleService roleService<span style="color:#f92672">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Transactional</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">add</span><span style="color:#f92672">(</span>User user<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> Exception <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        userMapper<span style="color:#f92672">.</span><span style="color:#a6e22e">insertUser</span><span style="color:#f92672">(</span>userModel<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>            roleService<span style="color:#f92672">.</span><span style="color:#a6e22e">doOtherThing</span><span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>Exception e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>            log<span style="color:#f92672">.</span><span style="color:#a6e22e">error</span><span style="color:#f92672">(</span>e<span style="color:#f92672">.</span><span style="color:#a6e22e">getMessage</span><span style="color:#f92672">(),</span> e<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><p>可以将内部嵌套事务放在try/catch中，并且不继续往上抛异常。这样就能保证，如果内部嵌套事务中出现异常，只回滚内部事务，而不影响外部事务。</p>
+<p>好了以上就是整理的Spring事务在开发过程中会出现的诡异的情况。</p>
+
+    </div>
+
+    <div class="post-copyright">
+             
+            <p class="copyright-item">
+                <span>Author:</span>
+                <span>派大星 </span>
+                </p>
+            
+           
+            <p class="copyright-item">
+                    <span>Words:</span>
+                   <span>746</span>
+            </p>
+
+            <p class="copyright-item">
+                
+                <span>Share:</span>
+                <span>
+
+      
+        <a href="//twitter.com/share?url=http%3a%2f%2fvipbbo.com%2f2023%2fspring-transaction-is-not-valid%2f&amp;text=%e5%85%b3%e4%ba%8eSpring%e4%b8%ad%e4%ba%8b%e5%8a%a1%e6%9c%aa%e7%94%9f%e6%95%88%e7%9a%84%e5%9c%ba%e6%99%af&amp;via=" target="_blank" title="Share on Twitter">
+          <i class="iconfont icon-twitter"></i>
+        </a>
+        
+      
+      
+        <a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fvipbbo.com%2f2023%2fspring-transaction-is-not-valid%2f" target="_blank" title="Share on Facebook">
+          <i class="iconfont icon-facebook"></i>
+        </a>
+        
+      
+      
+      
+      
+        <a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fvipbbo.com%2f2023%2fspring-transaction-is-not-valid%2f&amp;title=%e5%85%b3%e4%ba%8eSpring%e4%b8%ad%e4%ba%8b%e5%8a%a1%e6%9c%aa%e7%94%9f%e6%95%88%e7%9a%84%e5%9c%ba%e6%99%af" target="_blank" title="Share on LinkedIn">
+          <i class="iconfont icon-linkedin"></i>
+        </a>
+        
+      
+      
+        
+      
+        
+      
+
+          
+
+          
+
+          
+
+          
+
+</span>
+                
+            </p>
+
+             
+            <p class="copyright-item">
+                Released under <a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a>
+            </p>
+            
+    </div>
+
+  
+    <div class="post-tags">
+        
+        <section>
+                <a href="javascript:window.history.back();">Back</a></span> · 
+                <span><a href="http://vipbbo.com/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav">
+        
+        <a href="http://vipbbo.com/2023/%E5%9F%BA%E4%BA%8E%E8%87%AA%E5%AE%9A%E4%B9%89%E6%95%B0%E6%8D%AE%E6%BA%90%E7%9A%84langchain%E7%9A%84%E8%81%8A%E5%A4%A9/" class="prev" rel="prev" title="基于自定义数据源的LangChain的聊天"><i class="iconfont icon-dajiantou"></i>&nbsp;基于自定义数据源的LangChain的聊天</a>
+         
+        
+        <a href="http://vipbbo.com/2023/spring-boot%E8%87%AA%E5%8A%A8%E8%A3%85%E9%85%8D%E5%8E%9F%E7%90%86/" class="next" rel="next" title="Spring Boot自动装配原理">Spring Boot自动装配原理&nbsp;<i class="iconfont icon-xiaojiantou"></i></a>
+        
+    </div>
+
+    <div class="post-comment">
+          
+          <div id="disqus_thread"></div>
+  <script type="text/javascript">
+      (function() {
+          
+          
+          if (window.location.hostname == "localhost")
+              return;
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          var disqus_shortname = 'yourdiscussshortname';
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="https://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+ 
+
+          
+    </div>
+</article>
+          </div>
+		   </main>
+      <footer class="footer">
+    <div class="copyright">
+        &copy;
+        
+        <span itemprop="copyrightYear">2023 - 2023</span>
+        
+         
+            <span class="author" itemprop="copyrightHolder"><a href="http://vipbbo.com/">派大星</a> | </span>
+         
+
+		  <span>Crafted with ❤️ by <a href="https://github.com/Fastbyte01/KeepIt" target="_blank" rel="external nofollow noopener noreffer">KeepIt</a> & <a href="https://gohugo.io/" target="_blank" rel="external nofollow noopener noreffer">Hugo</a></span>
+    </div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    <link crossorigin="anonymous" integrity="sha384-yziQACfvCVwLqVFLqkWBYRO3XeA4EqzfXKGwaWnenYn5XzqfJFlFdKEmvutIQdKb" href="https://lib.baomitu.com/lightgallery/1.10.0/css/lightgallery.min.css" rel="stylesheet">
+      
+     <script src="/js/vendor_gallery.min.js" async="" ></script>
+    
+  
+
+
+
+
+
+
+
+     </div>
+  </body>
+</html>

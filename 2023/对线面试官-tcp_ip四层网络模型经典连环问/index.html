@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noodp"/>
+  
+  
+  
+  
+  
+  <link rel="prev" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E5%90%84%E4%B8%AAmq%E7%9A%84%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%A2%98/" />
+  <link rel="next" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-mysql%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB-%E9%94%81%E6%9C%BA%E5%88%B6/" />
+  <link rel="canonical" href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-tcp_ip%E5%9B%9B%E5%B1%82%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%9E%8B%E7%BB%8F%E5%85%B8%E8%BF%9E%E7%8E%AF%E9%97%AE/" />
+  <link rel='shortcut icon' type='image/x-icon' href='/favicon.ico' />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <title>
+       
+       
+           对线面试官 - TCP_IP四层网络模型经典连环问 | 码上遇见你
+       
+  </title>
+  <meta name="title" content="对线面试官 - TCP_IP四层网络模型经典连环问 | 码上遇见你">
+    
+  
+  <link rel="stylesheet" href="/font/iconfont.css">
+  <link rel="stylesheet" href="/css/main.min.css">
+
+
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="对线面试官 - TCP_IP四层网络模型经典连环问"/>
+<meta name="twitter:description" content="面试官：TCP、IP四层模型有了解吗？可以简单说说嘛。
+派大星：主要包括数据链路层、网络层、传输层、应用层。
+面试官：可以简单聊聊什么是OSI七层网络模型吗？
+派大星：可以的，其实它和四层网络模型主要区别是多了表示层、会话层、物理层，依次顺序是应用层``表示层、会话层、传输层、网络层、数据链路层、物理层
+面试官：可以简单聊一聊各个层不同的含义，存在的意义吗？
+派大星：当然：首先来说： 从底向上的4层模型：
+物理层：所谓的物理层就是指将各个电脑直接通过某种介质(WiFi、网线)连接起来形成一个网络，这就是物理层的含义。物理层负责传输0和1的电路信号。 数据链路层：架构在物理层之上，定义一些协议，将电路信号0和1进行分组。后来统一固定为以太网协议，一组电信号就是一个数据包又叫一个帧，每帧分成两个部分，标头(head)和数据(data)，标头会包含一些说明性的东西，比如发送者接收者和数据类型等等。 数据链路层：网络交换机就是工作在该层的。网络交换机是通过MAC地址来寻址和传输数据包的；但是路由器/网关是通过IP地址寻址和传输数据包的。网络交换机主要用在局域网的通信。一般你假设一个局域网，里面的电脑通过数据链路层发送数据包，通过MAC地址来广播的，广播的时候就是通过网络交换机这个设备来吧数据广播到局域网内的其它机器上去的。路由器一般用来让你接入英特网。
+这里涉及到了以太网协议，它规定了只要接入网络的设备都必须要有一个网卡，以太网规定了，每个网卡必须包含一个Mac地址，Mac地址是这个网卡的唯一标识，唯一的Mac地址是一个48位的二进制，但是一般为了方便使用12个16进制数据表示，前6个事厂商编号，后6个16进制是网卡流水号。 然后通过广播的方式在同一个子网内进行传播。
+网络层：上面说通过广播的方式将数据包在同一个子网内传播出去，那么是确定是同一个子网、局域网呢？那这个时候就需要网络层。 在网络层中最重要的就是IP协议，IP协议可以给每个电脑定义一个IP地址(IPV4、IPV6)，范围是0.0.0.0~255.255.255.255，这里的IP地址中前24个二进制位(也就是前3组十进制的数据)中表示的是网络，后8位(最后一组十进制)代表了主机。 运算公式为：通过将两个IP地址的二进制与子网掩码的二进制进行与运算，并判断前面的3部分二进制是否一样，一样则是一个子网。否则不是一个子网/局域网
+传输层：这里有个问题是。一台机器上很多程序使用的都是一个网卡进行通信的。这些软件都是从一个网卡往外面发送数据，完后并从该网卡接收数据。如何区分不同应用软件接收的不同数据呢，此时就需要引入一个端口(范围是0~65536、0~1023被系统占用了)的概念。从上面说的我们可以发现网络层是基于IP协议进行主机间的寻址和通信的，传输层则是建立在主机的某个端口上到另外主机的某个端口上完成连接和通信的这个通信是通过socket来实现的。通过socket就可以基于tcp/ip协议完成上述所说的基于IP地址和MAC地址转换和寻址。以及通过路由进行通信然后建立一个端口到另外一个端口的连接。 TCP/UDP都是传输层的协议，作用就是在数据包里面加入端口号，可以通过端口号进行点对点通信。UDP是不可靠的。TCP是可靠的。
+应用层：通过TCP协议可以完成端口对端口的一个通信，但是通信成功后拿到的这个数据应该如何去处理，这里就涉及到了应用层。比如最常见的应用层协议就是http协议(按照什么格式封装的就需要按照什么格式去解析响应。)。进行网络通信。 派大星：总结，其实最常见的就是四层网络协议，分别是：数据链路层(以太网协议)、网络层(IP协议)、传输层(TCP协议)、应用层(http协议) 所谓的七层就是引入了物理层(网线、光缆)、会话层、表示层、应用层 这三层一个并也就是四层里的应用层了"/>
+
+  <script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BlogPosting",
+  "headline": "对线面试官 - TCP_IP四层网络模型经典连环问",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http:\/\/vipbbo.com\/2023\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-tcp_ip%E5%9B%9B%E5%B1%82%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%9E%8B%E7%BB%8F%E5%85%B8%E8%BF%9E%E7%8E%AF%E9%97%AE\/"
+  },
+  "image": {
+    "@type": "ImageObject",
+    "url": "http:\/\/vipbbo.com\/cover.png",
+    "width":  800 ,
+    "height":  600 
+  },
+  "genre": "posts",
+  
+  "wordcount":  21 ,
+  "url": "http:\/\/vipbbo.com\/2023\/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-tcp_ip%E5%9B%9B%E5%B1%82%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%9E%8B%E7%BB%8F%E5%85%B8%E8%BF%9E%E7%8E%AF%E9%97%AE\/",
+  "datePublished": "2023-01-13T23:05:22\u002b08:00",
+  "dateModified": "2023-01-13T23:05:22\u002b08:00",
+  
+  "publisher": {
+    "@type": "Organization",
+    "name": "Fastbyte01",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http:\/\/vipbbo.com\/logo.png",
+      "width":  127 ,
+      "height":  40 
+    }
+  },
+  "author": {
+    "@type": "Person",
+    "name": "派大星"
+  },
+  "description": ""
+}
+</script>
+</head>
+
+  
+
+
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4585280196682059"
+     crossorigin="anonymous"></script>
+
+
+  <body class="">
+    <div class="wrapper">
+        <nav class="navbar">
+    <div class="container">
+        <div class="navbar-header header-logo">
+        	<a href="http://vipbbo.com/">码上遇见你</a>
+        </div>
+        <div class="menu navbar-right">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+                <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;
+        </div>
+    </div>
+</nav>
+<nav class="navbar-mobile" id="nav-mobile" style="display: none">
+     <div class="container">
+        <div class="navbar-header">
+            <div>  <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-sun"></i></a>&nbsp;<a href="http://vipbbo.com/">码上遇见你</a></div>
+            <div class="menu-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+     
+          <div class="menu" id="mobile-menu">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/about" title="">About</a>
+                
+        </div>
+    </div>
+</nav>
+
+    	 <main class="main">
+          <div class="container">
+      		
+<article class="post-warp">
+    <header class="post-header">
+        <h1 class="post-title">对线面试官 - TCP_IP四层网络模型经典连环问</h1>
+        <div class="post-meta">
+            Written by <a href="http://vipbbo.com/" rel="author">派大星</a> with ♥ 
+                <span class="post-time">
+                    on <time datetime=2023-01-13 >13 January 2023</time>
+                </span>
+                in
+                
+                <i class="iconfont icon-timer"></i>
+                1 min
+        </div>
+    </header>
+    <div class="post-content">
+        
+
+        
+
+        
+        
+     
+          
+          
+          
+
+          
+          
+          
+
+          <p><strong>面试官：TCP、IP四层模型有了解吗？可以简单说说嘛。</strong></p>
+<p>派大星：主要包括<code>数据链路层</code>、<code>网络层</code>、<code>传输层</code>、<code>应用层</code>。</p>
+<p><strong>面试官：可以简单聊聊什么是OSI七层网络模型吗？</strong></p>
+<p>派大星：可以的，其实它和四层网络模型主要区别是多了<code>表示层</code>、<code>会话层</code>、<code>物理层</code>，依次顺序是<code>应用层``表示层</code>、<code>会话层</code>、<code>传输层</code>、<code>网络层</code>、<code>数据链路层</code>、<code>物理层</code></p>
+<p><strong>面试官：可以简单聊一聊各个层不同的含义，存在的意义吗？</strong></p>
+<p>派大星：当然：首先来说：
+从底向上的4层模型：</p>
+<ol>
+<li><code>物理层</code>：所谓的物理层就是指将各个电脑直接通过某种介质(WiFi、网线)连接起来形成一个网络，这就是物理层的含义。<code>物理层负责传输0和1的电路信号</code>。</li>
+<li><code>数据链路层</code>：架构在物理层之上，定义一些协议，将电路信号0和1进行分组。后来统一固定为<code>以太网协议</code>，一组电信号就是一个数据包又叫一个帧，每帧分成两个部分，<code>标头(head)</code>和<code>数据(data)</code>，标头会包含一些说明性的东西，比如发送者接收者和数据类型等等。</li>
+</ol>
+<blockquote>
+<p>数据链路层：网络交换机就是工作在该层的。网络交换机是通过MAC地址来寻址和传输数据包的；但是路由器/网关是通过IP地址寻址和传输数据包的。网络交换机主要用在局域网的通信。一般你假设一个局域网，里面的电脑通过数据链路层发送数据包，通过MAC地址来广播的，广播的时候就是通过网络交换机这个设备来吧数据广播到局域网内的其它机器上去的。路由器一般用来让你接入英特网。</p>
+</blockquote>
+<blockquote>
+<p>这里涉及到了<code>以太网协议</code>，它规定了只要接入网络的设备都必须要有一个<code>网卡</code>，以太网规定了，<code>每个网卡必须包含一个Mac地址，Mac地址是这个网卡的唯一标识</code>，唯一的Mac地址是一个48位的二进制，但是一般为了方便使用12个16进制数据表示，前6个事厂商编号，后6个16进制是网卡流水号。
+然后通过广播的方式在同一个子网内进行传播。</p>
+</blockquote>
+<ol start="3">
+<li><code>网络层</code>：上面说通过广播的方式将数据包在同一个子网内传播出去，那么是确定是同一个子网、局域网呢？那这个时候就需要网络层。</li>
+</ol>
+<blockquote>
+<p>在网络层中最重要的就是IP协议，IP协议可以给每个电脑定义一个IP地址(IPV4、IPV6)，范围是0.0.0.0~255.255.255.255，这里的IP地址中前24个二进制位(也就是前3组十进制的数据)中表示的是网络，后8位(最后一组十进制)代表了主机。
+运算公式为：通过将两个IP地址的二进制与子网掩码的二进制进行与运算，并判断前面的3部分二进制是否一样，一样则是一个子网。否则不是一个子网/局域网</p>
+</blockquote>
+<ol start="4">
+<li><code>传输层</code>：这里有个问题是。一台机器上很多程序使用的都是一个网卡进行通信的。这些软件都是从一个网卡往外面发送数据，完后并从该网卡接收数据。如何区分不同应用软件接收的不同数据呢，此时就需要引入一个端口(范围是0~65536、0~1023被系统占用了)的概念。从上面说的我们可以发现<code>网络层是基于IP协议进行主机间的寻址和通信的</code>，<code>传输层则是建立在主机的某个端口上到另外主机的某个端口上完成连接和通信的</code><strong>这个通信是通过socket来实现的。通过socket就可以基于tcp/ip协议完成上述所说的基于IP地址和MAC地址转换和寻址。以及通过路由进行通信然后建立一个端口到另外一个端口的连接。</strong></li>
+</ol>
+<blockquote>
+<p>TCP/UDP都是传输层的协议，作用就是在数据包里面加入端口号，可以通过端口号进行点对点通信。UDP是不可靠的。TCP是可靠的。</p>
+</blockquote>
+<ol start="5">
+<li><code>应用层</code>：通过TCP协议可以完成端口对端口的一个通信，但是通信成功后拿到的这个数据应该如何去处理，这里就涉及到了应用层。比如<code>最常见的应用层协议就是http协议(按照什么格式封装的就需要按照什么格式去解析响应。)</code>。进行网络通信。</li>
+</ol>
+<p>派大星：总结，其实最常见的就是四层网络协议，分别是：<code>数据链路层(以太网协议)</code>、<code>网络层(IP协议)</code>、<code>传输层(TCP协议)</code>、<code>应用层(http协议)</code>
+所谓的七层就是引入了<code>物理层(网线、光缆)</code>、<code>会话层</code>、<code>表示层</code>、应用层 这三层一个并也就是四层里的应用层了</p>
+<hr>
+
+    </div>
+
+    <div class="post-copyright">
+             
+            <p class="copyright-item">
+                <span>Author:</span>
+                <span>派大星 </span>
+                </p>
+            
+           
+            <p class="copyright-item">
+                    <span>Words:</span>
+                   <span>21</span>
+            </p>
+
+            <p class="copyright-item">
+                
+                <span>Share:</span>
+                <span>
+
+      
+        <a href="//twitter.com/share?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-tcp_ip%25E5%259B%259B%25E5%25B1%2582%25E7%25BD%2591%25E7%25BB%259C%25E6%25A8%25A1%25E5%259E%258B%25E7%25BB%258F%25E5%2585%25B8%25E8%25BF%259E%25E7%258E%25AF%25E9%2597%25AE%2f&amp;text=%e5%af%b9%e7%ba%bf%e9%9d%a2%e8%af%95%e5%ae%98%20-%20TCP_IP%e5%9b%9b%e5%b1%82%e7%bd%91%e7%bb%9c%e6%a8%a1%e5%9e%8b%e7%bb%8f%e5%85%b8%e8%bf%9e%e7%8e%af%e9%97%ae&amp;via=" target="_blank" title="Share on Twitter">
+          <i class="iconfont icon-twitter"></i>
+        </a>
+        
+      
+      
+        <a href="//www.facebook.com/sharer/sharer.php?u=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-tcp_ip%25E5%259B%259B%25E5%25B1%2582%25E7%25BD%2591%25E7%25BB%259C%25E6%25A8%25A1%25E5%259E%258B%25E7%25BB%258F%25E5%2585%25B8%25E8%25BF%259E%25E7%258E%25AF%25E9%2597%25AE%2f" target="_blank" title="Share on Facebook">
+          <i class="iconfont icon-facebook"></i>
+        </a>
+        
+      
+      
+      
+      
+        <a href="//www.linkedin.com/shareArticle?url=http%3a%2f%2fvipbbo.com%2f2023%2f%25E5%25AF%25B9%25E7%25BA%25BF%25E9%259D%25A2%25E8%25AF%2595%25E5%25AE%2598-tcp_ip%25E5%259B%259B%25E5%25B1%2582%25E7%25BD%2591%25E7%25BB%259C%25E6%25A8%25A1%25E5%259E%258B%25E7%25BB%258F%25E5%2585%25B8%25E8%25BF%259E%25E7%258E%25AF%25E9%2597%25AE%2f&amp;title=%e5%af%b9%e7%ba%bf%e9%9d%a2%e8%af%95%e5%ae%98%20-%20TCP_IP%e5%9b%9b%e5%b1%82%e7%bd%91%e7%bb%9c%e6%a8%a1%e5%9e%8b%e7%bb%8f%e5%85%b8%e8%bf%9e%e7%8e%af%e9%97%ae" target="_blank" title="Share on LinkedIn">
+          <i class="iconfont icon-linkedin"></i>
+        </a>
+        
+      
+      
+        
+      
+        
+      
+
+          
+
+          
+
+          
+
+          
+
+</span>
+                
+            </p>
+
+             
+            <p class="copyright-item">
+                Released under <a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a>
+            </p>
+            
+    </div>
+
+  
+    <div class="post-tags">
+        
+        <section>
+                <a href="javascript:window.history.back();">Back</a></span> · 
+                <span><a href="http://vipbbo.com/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav">
+        
+        <a href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-%E5%90%84%E4%B8%AAmq%E7%9A%84%E7%BB%8F%E5%85%B8%E9%9D%A2%E8%AF%95%E9%A2%98/" class="prev" rel="prev" title="对线面试官 - 各个MQ的经典面试题"><i class="iconfont icon-dajiantou"></i>&nbsp;对线面试官 - 各个MQ的经典面试题</a>
+         
+        
+        <a href="http://vipbbo.com/2023/%E5%AF%B9%E7%BA%BF%E9%9D%A2%E8%AF%95%E5%AE%98-mysql%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB-%E9%94%81%E6%9C%BA%E5%88%B6/" class="next" rel="next" title="对线面试官 - MySQL隔离级别 锁机制">对线面试官 - MySQL隔离级别 锁机制&nbsp;<i class="iconfont icon-xiaojiantou"></i></a>
+        
+    </div>
+
+    <div class="post-comment">
+          
+          <div id="disqus_thread"></div>
+  <script type="text/javascript">
+      (function() {
+          
+          
+          if (window.location.hostname == "localhost")
+              return;
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          var disqus_shortname = 'yourdiscussshortname';
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="https://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+ 
+
+          
+    </div>
+</article>
+          </div>
+		   </main>
+      <footer class="footer">
+    <div class="copyright">
+        &copy;
+        
+        <span itemprop="copyrightYear">2023 - 2023</span>
+        
+         
+            <span class="author" itemprop="copyrightHolder"><a href="http://vipbbo.com/">派大星</a> | </span>
+         
+
+		  <span>Crafted with ❤️ by <a href="https://github.com/Fastbyte01/KeepIt" target="_blank" rel="external nofollow noopener noreffer">KeepIt</a> & <a href="https://gohugo.io/" target="_blank" rel="external nofollow noopener noreffer">Hugo</a></span>
+    </div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
+    <script src="/js/vendor_no_gallery.min.js" async=""></script>
+    
+  
+
+
+
+
+
+
+
+     </div>
+  </body>
+</html>
